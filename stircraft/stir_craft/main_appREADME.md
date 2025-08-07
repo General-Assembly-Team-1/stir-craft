@@ -55,6 +55,26 @@ Welcome to the main app folder for Stir Craft! This document outlines the steps 
 - Ensure all tests pass and code follows team conventions.
 - Only merge after approval.
 
+## Keeping Your Local Repo Up to Date
+
+To make sure your local repository stays current with the latest changes from the remote (cloud) repository:
+
+1. **Fetch and merge the latest changes from main:**
+   ```bash
+   git checkout main
+   git pull origin main
+   ```
+2. **Switch back to your personal branch and rebase (or merge) main into it:**
+   ```bash
+   git checkout <your-branch-name>
+   git rebase main
+   # or, if you prefer merging:
+   git merge main
+   ```
+3. **Resolve any conflicts, test your code, and continue working.**
+
+Keeping your branch up to date helps avoid merge conflicts and ensures you’re working with the latest code.
+
 ## Additional Notes
 
 - Refer to the main project README for deployment and environment details.
