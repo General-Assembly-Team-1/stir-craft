@@ -101,6 +101,30 @@ To make sure your local repository stays current with the latest changes from th
 
 Keeping your branch up to date helps avoid merge conflicts and ensures you’re working with the latest code.
 
+## Branch Update Utility
+
+To ensure your local repository stays up to date and avoid merge conflicts, use the `update_branches_team.sh` script before committing changes:
+
+1. **Run the script:**
+   ```bash
+   ./update_branches_team.sh
+   ```
+   - This script will fetch the latest changes from the remote repository and update all local branches.
+   - Replace `/path/to/your/local/stir-craft` in the script with your local repository path if needed.
+
+2. **Verify updates:**
+   - Ensure your branch is up to date with `main`.
+   - Resolve any conflicts if they arise.
+
+3. **Switch back to your feature branch:**
+   - The script ends with your repository on the `main` branch.
+   - Use the following command to return to your feature branch:
+     ```bash
+     git checkout <your-branch-name>
+     ```
+
+By running this utility regularly, you can maintain consistency across team workflows and minimize conflicts during development.
+
 ## Additional Notes
 
 - Refer to the main project README for deployment and environment details.
