@@ -2,6 +2,8 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from .models import Profile
+from datetime import date
 
 # Import your models here once they're created
 # from .models import Ingredient, Recipe, DrinkCategory, etc.
@@ -171,6 +173,29 @@ class UserInteractionModelTest(BaseModelTest):
         # This test will verify user-recipe relationships once models exist
         self.assertEqual(self.test_user.username, 'bartender_test')
         self.assertTrue(True, "User interaction tests ready for implementation")
+
+
+class ProfileModelTest(TestCase):
+    """
+    Test class for Profile model functionality.
+    """
+    
+    def setUp(self):
+        self.user = User.objects.create(username="testuser")
+
+    def test_profile_age_validation(self):
+        """Test that ValidationError is raised for users under 21."""
+        profile = Profile(user=self.user, birthdate=date(2010, 8, 10))
+        with self.assertRaises(ValidationError):
+            profile.clean()
+
+    def test_profile_valid_age(self):
+        """Test that no ValidationError is raised for users 21 or older."""
+        profile = Profile(user=self.user, birthdate=date(2000, 8, 10))
+        try:
+            profile.clean()
+        except ValidationError:
+            self.fail("ValidationError raised for valid age.")
 
 
 # =============================================================================
