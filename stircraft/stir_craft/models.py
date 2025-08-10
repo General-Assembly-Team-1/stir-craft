@@ -118,7 +118,7 @@ class Profile(models.Model):
 # class Cocktail(models.Model):
 #     """
 #     Main cocktail recipe model containing name, instructions, and metadata.
-#     Connected to ingredients via CocktailIngredient join table.
+#     Connected to ingredients via RecipeComponent join table.
 #     """
 #     DIFFICULTY_CHOICES = [
 #         ('easy', 'Easy'),
@@ -133,7 +133,7 @@ class Profile(models.Model):
 #     # Relationships
 #     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_cocktails')
 #     vessel = models.ForeignKey('Vessel', on_delete=models.SET_NULL, null=True, blank=True)
-#     ingredients = models.ManyToManyField('Ingredient', through='CocktailIngredient')
+#     ingredients = models.ManyToManyField('Ingredient', through='RecipeComponent')
 #     
 #     # Metadata
 #     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES, default='easy')
@@ -156,7 +156,7 @@ class Profile(models.Model):
 #     
 #     def get_total_volume(self):
 #         """Calculate total volume of all ingredients."""
-#         # Implementation will sum all CocktailIngredient amounts
+#         # Implementation will sum all RecipeComponent amounts
 #         pass
 #     
 #     def get_alcohol_content(self):
@@ -169,47 +169,51 @@ class Profile(models.Model):
 #         unique_together = ['name', 'creator']  # Allow same name for different creators
 
 
-# TODO: Implement CocktailIngredient join table
-# class CocktailIngredient(models.Model):
-#     """
-#     Join table connecting Cocktails to Ingredients with amount/unit information.
-#     Enables precise recipe measurements and optional preparation notes.
-#     """
-#     UNIT_CHOICES = [
-#         ('oz', 'Ounces'),
-#         ('ml', 'Milliliters'),
-#         ('tsp', 'Teaspoon'),
-#         ('tbsp', 'Tablespoon'),
-#         ('dash', 'Dash'),
-#         ('splash', 'Splash'),
-#         ('pinch', 'Pinch'),
-#         ('piece', 'Piece'),
-#         ('slice', 'Slice'),
-#         ('wedge', 'Wedge'),
-#         ('sprig', 'Sprig'),
-#     ]
-#     
-#     cocktail = models.ForeignKey('Cocktail', on_delete=models.CASCADE)
-#     ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE)
-#     
-#     amount = models.FloatField(help_text="Amount of ingredient")
-#     unit = models.CharField(max_length=10, choices=UNIT_CHOICES)
-#     notes = models.CharField(
-#         max_length=200, 
-#         blank=True,
-#         help_text="Optional preparation notes (e.g., 'muddled', 'expressed')"
-#     )
-#     order = models.PositiveIntegerField(
-#         default=0,
-#         help_text="Order of addition (0 = first)"
-#     )
-#     
-#     def __str__(self):
-#         return f"{self.amount} {self.unit} {self.ingredient.name}"
-#     
-#     class Meta:
-#         ordering = ['order', 'ingredient__name']
-#         unique_together = ['cocktail', 'ingredient']  # Prevent duplicate ingredients
+class RecipeComponent(models.Model):
+    """
+    Join table connecting Cocktails to Ingredients with amount/unit information.
+    Enables precise recipe measurements and optional preparation notes.
+    """
+    UNIT_CHOICES = [
+        ('oz', 'Ounces'),
+        ('ml', 'Milliliters'),
+        ('tsp', 'Teaspoon'),
+        ('tbsp', 'Tablespoon'),
+        ('dash', 'Dash'),
+        ('splash', 'Splash'),
+        ('pinch', 'Pinch'),
+        ('piece', 'Piece'),
+        ('slice', 'Slice'),
+        ('wedge', 'Wedge'),
+        ('sprig', 'Sprig'),
+    ]
+    
+    cocktail = models.ForeignKey('Cocktail', on_delete=models.CASCADE, related_name='components')
+    ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE)
+    
+    amount = models.DecimalField(max_digits=5, decimal_places=2, help_text="Amount of ingredient")
+    unit = models.CharField(max_length=20, choices=UNIT_CHOICES)
+    preparation_note = models.CharField(
+        max_length=200, 
+        blank=True,
+        help_text="Optional preparation notes (e.g., 'muddled', 'expressed')"
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        help_text="Order of addition (0 = first)"
+    )
+    
+    @property
+    def non_alcoholic(self):
+        """Returns True if this ingredient contains no alcohol (ABV = 0)."""
+        return self.ingredient.alcohol_content == 0
+    
+    def __str__(self):
+        return f"{self.amount} {self.unit} {self.ingredient.name} in {self.cocktail.name}"
+    
+    class Meta:
+        ordering = ['order', 'ingredient__name']
+        unique_together = ['cocktail', 'ingredient']  # Prevent duplicate ingredients
 
 
 # =============================================================================
