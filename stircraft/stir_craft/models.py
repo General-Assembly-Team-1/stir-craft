@@ -120,11 +120,6 @@ class Profile(models.Model):
 #     Main cocktail recipe model containing name, instructions, and metadata.
 #     Connected to ingredients via RecipeComponent join table.
 #     """
-#     DIFFICULTY_CHOICES = [
-#         ('easy', 'Easy'),
-#         ('medium', 'Medium'),
-#         ('hard', 'Hard'),
-#     ]
 #     
 #     name = models.CharField(max_length=200)
 #     description = models.TextField(blank=True)
@@ -136,8 +131,7 @@ class Profile(models.Model):
 #     ingredients = models.ManyToManyField('Ingredient', through='RecipeComponent')
 #     
 #     # Metadata
-#     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES, default='easy')
-#     prep_time_minutes = models.IntegerField(default=5, help_text="Preparation time in minutes")
+#     
 #     is_alcoholic = models.BooleanField(default=True)
 #     color = models.CharField(max_length=20, blank=True, help_text="Cocktail color for filtering")
 #     
@@ -220,39 +214,35 @@ class RecipeComponent(models.Model):
 # 📁 LIST MODELS
 # =============================================================================
 
-# TODO: Implement List model
-# class List(models.Model):
-#     """
-#     User-created collections of cocktails.
-#     Examples: "Summer Favorites", "Date Night Drinks", "Low-ABV Options"
-#     """
-#     VISIBILITY_CHOICES = [
-#         ('private', 'Private'),
-#         ('public', 'Public'),
-#         ('friends', 'Friends Only'),
-#     ]
-#     
-#     name = models.CharField(max_length=100)
-#     description = models.TextField(blank=True)
-#     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_lists')
-#     cocktails = models.ManyToManyField('Cocktail', blank=True, related_name='in_lists')
-#     
-#     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='private')
-#     is_featured = models.BooleanField(default=False, help_text="Admin-curated featured list")
-#     
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-#     
-#     def __str__(self):
-#         return f"{self.name} by {self.creator.username}"
-#     
-#     def cocktail_count(self):
-#         """Return number of cocktails in this list."""
-#         return self.cocktails.count()
-#     
-#     class Meta:
-#         ordering = ['-updated_at']
-#         unique_together = ['name', 'creator']  # Allow same name for different creators
+class List(models.Model):
+    """
+    User-created collections of cocktails.
+    Examples: "Favorites", "Summer Favorites", "Date Night Drinks", "Low-ABV Options"
+    """
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_lists')
+    cocktails = models.ManyToManyField('Cocktail', blank=True, related_name='in_lists')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} by {self.creator.username}"
+
+    def cocktail_count(self):
+        """Return number of cocktails in this list."""
+        return self.cocktails.count()
+
+    @staticmethod
+    def create_default_list(user):
+        """Create a default 'Favorites' list for a new user."""
+        return List.objects.create(name="Favorites", description="Your favorite recipes", creator=user)
+
+    class Meta:
+        ordering = ['-updated_at']
+         # Allow same name for different creators
+        unique_together = ['name', 'creator'] 
 
 
 # =============================================================================
