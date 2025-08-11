@@ -118,13 +118,8 @@ class Profile(models.Model):
 # class Cocktail(models.Model):
 #     """
 #     Main cocktail recipe model containing name, instructions, and metadata.
-#     Connected to ingredients via CocktailIngredient join table.
+#     Connected to ingredients via RecipeComponent join table.
 #     """
-#     DIFFICULTY_CHOICES = [
-#         ('easy', 'Easy'),
-#         ('medium', 'Medium'),
-#         ('hard', 'Hard'),
-#     ]
 #     
 #     name = models.CharField(max_length=200)
 #     description = models.TextField(blank=True)
@@ -133,11 +128,10 @@ class Profile(models.Model):
 #     # Relationships
 #     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_cocktails')
 #     vessel = models.ForeignKey('Vessel', on_delete=models.SET_NULL, null=True, blank=True)
-#     ingredients = models.ManyToManyField('Ingredient', through='CocktailIngredient')
+#     ingredients = models.ManyToManyField('Ingredient', through='RecipeComponent')
 #     
 #     # Metadata
-#     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES, default='easy')
-#     prep_time_minutes = models.IntegerField(default=5, help_text="Preparation time in minutes")
+#     
 #     is_alcoholic = models.BooleanField(default=True)
 #     color = models.CharField(max_length=20, blank=True, help_text="Cocktail color for filtering")
 #     
@@ -156,7 +150,7 @@ class Profile(models.Model):
 #     
 #     def get_total_volume(self):
 #         """Calculate total volume of all ingredients."""
-#         # Implementation will sum all CocktailIngredient amounts
+#         # Implementation will sum all RecipeComponent amounts
 #         pass
 #     
 #     def get_alcohol_content(self):
@@ -169,86 +163,86 @@ class Profile(models.Model):
 #         unique_together = ['name', 'creator']  # Allow same name for different creators
 
 
-# TODO: Implement CocktailIngredient join table
-# class CocktailIngredient(models.Model):
-#     """
-#     Join table connecting Cocktails to Ingredients with amount/unit information.
-#     Enables precise recipe measurements and optional preparation notes.
-#     """
-#     UNIT_CHOICES = [
-#         ('oz', 'Ounces'),
-#         ('ml', 'Milliliters'),
-#         ('tsp', 'Teaspoon'),
-#         ('tbsp', 'Tablespoon'),
-#         ('dash', 'Dash'),
-#         ('splash', 'Splash'),
-#         ('pinch', 'Pinch'),
-#         ('piece', 'Piece'),
-#         ('slice', 'Slice'),
-#         ('wedge', 'Wedge'),
-#         ('sprig', 'Sprig'),
-#     ]
-#     
-#     cocktail = models.ForeignKey('Cocktail', on_delete=models.CASCADE)
-#     ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE)
-#     
-#     amount = models.FloatField(help_text="Amount of ingredient")
-#     unit = models.CharField(max_length=10, choices=UNIT_CHOICES)
-#     notes = models.CharField(
-#         max_length=200, 
-#         blank=True,
-#         help_text="Optional preparation notes (e.g., 'muddled', 'expressed')"
-#     )
-#     order = models.PositiveIntegerField(
-#         default=0,
-#         help_text="Order of addition (0 = first)"
-#     )
-#     
-#     def __str__(self):
-#         return f"{self.amount} {self.unit} {self.ingredient.name}"
-#     
-#     class Meta:
-#         ordering = ['order', 'ingredient__name']
-#         unique_together = ['cocktail', 'ingredient']  # Prevent duplicate ingredients
+class RecipeComponent(models.Model):
+    """
+    Join table connecting Cocktails to Ingredients with amount/unit information.
+    Enables precise recipe measurements and optional preparation notes.
+    """
+    UNIT_CHOICES = [
+        ('oz', 'Ounces'),
+        ('ml', 'Milliliters'),
+        ('tsp', 'Teaspoon'),
+        ('tbsp', 'Tablespoon'),
+        ('dash', 'Dash'),
+        ('splash', 'Splash'),
+        ('pinch', 'Pinch'),
+        ('piece', 'Piece'),
+        ('slice', 'Slice'),
+        ('wedge', 'Wedge'),
+        ('sprig', 'Sprig'),
+    ]
+    
+    cocktail = models.ForeignKey('Cocktail', on_delete=models.CASCADE, related_name='components')
+    ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE)
+    
+    amount = models.DecimalField(max_digits=5, decimal_places=2, help_text="Amount of ingredient")
+    unit = models.CharField(max_length=20, choices=UNIT_CHOICES)
+    preparation_note = models.CharField(
+        max_length=200, 
+        blank=True,
+        help_text="Optional preparation notes (e.g., 'muddled', 'expressed')"
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        help_text="Order of addition (0 = first)"
+    )
+    
+    @property
+    def non_alcoholic(self):
+        """Returns True if this ingredient contains no alcohol (ABV = 0)."""
+        return self.ingredient.alcohol_content == 0
+    
+    def __str__(self):
+        return f"{self.amount} {self.unit} {self.ingredient.name} in {self.cocktail.name}"
+    
+    class Meta:
+        ordering = ['order', 'ingredient__name']
+        unique_together = ['cocktail', 'ingredient']  # Prevent duplicate ingredients
 
 
 # =============================================================================
 # 📁 LIST MODELS
 # =============================================================================
 
-# TODO: Implement List model
-# class List(models.Model):
-#     """
-#     User-created collections of cocktails.
-#     Examples: "Summer Favorites", "Date Night Drinks", "Low-ABV Options"
-#     """
-#     VISIBILITY_CHOICES = [
-#         ('private', 'Private'),
-#         ('public', 'Public'),
-#         ('friends', 'Friends Only'),
-#     ]
-#     
-#     name = models.CharField(max_length=100)
-#     description = models.TextField(blank=True)
-#     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_lists')
-#     cocktails = models.ManyToManyField('Cocktail', blank=True, related_name='in_lists')
-#     
-#     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='private')
-#     is_featured = models.BooleanField(default=False, help_text="Admin-curated featured list")
-#     
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-#     
-#     def __str__(self):
-#         return f"{self.name} by {self.creator.username}"
-#     
-#     def cocktail_count(self):
-#         """Return number of cocktails in this list."""
-#         return self.cocktails.count()
-#     
-#     class Meta:
-#         ordering = ['-updated_at']
-#         unique_together = ['name', 'creator']  # Allow same name for different creators
+class List(models.Model):
+    """
+    User-created collections of cocktails.
+    Examples: "Favorites", "Summer Favorites", "Date Night Drinks", "Low-ABV Options"
+    """
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_lists')
+    cocktails = models.ManyToManyField('Cocktail', blank=True, related_name='in_lists')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} by {self.creator.username}"
+
+    def cocktail_count(self):
+        """Return number of cocktails in this list."""
+        return self.cocktails.count()
+
+    @staticmethod
+    def create_default_list(user):
+        """Create a default 'Favorites' list for a new user."""
+        return List.objects.create(name="Favorites", description="Your favorite recipes", creator=user)
+
+    class Meta:
+        ordering = ['-updated_at']
+         # Allow same name for different creators
+        unique_together = ['name', 'creator'] 
 
 
 # =============================================================================
