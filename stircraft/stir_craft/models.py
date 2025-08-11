@@ -185,6 +185,66 @@ class Vessel(models.Model):
 
 
 
+
+class Cocktail(models.Model):
+ 
+
+
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    instructions = models.TextField(help_text="Step-by-step preparation instructions")
+
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_cocktails')
+    vessel = models.ForeignKey('Vessel', on_delete=models.SET_NULL, null=True, blank=True)
+    ingredients = models.ManyToManyField('Ingredient', through='RecipeComponent')
+
+   
+    is_alcoholic = models.BooleanField(default=True)
+    color = models.CharField(max_length=20, blank=True, help_text="Cocktail color for filtering")
+
+ 
+    vibe_tags = TaggableManager(
+        help_text="Vibes like tropical, cozy, party, etc.",
+        blank=True
+    )
+
+   
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    def get_total_volume(self):
+        """Calculate total volume of all ingredients."""
+        total_volume = sum(
+            rc.amount for rc in self.recipecomponent_set.all()
+            if rc.amount
+        )
+        return total_volume
+
+    def get_alcohol_content(self):
+        """Calculate estimated ABV of the cocktail."""
+        components = self.recipecomponent_set.all()
+        total_volume = sum(rc.amount for rc in components if rc.amount)
+        if total_volume == 0:
+            return 0
+        total_alcohol = sum(
+            (rc.amount * (rc.ingredient.abv or 0) / 100)
+            for rc in components if rc.amount and rc.ingredient.abv
+        )
+        return round((total_alcohol / total_volume) * 100, 2)
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ['name', 'creator'] 
+
+
+# Recipe Models
+
+
+
+
 class RecipeComponent(models.Model):
     """
     Join table connecting Cocktails to Ingredients with amount/unit information.
