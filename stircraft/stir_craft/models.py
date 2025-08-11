@@ -81,6 +81,16 @@ class Profile(models.Model):
 #     
 #     class Meta:
 #         ordering = ['name']
+# Ingredient Model
+class Ingredient(models.Model):
+    name = models.CharField(max_length=100)
+    type = models.CharField(max_length=100)
+    flavor = models.CharField(max_length=100)
+    abv = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  
+    created_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.type})"
 
 
 # =============================================================================
@@ -108,6 +118,17 @@ class Profile(models.Model):
 #     
 #     class Meta:
 #         ordering = ['name']
+
+# Vessel Model
+class Vessel(models.Model):
+    name = models.CharField(max_length=100)
+    volume = models.DecimalField(max_digits=10, decimal_places=2)  
+    material = models.CharField(max_length=100)
+    stemmed = models.BooleanField(default=False)  
+    created_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
 
 
 # =============================================================================
@@ -161,6 +182,7 @@ class Profile(models.Model):
 #     class Meta:
 #         ordering = ['-created_at']
 #         unique_together = ['name', 'creator']  # Allow same name for different creators
+
 
 
 class RecipeComponent(models.Model):
