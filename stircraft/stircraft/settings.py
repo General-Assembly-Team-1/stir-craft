@@ -31,7 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'stir_craft'
+    'stir_craft',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

@@ -4,6 +4,8 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from .models import Profile
 from datetime import date
+from django.urls import reverse
+from django.test import Client
 
 # Import your models here once they're created
 # from .models import Ingredient, Recipe, DrinkCategory, etc.
@@ -297,3 +299,72 @@ class PerformanceTest(TestCase):
 #    should have corresponding tests.
 #
 # =============================================================================
+
+class ProfileViewTest(TestCase):
+    """
+    Test class for profile-related views.
+    """
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@example.com',
+            password='password123'
+        )
+        self.profile = Profile.objects.create(
+            user=self.user,
+            birthdate=date(2000, 8, 10)
+        )
+
+    def test_profile_detail_current_user(self):
+        """Test that profile detail view displays the current user's profile."""
+        self.client.login(username='testuser', password='password123')
+        response = self.client.get(reverse('profile_detail'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.user.username)
+
+    def test_profile_detail_specific_user(self):
+        """Test that profile detail view displays a specific user's profile."""
+        other_user = User.objects.create_user(
+            username='otheruser',
+            email='otheruser@example.com',
+            password='password123'
+        )
+        other_profile = Profile.objects.create(
+            user=other_user,
+            birthdate=date(1990, 1, 1)
+        )
+        response = self.client.get(reverse('profile_detail', args=[other_user.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, other_user.username)
+
+    def test_profile_update_valid_submission(self):
+        """Test that profile update view successfully updates the profile."""
+        self.client.login(username='testuser', password='password123')
+        response = self.client.post(reverse('profile_update'), {
+            'birthdate': '1999-01-01'
+        })
+        self.assertEqual(response.status_code, 302)  # Redirect after success
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.birthdate, date(1999, 1, 1))
+
+    def test_profile_update_invalid_submission(self):
+        """Test that profile update view handles invalid submissions gracefully."""
+        self.client.login(username='testuser', password='password123')
+        response = self.client.post(reverse('profile_update'), {
+            'birthdate': 'invalid-date'
+        })
+        self.assertEqual(response.status_code, 200)  # Stay on the form page
+        self.assertContains(response, 'Please correct the errors below.')
+
+class GeneralViewTest(TestCase):
+    """
+    Test class for general views.
+    """
+
+    def test_home_view(self):
+        """Test that the home view renders the correct template."""
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'stir_craft/home.html')
