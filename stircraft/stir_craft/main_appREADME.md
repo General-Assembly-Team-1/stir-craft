@@ -1,6 +1,61 @@
 # Stir Craft – Internal Development Guide
 
-Welcome to the main app folder for Stir Craft! This document outlines the steps and best practices for developing our cocktail and mocktail app.
+Welcome to the main app## Development Guidelines
+
+- Add new models, views, and templates inside `stir_craft/`.
+- Use Django's app structure for scalability.
+- Static files (images, CSS, JS) go in `stir_craft/static/`.
+- Write tests in `stir_craft/tests.py`.
+- Run tests before pushing:
+  ```bash
+  python manage.py test
+  ```
+
+## Data Management
+
+### Using the Cocktail Import Command
+The `seed_from_thecocktaildb` management command provides flexible options for importing cocktail data:
+
+```bash
+# Import a small test batch for development
+python manage.py seed_from_thecocktaildb --limit 10
+
+# Import from specific letters (useful for testing)
+python manage.py seed_from_thecocktaildb --letters abc --limit 20
+
+# Import a larger dataset for staging
+python manage.py seed_from_thecocktaildb --limit 100
+
+# Clear existing data and start fresh
+python manage.py seed_from_thecocktaildb --clear --limit 25
+```
+
+### What the Import Does
+- Fetches cocktail data from TheCocktailDB API
+- Creates `Cocktail`, `Ingredient`, `Vessel`, and `RecipeComponent` records
+- Intelligently categorizes ingredients (spirits, liqueurs, mixers, etc.)
+- Parses measurements from text to structured data
+- Adds flavor tags for filtering and search
+- Provides comprehensive progress reporting
+
+### Command Options
+- `--limit N`: Import maximum N cocktails
+- `--letters abc`: Only search letters a, b, c (useful for testing)
+- `--clear`: Clear existing cocktail data before importing
+- Default behavior: Import ALL available cocktails (500+)r Stir Craft! This document outlines the steps and best practices for developing our cocktail and mocktail app.
+
+## 🚀 Recent Updates
+
+### API Integration & Database Seeding
+- **TheCocktailDB API Integration**: Added comprehensive data seeding from a reliable cocktail API
+- **PostgreSQL Configuration**: Database configured with proper authentication and optimization
+- **Management Commands**: Custom Django commands for data import and maintenance
+- **Intelligent Data Processing**: Automated categorization and parsing of cocktail data
+
+### Management Commands
+- `seed_from_thecocktaildb`: Import cocktail data with intelligent processing
+- Comprehensive error handling and progress reporting
+- Flexible options for testing and production use
 
 ## Project Structure
 
@@ -29,11 +84,24 @@ Welcome to the main app folder for Stir Craft! This document outlines the steps 
    ```bash
    pipenv shell
    ```
-4. **Apply migrations**:
+4. **Ensure PostgreSQL is running** and database is configured (see main README.md).
+5. **Navigate to the Django project**:
+   ```bash
+   cd stircraft
+   ```
+6. **Apply migrations**:
    ```bash
    python manage.py migrate
    ```
-5. **Run the development server**:
+7. **Seed the database with cocktail data**:
+   ```bash
+   python manage.py seed_from_thecocktaildb --limit 10
+   ```
+8. **Create a superuser** (optional):
+   ```bash
+   python manage.py createsuperuser
+   ```
+9. **Run the development server**:
    ```bash
    python manage.py runserver
    ```
