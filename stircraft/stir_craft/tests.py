@@ -102,11 +102,14 @@ class VesselModelTest(BaseModelTest):
         """
         vessel = Vessel.objects.create(
             name="Highball Glass",
-            description="A tall glass used for cocktails",
-            capacity=300.0  # Capacity in milliliters
+            volume=300.0,  # Capacity in milliliters
+            material="Glass",
+            stemmed=False
         )
         self.assertEqual(vessel.name, "Highball Glass")
-        self.assertEqual(vessel.capacity, 300.0)
+        self.assertEqual(vessel.volume, 300.0)
+        self.assertEqual(vessel.material, "Glass")
+        self.assertFalse(vessel.stemmed)
         self.assertEqual(str(vessel), "Highball Glass")
 
     def test_vessel_validation(self):
@@ -114,7 +117,7 @@ class VesselModelTest(BaseModelTest):
         Test model validation and constraints.
         """
         with self.assertRaises(ValidationError):
-            invalid_vessel = Vessel(name="", capacity=-100.0)
+            invalid_vessel = Vessel(name="", volume=-100.0, material="Glass", stemmed=False)
             invalid_vessel.full_clean()  # Triggers model validation
 
         self.assertTrue(True, "Vessel validation tests ready for implementation")

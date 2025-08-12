@@ -300,7 +300,7 @@ class Cocktail(models.Model):
         Iterates through RecipeComponent objects linked to this cocktail.
         """
         total_volume = sum(
-            rc.amount for rc in self.recipecomponent_set.all()
+            float(rc.amount) for rc in self.components.all()
             if rc.amount  # Ensures amount is not None
         )
         return total_volume
@@ -310,12 +310,12 @@ class Cocktail(models.Model):
         Calculate estimated ABV (Alcohol By Volume) of the cocktail.
         Uses a weighted average based on ingredient alcohol content and amounts.
         """
-        components = self.recipecomponent_set.all()
-        total_volume = sum(rc.amount for rc in components if rc.amount)
+        components = self.components.all()
+        total_volume = sum(float(rc.amount) for rc in components if rc.amount)
         if total_volume == 0:
             return 0  # Avoid division by zero
         total_alcohol = sum(
-            (rc.amount * (rc.ingredient.alcohol_content or 0) / 100)
+            (float(rc.amount) * (rc.ingredient.alcohol_content or 0) / 100)
             for rc in components if rc.amount and rc.ingredient.alcohol_content
         )
         return round((total_alcohol / total_volume) * 100, 2)  # Returns ABV as a percentage
