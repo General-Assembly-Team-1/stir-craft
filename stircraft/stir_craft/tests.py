@@ -2,11 +2,10 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from .models import Profile
+from .models import Profile, Ingredient, Cocktail, RecipeComponent, Vessel
 from datetime import date
-
-# Import your models here once they're created
-# from .models import Ingredient, Recipe, DrinkCategory, etc.
+from django.urls import reverse
+from django.test import Client
 
 # =============================================================================
 # 🧪 STIR CRAFT MODEL TESTING FRAMEWORK
@@ -61,99 +60,144 @@ class IngredientModelTest(BaseModelTest):
     Tests should be focused on one specific behavior or requirement.
     """
     
-    def test_placeholder_for_ingredient_creation(self):
+    def test_ingredient_creation(self):
         """
-        STEP 4: Example test method structure (placeholder until models exist).
-        
-        When the Ingredient model is created, this test will validate that:
-        - Ingredients can be created with required fields
-        - String representation (__str__) works correctly
-        - Any custom model methods function as expected
+        Test that an Ingredient can be created with valid fields.
         """
-        # TODO: Uncomment and modify when Ingredient model exists
-        # ingredient = Ingredient.objects.create(
-        #     name="Lime Juice",
-        #     ingredient_type="Citrus",
-        #     alcohol_content=0.0,  # Non-alcoholic
-        #     description="Fresh lime juice for cocktails and mocktails"
-        # )
-        # 
-        # # STEP 5: Use assertions to verify expected behavior
-        # self.assertEqual(ingredient.name, "Lime Juice")
-        # self.assertEqual(ingredient.ingredient_type, "Citrus")
-        # self.assertEqual(str(ingredient), "Lime Juice")  # Tests __str__ method
-        # self.assertFalse(ingredient.is_alcoholic())  # Tests custom method
-        
-        # Placeholder assertion to prevent test failure
-        self.assertTrue(True, "Ingredient model tests ready for implementation")
-    
-    def test_placeholder_for_ingredient_validation(self):
+        ingredient = Ingredient.objects.create(
+            name="Lime Juice",
+            ingredient_type="juice",
+            alcohol_content=0.0,  # Non-alcoholic
+            description="Fresh lime juice for cocktails and mocktails"
+        )
+        self.assertEqual(ingredient.name, "Lime Juice")
+        self.assertEqual(ingredient.ingredient_type, "juice")
+        self.assertEqual(str(ingredient), "Lime Juice")  # Tests __str__ method
+        self.assertFalse(ingredient.is_alcoholic())  # Tests custom method
+
+    def test_ingredient_validation(self):
         """
-        STEP 6: Test model validation and constraints.
+        Test model validation and constraints.
         
         This test will verify that the model enforces business rules like:
         - Required fields cannot be empty
         - Alcohol content is within valid range (0-100%)
         - Name uniqueness if required
         """
-        # TODO: Uncomment when model exists
-        # with self.assertRaises(ValidationError):
-        #     invalid_ingredient = Ingredient(name="", ingredient_type="Invalid")
-        #     invalid_ingredient.full_clean()  # Triggers model validation
+        with self.assertRaises(ValidationError):
+            invalid_ingredient = Ingredient(name="", ingredient_type="invalid")
+            invalid_ingredient.full_clean()  # Triggers model validation
         
         self.assertTrue(True, "Ingredient validation tests ready for implementation")
 
 
-class RecipeModelTest(BaseModelTest):
+class VesselModelTest(BaseModelTest):
     """
-    STEP 7: Test class for Recipe/Drink model functionality.
-    
-    This will test the main recipe model that connects ingredients,
-    instructions, and metadata for cocktails and mocktails.
+    Test class for Vessel model functionality.
     """
-    
-    def test_placeholder_for_recipe_creation(self):
+
+    def test_vessel_creation(self):
         """
-        STEP 8: Test recipe creation and relationships.
-        
-        Will test:
-        - Recipe creation with required fields
-        - Foreign key relationships (user, category)
-        - Many-to-many relationships (ingredients)
+        Test that a Vessel can be created with valid fields.
         """
-        # TODO: Implement when Recipe model exists
-        # recipe = Recipe.objects.create(
-        #     name="Virgin Mojito",
-        #     creator=self.test_user,
-        #     instructions="Muddle mint, add lime juice and soda water",
-        #     prep_time=5,
-        #     difficulty="Easy",
-        #     is_alcoholic=False
-        # )
-        # 
-        # self.assertEqual(recipe.name, "Virgin Mojito")
-        # self.assertEqual(recipe.creator, self.test_user)
-        # self.assertFalse(recipe.is_alcoholic)
-        
-        self.assertTrue(True, "Recipe model tests ready for implementation")
-    
-    def test_placeholder_for_recipe_ingredient_relationships(self):
+        vessel = Vessel.objects.create(
+            name="Highball Glass",
+            volume=300.0,  # Capacity in milliliters
+            material="Glass",
+            stemmed=False
+        )
+        self.assertEqual(vessel.name, "Highball Glass")
+        self.assertEqual(vessel.volume, 300.0)
+        self.assertEqual(vessel.material, "Glass")
+        self.assertFalse(vessel.stemmed)
+        self.assertEqual(str(vessel), "Highball Glass")
+
+    def test_vessel_validation(self):
         """
-        STEP 9: Test many-to-many relationships between recipes and ingredients.
-        
-        Will verify:
-        - Adding ingredients to recipes
-        - Removing ingredients from recipes
-        - Querying recipes by ingredients
+        Test model validation and constraints.
         """
-        # TODO: Implement when models exist
-        # recipe = Recipe.objects.create(name="Test Cocktail", creator=self.test_user)
-        # ingredient = Ingredient.objects.create(name="Lime", ingredient_type="Citrus")
-        # 
-        # recipe.ingredients.add(ingredient)
-        # self.assertIn(ingredient, recipe.ingredients.all())
-        
-        self.assertTrue(True, "Recipe-Ingredient relationship tests ready for implementation")
+        with self.assertRaises(ValidationError):
+            invalid_vessel = Vessel(name="", volume=-100.0, material="Glass", stemmed=False)
+            invalid_vessel.full_clean()  # Triggers model validation
+
+        self.assertTrue(True, "Vessel validation tests ready for implementation")
+
+
+class CocktailModelTest(BaseModelTest):
+    """
+    Test class for Cocktail model functionality.
+    """
+
+    def test_cocktail_creation(self):
+        """
+        Test that a Cocktail can be created with valid fields.
+        """
+        cocktail = Cocktail.objects.create(
+            name="Margarita",
+            description="A refreshing cocktail with lime and tequila",
+            instructions="Shake all ingredients with ice and strain into a glass",
+            creator=self.test_user,
+            is_alcoholic=True,
+            color="Yellow"
+        )
+        self.assertEqual(cocktail.name, "Margarita")
+        self.assertEqual(cocktail.creator, self.test_user)
+        self.assertTrue(cocktail.is_alcoholic)
+        self.assertEqual(str(cocktail), "Margarita")
+
+    def test_cocktail_ingredient_relationships(self):
+        """
+        Test many-to-many relationships between cocktails and ingredients.
+        """
+        cocktail = Cocktail.objects.create(
+            name="Test Cocktail",
+            creator=self.test_user
+        )
+        ingredient = Ingredient.objects.create(
+            name="Lime Juice",
+            ingredient_type="juice",
+            alcohol_content=0.0
+        )
+        RecipeComponent.objects.create(
+            cocktail=cocktail,
+            ingredient=ingredient,
+            amount=30.0,
+            unit="ml"
+        )
+        self.assertIn(ingredient, cocktail.ingredients.all())
+
+    def test_cocktail_volume_and_abv(self):
+        """
+        Test calculation of total volume and alcohol content.
+        """
+        cocktail = Cocktail.objects.create(
+            name="Test Cocktail",
+            creator=self.test_user
+        )
+        ingredient1 = Ingredient.objects.create(
+            name="Vodka",
+            ingredient_type="spirit",
+            alcohol_content=40.0
+        )
+        ingredient2 = Ingredient.objects.create(
+            name="Orange Juice",
+            ingredient_type="juice",
+            alcohol_content=0.0
+        )
+        RecipeComponent.objects.create(
+            cocktail=cocktail,
+            ingredient=ingredient1,
+            amount=50.0,
+            unit="ml"
+        )
+        RecipeComponent.objects.create(
+            cocktail=cocktail,
+            ingredient=ingredient2,
+            amount=100.0,
+            unit="ml"
+        )
+        self.assertEqual(cocktail.get_total_volume(), 150.0)
+        self.assertAlmostEqual(cocktail.get_alcohol_content(), 13.33, places=2)
 
 
 class UserInteractionModelTest(BaseModelTest):
@@ -297,3 +341,72 @@ class PerformanceTest(TestCase):
 #    should have corresponding tests.
 #
 # =============================================================================
+
+class ProfileViewTest(TestCase):
+    """
+    Test class for profile-related views.
+    """
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@example.com',
+            password='password123'
+        )
+        self.profile = Profile.objects.create(
+            user=self.user,
+            birthdate=date(2000, 8, 10)
+        )
+
+    def test_profile_detail_current_user(self):
+        """Test that profile detail view displays the current user's profile."""
+        self.client.login(username='testuser', password='password123')
+        response = self.client.get(reverse('profile_detail'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.user.username)
+
+    def test_profile_detail_specific_user(self):
+        """Test that profile detail view displays a specific user's profile."""
+        other_user = User.objects.create_user(
+            username='otheruser',
+            email='otheruser@example.com',
+            password='password123'
+        )
+        other_profile = Profile.objects.create(
+            user=other_user,
+            birthdate=date(1990, 1, 1)
+        )
+        response = self.client.get(reverse('profile_detail', args=[other_user.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, other_user.username)
+
+    def test_profile_update_valid_submission(self):
+        """Test that profile update view successfully updates the profile."""
+        self.client.login(username='testuser', password='password123')
+        response = self.client.post(reverse('profile_update'), {
+            'birthdate': '1999-01-01'
+        })
+        self.assertEqual(response.status_code, 302)  # Redirect after success
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.birthdate, date(1999, 1, 1))
+
+    def test_profile_update_invalid_submission(self):
+        """Test that profile update view handles invalid submissions gracefully."""
+        self.client.login(username='testuser', password='password123')
+        response = self.client.post(reverse('profile_update'), {
+            'birthdate': 'invalid-date'
+        })
+        self.assertEqual(response.status_code, 200)  # Stay on the form page
+        self.assertContains(response, 'Please correct the errors below.')
+
+class GeneralViewTest(TestCase):
+    """
+    Test class for general views.
+    """
+
+    def test_home_view(self):
+        """Test that the home view renders the correct template."""
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'stir_craft/home.html')
