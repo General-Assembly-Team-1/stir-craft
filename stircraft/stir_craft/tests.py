@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from .models import Profile
+from .models import Profile, Ingredient
 from datetime import date
 from django.urls import reverse
 from django.test import Client
@@ -63,45 +63,33 @@ class IngredientModelTest(BaseModelTest):
     Tests should be focused on one specific behavior or requirement.
     """
     
-    def test_placeholder_for_ingredient_creation(self):
+    def test_ingredient_creation(self):
         """
-        STEP 4: Example test method structure (placeholder until models exist).
-        
-        When the Ingredient model is created, this test will validate that:
-        - Ingredients can be created with required fields
-        - String representation (__str__) works correctly
-        - Any custom model methods function as expected
+        Test that an Ingredient can be created with valid fields.
         """
-        # TODO: Uncomment and modify when Ingredient model exists
-        # ingredient = Ingredient.objects.create(
-        #     name="Lime Juice",
-        #     ingredient_type="Citrus",
-        #     alcohol_content=0.0,  # Non-alcoholic
-        #     description="Fresh lime juice for cocktails and mocktails"
-        # )
-        # 
-        # # STEP 5: Use assertions to verify expected behavior
-        # self.assertEqual(ingredient.name, "Lime Juice")
-        # self.assertEqual(ingredient.ingredient_type, "Citrus")
-        # self.assertEqual(str(ingredient), "Lime Juice")  # Tests __str__ method
-        # self.assertFalse(ingredient.is_alcoholic())  # Tests custom method
-        
-        # Placeholder assertion to prevent test failure
-        self.assertTrue(True, "Ingredient model tests ready for implementation")
-    
-    def test_placeholder_for_ingredient_validation(self):
+        ingredient = Ingredient.objects.create(
+            name="Lime Juice",
+            ingredient_type="juice",
+            alcohol_content=0.0,  # Non-alcoholic
+            description="Fresh lime juice for cocktails and mocktails"
+        )
+        self.assertEqual(ingredient.name, "Lime Juice")
+        self.assertEqual(ingredient.ingredient_type, "juice")
+        self.assertEqual(str(ingredient), "Lime Juice")  # Tests __str__ method
+        self.assertFalse(ingredient.is_alcoholic())  # Tests custom method
+
+    def test_ingredient_validation(self):
         """
-        STEP 6: Test model validation and constraints.
+        Test model validation and constraints.
         
         This test will verify that the model enforces business rules like:
         - Required fields cannot be empty
         - Alcohol content is within valid range (0-100%)
         - Name uniqueness if required
         """
-        # TODO: Uncomment when model exists
-        # with self.assertRaises(ValidationError):
-        #     invalid_ingredient = Ingredient(name="", ingredient_type="Invalid")
-        #     invalid_ingredient.full_clean()  # Triggers model validation
+        with self.assertRaises(ValidationError):
+            invalid_ingredient = Ingredient(name="", ingredient_type="invalid")
+            invalid_ingredient.full_clean()  # Triggers model validation
         
         self.assertTrue(True, "Ingredient validation tests ready for implementation")
 

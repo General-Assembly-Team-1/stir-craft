@@ -37,50 +37,99 @@ class Profile(models.Model):
 # 🧂 INGREDIENT MODELS
 # =============================================================================
 
-# TODO: Implement Ingredient model
-# class Ingredient(models.Model):
-#     """
-#     Individual ingredients that can be used in cocktails.
-#     Examples: Gin, Simple Syrup, Lime Juice, etc.
-#     """
-#     INGREDIENT_TYPES = [
-#         ('spirit', 'Spirit'),
-#         ('liqueur', 'Liqueur'),
-#         ('mixer', 'Mixer'),
-#         ('syrup', 'Syrup'),
-#         ('bitters', 'Bitters'),
-#         ('juice', 'Juice'),
-#         ('garnish', 'Garnish'),
-#         ('other', 'Other'),
-#     ]
-#     
-#     name = models.CharField(max_length=100, unique=True)
-#     ingredient_type = models.CharField(max_length=20, choices=INGREDIENT_TYPES)
-#     description = models.TextField(blank=True)
-#     alcohol_content = models.FloatField(
-#         default=0.0,
-#         validators=[MinValueValidator(0.0), MaxValueValidator(100.0)],
-#         help_text="Alcohol by volume (ABV) percentage"
-#     )
-#     
-#     # Use django-taggit for flavor profiles
-#     flavor_tags = TaggableManager(
-#         help_text="Flavor notes like citrusy, smoky, sweet, etc.",
-#         blank=True
-#     )
-#     
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-#     
-#     def __str__(self):
-#         return self.name
-#     
-#     def is_alcoholic(self):
-#         """Check if ingredient contains alcohol."""
-#         return self.alcohol_content > 0
-#     
-#     class Meta:
-#         ordering = ['name']
+class Ingredient(models.Model):
+    """
+    Individual ingredients that can be used in cocktails.
+    Examples: Gin, Simple Syrup, Lime Juice, etc.
+    
+    This model stores all the ingredients that can be used in cocktail recipes.
+    Each ingredient has a type, alcohol content, and can be tagged with flavor
+    profiles to enable advanced filtering and recipe recommendations.
+    """
+    
+    # Define predefined choices for ingredient categories
+    # This ensures data consistency and enables filtering by ingredient type
+    INGREDIENT_TYPES = [
+        ('spirit', 'Spirit'),       # Base spirits like gin, vodka, whiskey
+        ('liqueur', 'Liqueur'),     # Flavored liqueurs like triple sec, amaretto
+        ('mixer', 'Mixer'),         # Non-alcoholic mixers like tonic, soda
+        ('syrup', 'Syrup'),         # Syrups like simple syrup, grenadine
+        ('bitters', 'Bitters'),     # Concentrated flavorings like Angostura
+        ('juice', 'Juice'),         # Fresh juices like lime, lemon, orange
+        ('garnish', 'Garnish'),     # Garnishes like olives, cherries, herbs
+        ('other', 'Other'),         # Catch-all for unique ingredients
+    ]
+    
+    # Core ingredient information
+    name = models.CharField(
+        max_length=100, 
+        unique=True,  # Prevent duplicate ingredients
+        help_text="Name of the ingredient (e.g., 'London Dry Gin')"
+    )
+    
+    ingredient_type = models.CharField(
+        max_length=20, 
+        choices=INGREDIENT_TYPES,
+        help_text="Category of ingredient for filtering and organization"
+    )
+    
+    description = models.TextField(
+        blank=True,
+        help_text="Optional detailed description of the ingredient, brand notes, or usage tips"
+    )
+    
+    # Alcohol content with validation
+    # This is crucial for calculating cocktail ABV and age verification
+    alcohol_content = models.FloatField(
+        default=0.0,
+        validators=[MinValueValidator(0.0), MaxValueValidator(100.0)],
+        help_text="Alcohol by volume (ABV) percentage - 0 for non-alcoholic ingredients"
+    )
+    
+    # Use django-taggit for flexible flavor profiling
+    # This enables sophisticated recipe matching and recommendations
+    # Users can search for "citrusy" or "smoky" cocktails
+    flavor_tags = TaggableManager(
+        help_text="Flavor notes like citrusy, smoky, sweet, herbal, etc. Used for recipe recommendations",
+        blank=True
+    )
+    
+    # Automatic timestamps for tracking when ingredients are added/modified
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When this ingredient was first added to the database"
+    )
+    
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="When this ingredient was last modified"
+    )
+    
+    def __str__(self):
+        """String representation of the ingredient - used in admin and forms."""
+        return self.name
+    
+    def is_alcoholic(self):
+        """
+        Check if ingredient contains alcohol.
+        
+        Returns:
+            bool: True if alcohol_content > 0, False otherwise
+            
+        Used for:
+        - Age verification warnings
+        - Mocktail filtering (non-alcoholic recipes only)
+        - Calculating total cocktail ABV
+        """
+        return self.alcohol_content > 0
+    
+    class Meta:
+        # Default ordering for consistent display in lists and forms
+        ordering = ['name']  # Alphabetical order by ingredient name
+        
+        # Optional: Add verbose names for admin interface
+        verbose_name = "Ingredient"
+        verbose_name_plural = "Ingredients"
 
 
 # =============================================================================
