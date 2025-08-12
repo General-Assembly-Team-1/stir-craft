@@ -2,13 +2,10 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from .models import Profile, Ingredient
+from .models import Profile, Ingredient, Cocktail, RecipeComponent, Vessel
 from datetime import date
 from django.urls import reverse
 from django.test import Client
-
-# Import your models here once they're created
-# from .models import Ingredient, Recipe, DrinkCategory, etc.
 
 # =============================================================================
 # 🧪 STIR CRAFT MODEL TESTING FRAMEWORK
@@ -92,6 +89,83 @@ class IngredientModelTest(BaseModelTest):
             invalid_ingredient.full_clean()  # Triggers model validation
         
         self.assertTrue(True, "Ingredient validation tests ready for implementation")
+
+
+class CocktailModelTest(BaseModelTest):
+    """
+    Test class for Cocktail model functionality.
+    """
+
+    def test_cocktail_creation(self):
+        """
+        Test that a Cocktail can be created with valid fields.
+        """
+        cocktail = Cocktail.objects.create(
+            name="Margarita",
+            description="A refreshing cocktail with lime and tequila",
+            instructions="Shake all ingredients with ice and strain into a glass",
+            creator=self.test_user,
+            is_alcoholic=True,
+            color="Yellow"
+        )
+        self.assertEqual(cocktail.name, "Margarita")
+        self.assertEqual(cocktail.creator, self.test_user)
+        self.assertTrue(cocktail.is_alcoholic)
+        self.assertEqual(str(cocktail), "Margarita")
+
+    def test_cocktail_ingredient_relationships(self):
+        """
+        Test many-to-many relationships between cocktails and ingredients.
+        """
+        cocktail = Cocktail.objects.create(
+            name="Test Cocktail",
+            creator=self.test_user
+        )
+        ingredient = Ingredient.objects.create(
+            name="Lime Juice",
+            ingredient_type="juice",
+            alcohol_content=0.0
+        )
+        RecipeComponent.objects.create(
+            cocktail=cocktail,
+            ingredient=ingredient,
+            amount=30.0,
+            unit="ml"
+        )
+        self.assertIn(ingredient, cocktail.ingredients.all())
+
+    def test_cocktail_volume_and_abv(self):
+        """
+        Test calculation of total volume and alcohol content.
+        """
+        cocktail = Cocktail.objects.create(
+            name="Test Cocktail",
+            creator=self.test_user
+        )
+        ingredient1 = Ingredient.objects.create(
+            name="Vodka",
+            ingredient_type="spirit",
+            alcohol_content=40.0
+        )
+        ingredient2 = Ingredient.objects.create(
+            name="Orange Juice",
+            ingredient_type="juice",
+            alcohol_content=0.0
+        )
+        RecipeComponent.objects.create(
+            cocktail=cocktail,
+            ingredient=ingredient1,
+            amount=50.0,
+            unit="ml"
+        )
+        RecipeComponent.objects.create(
+            cocktail=cocktail,
+            ingredient=ingredient2,
+            amount=100.0,
+            unit="ml"
+        )
+        self.assertEqual(cocktail.get_total_volume(), 150.0)
+        self.assertAlmostEqual(cocktail.get_alcohol_content(), 13.33, places=2)
 
 
 class RecipeModelTest(BaseModelTest):

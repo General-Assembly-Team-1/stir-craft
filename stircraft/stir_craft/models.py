@@ -174,115 +174,108 @@ class Vessel(models.Model):
 # 🍹 COCKTAIL MODELS
 # =============================================================================
 
-# TODO: Implement Cocktail model
-# class Cocktail(models.Model):
-#     """
-#     Main cocktail recipe model containing name, instructions, and metadata.
-#     Connected to ingredients via RecipeComponent join table.
-#     """
-#     
-#     name = models.CharField(max_length=200)
-#     description = models.TextField(blank=True)
-#     instructions = models.TextField(help_text="Step-by-step preparation instructions")
-#     
-#     # Relationships
-#     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_cocktails')
-#     vessel = models.ForeignKey('Vessel', on_delete=models.SET_NULL, null=True, blank=True)
-#     ingredients = models.ManyToManyField('Ingredient', through='RecipeComponent')
-#     
-#     # Metadata
-#     
-#     is_alcoholic = models.BooleanField(default=True)
-#     color = models.CharField(max_length=20, blank=True, help_text="Cocktail color for filtering")
-#     
-#     # Tagging for vibes and categories
-#     vibe_tags = TaggableManager(
-#         help_text="Vibes like tropical, cozy, party, etc.",
-#         blank=True
-#     )
-#     
-#     # Timestamps
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-#     
-#     def __str__(self):
-#         return self.name
-#     
-#     def get_total_volume(self):
-#         """Calculate total volume of all ingredients."""
-#         # Implementation will sum all RecipeComponent amounts
-#         pass
-#     
-#     def get_alcohol_content(self):
-#         """Calculate estimated ABV of the cocktail."""
-#         # Implementation will calculate weighted average ABV
-#         pass
-#     
-#     class Meta:
-#         ordering = ['-created_at']
-#         unique_together = ['name', 'creator']  # Allow same name for different creators
-
-
-
-
 class Cocktail(models.Model):
- 
-
-
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    instructions = models.TextField(help_text="Step-by-step preparation instructions")
-
-    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_cocktails')
-    vessel = models.ForeignKey('Vessel', on_delete=models.SET_NULL, null=True, blank=True)
-    ingredients = models.ManyToManyField('Ingredient', through='RecipeComponent')
-
-   
-    is_alcoholic = models.BooleanField(default=True)
-    color = models.CharField(max_length=20, blank=True, help_text="Cocktail color for filtering")
-
- 
-    vibe_tags = TaggableManager(
-        help_text="Vibes like tropical, cozy, party, etc.",
-        blank=True
+    """
+    Main cocktail recipe model containing name, instructions, and metadata.
+    Connected to ingredients via RecipeComponent join table.
+    """
+    
+    # Core recipe information
+    name = models.CharField(
+        max_length=200,  # Maximum length for cocktail name
+        help_text="Name of the cocktail (e.g., 'Margarita')"
     )
-
-   
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
+    description = models.TextField(
+        blank=True,  # Description is optional
+        help_text="Optional detailed description of the cocktail"
+    )
+    instructions = models.TextField(
+        help_text="Step-by-step preparation instructions"
+    )
+    
+    # Relationships
+    creator = models.ForeignKey(
+        User,  # Links to the User model
+        on_delete=models.CASCADE,  # Deletes cocktail if creator is deleted
+        related_name='created_cocktails',  # Allows reverse lookup of cocktails created by a user
+        help_text="User who created this cocktail"
+    )
+    vessel = models.ForeignKey(
+        'Vessel',  # Links to the Vessel model
+        on_delete=models.SET_NULL,  # Sets vessel to NULL if deleted
+        null=True,  # Vessel is optional
+        blank=True,  # Allows blank values in forms
+        help_text="Glassware or serving vessel for the cocktail"
+    )
+    ingredients = models.ManyToManyField(
+        'Ingredient',  # Links to the Ingredient model
+        through='RecipeComponent',  # Specifies the join table
+        help_text="Ingredients used in the cocktail"
+    )
+    
+    # Metadata
+    is_alcoholic = models.BooleanField(
+        default=True,  # Default value is alcoholic
+        help_text="Indicates whether the cocktail contains alcohol"
+    )
+    color = models.CharField(
+        max_length=20,  # Maximum length for color description
+        blank=True,  # Color is optional
+        help_text="Cocktail color for filtering (e.g., 'Red', 'Yellow')"
+    )
+    
+    # Tagging for vibes and categories
+    vibe_tags = TaggableManager(
+        help_text="Tags for vibes like tropical, cozy, party, etc.",
+        blank=True  # Tags are optional
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(
+        auto_now_add=True,  # Automatically sets timestamp when created
+        help_text="Timestamp when the cocktail was created"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,  # Automatically updates timestamp when modified
+        help_text="Timestamp when the cocktail was last updated"
+    )
+    
     def __str__(self):
+        """
+        String representation of the cocktail.
+        Used in admin interface and debugging.
+        """
         return self.name
-
+    
     def get_total_volume(self):
-        """Calculate total volume of all ingredients."""
+        """
+        Calculate total volume of all ingredients.
+        Iterates through RecipeComponent objects linked to this cocktail.
+        """
         total_volume = sum(
             rc.amount for rc in self.recipecomponent_set.all()
-            if rc.amount
+            if rc.amount  # Ensures amount is not None
         )
         return total_volume
-
+    
     def get_alcohol_content(self):
-        """Calculate estimated ABV of the cocktail."""
+        """
+        Calculate estimated ABV (Alcohol By Volume) of the cocktail.
+        Uses a weighted average based on ingredient alcohol content and amounts.
+        """
         components = self.recipecomponent_set.all()
         total_volume = sum(rc.amount for rc in components if rc.amount)
         if total_volume == 0:
-            return 0
+            return 0  # Avoid division by zero
         total_alcohol = sum(
-            (rc.amount * (rc.ingredient.abv or 0) / 100)
-            for rc in components if rc.amount and rc.ingredient.abv
+            (rc.amount * (rc.ingredient.alcohol_content or 0) / 100)
+            for rc in components if rc.amount and rc.ingredient.alcohol_content
         )
-        return round((total_alcohol / total_volume) * 100, 2)
-
+        return round((total_alcohol / total_volume) * 100, 2)  # Returns ABV as a percentage
+    
     class Meta:
-        ordering = ['-created_at']
-        unique_together = ['name', 'creator'] 
-
-
-# Recipe Models
-
-
-
+        ordering = ['-created_at']  # Orders cocktails by creation date (newest first)
+        unique_together = ['name', 'creator']  # Ensures unique cocktail names per creator 
 
 class RecipeComponent(models.Model):
     """
@@ -303,32 +296,55 @@ class RecipeComponent(models.Model):
         ('sprig', 'Sprig'),
     ]
     
-    cocktail = models.ForeignKey('Cocktail', on_delete=models.CASCADE, related_name='components')
-    ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE)
+    cocktail = models.ForeignKey(
+        'Cocktail',  # Links to the Cocktail model
+        on_delete=models.CASCADE,  # Deletes RecipeComponent if cocktail is deleted
+        related_name='components',  # Allows reverse lookup of components in a cocktail
+        help_text="Cocktail this ingredient belongs to"
+    )
+    ingredient = models.ForeignKey(
+        'Ingredient',  # Links to the Ingredient model
+        on_delete=models.CASCADE,  # Deletes RecipeComponent if ingredient is deleted
+        help_text="Ingredient used in the cocktail"
+    )
     
-    amount = models.DecimalField(max_digits=5, decimal_places=2, help_text="Amount of ingredient")
-    unit = models.CharField(max_length=20, choices=UNIT_CHOICES)
+    amount = models.DecimalField(
+        max_digits=5,  # Maximum digits for amount
+        decimal_places=2,  # Allows up to two decimal places
+        help_text="Amount of ingredient (e.g., '30.00')"
+    )
+    unit = models.CharField(
+        max_length=20,  # Maximum length for unit description
+        choices=UNIT_CHOICES,  # Restricts to predefined unit choices
+        help_text="Unit of measurement (e.g., 'ml', 'oz')"
+    )
     preparation_note = models.CharField(
-        max_length=200, 
-        blank=True,
+        max_length=200,  # Maximum length for preparation notes
+        blank=True,  # Notes are optional
         help_text="Optional preparation notes (e.g., 'muddled', 'expressed')"
     )
     order = models.PositiveIntegerField(
-        default=0,
+        default=0,  # Default order is 0 (first)
         help_text="Order of addition (0 = first)"
     )
     
     @property
     def non_alcoholic(self):
-        """Returns True if this ingredient contains no alcohol (ABV = 0)."""
+        """
+        Returns True if this ingredient contains no alcohol (ABV = 0).
+        """
         return self.ingredient.alcohol_content == 0
     
     def __str__(self):
+        """
+        String representation of the RecipeComponent.
+        Used in admin interface and debugging.
+        """
         return f"{self.amount} {self.unit} {self.ingredient.name} in {self.cocktail.name}"
     
     class Meta:
-        ordering = ['order', 'ingredient__name']
-        unique_together = ['cocktail', 'ingredient']  # Prevent duplicate ingredients
+        ordering = ['order', 'ingredient__name']  # Orders components by addition order and ingredient name
+        unique_together = ['cocktail', 'ingredient']  # Prevents duplicate ingredients in a cocktail
 
 
 # =============================================================================
