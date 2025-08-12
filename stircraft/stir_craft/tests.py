@@ -91,6 +91,35 @@ class IngredientModelTest(BaseModelTest):
         self.assertTrue(True, "Ingredient validation tests ready for implementation")
 
 
+class VesselModelTest(BaseModelTest):
+    """
+    Test class for Vessel model functionality.
+    """
+
+    def test_vessel_creation(self):
+        """
+        Test that a Vessel can be created with valid fields.
+        """
+        vessel = Vessel.objects.create(
+            name="Highball Glass",
+            description="A tall glass used for cocktails",
+            capacity=300.0  # Capacity in milliliters
+        )
+        self.assertEqual(vessel.name, "Highball Glass")
+        self.assertEqual(vessel.capacity, 300.0)
+        self.assertEqual(str(vessel), "Highball Glass")
+
+    def test_vessel_validation(self):
+        """
+        Test model validation and constraints.
+        """
+        with self.assertRaises(ValidationError):
+            invalid_vessel = Vessel(name="", capacity=-100.0)
+            invalid_vessel.full_clean()  # Triggers model validation
+
+        self.assertTrue(True, "Vessel validation tests ready for implementation")
+
+
 class CocktailModelTest(BaseModelTest):
     """
     Test class for Cocktail model functionality.
@@ -166,58 +195,6 @@ class CocktailModelTest(BaseModelTest):
         )
         self.assertEqual(cocktail.get_total_volume(), 150.0)
         self.assertAlmostEqual(cocktail.get_alcohol_content(), 13.33, places=2)
-
-
-class RecipeModelTest(BaseModelTest):
-    """
-    STEP 7: Test class for Recipe/Drink model functionality.
-    
-    This will test the main recipe model that connects ingredients,
-    instructions, and metadata for cocktails and mocktails.
-    """
-    
-    def test_placeholder_for_recipe_creation(self):
-        """
-        STEP 8: Test recipe creation and relationships.
-        
-        Will test:
-        - Recipe creation with required fields
-        - Foreign key relationships (user, category)
-        - Many-to-many relationships (ingredients)
-        """
-        # TODO: Implement when Recipe model exists
-        # recipe = Recipe.objects.create(
-        #     name="Virgin Mojito",
-        #     creator=self.test_user,
-        #     instructions="Muddle mint, add lime juice and soda water",
-        #     prep_time=5,
-        #     difficulty="Easy",
-        #     is_alcoholic=False
-        # )
-        # 
-        # self.assertEqual(recipe.name, "Virgin Mojito")
-        # self.assertEqual(recipe.creator, self.test_user)
-        # self.assertFalse(recipe.is_alcoholic)
-        
-        self.assertTrue(True, "Recipe model tests ready for implementation")
-    
-    def test_placeholder_for_recipe_ingredient_relationships(self):
-        """
-        STEP 9: Test many-to-many relationships between recipes and ingredients.
-        
-        Will verify:
-        - Adding ingredients to recipes
-        - Removing ingredients from recipes
-        - Querying recipes by ingredients
-        """
-        # TODO: Implement when models exist
-        # recipe = Recipe.objects.create(name="Test Cocktail", creator=self.test_user)
-        # ingredient = Ingredient.objects.create(name="Lime", ingredient_type="Citrus")
-        # 
-        # recipe.ingredients.add(ingredient)
-        # self.assertIn(ingredient, recipe.ingredients.all())
-        
-        self.assertTrue(True, "Recipe-Ingredient relationship tests ready for implementation")
 
 
 class UserInteractionModelTest(BaseModelTest):

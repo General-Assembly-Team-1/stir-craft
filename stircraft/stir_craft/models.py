@@ -136,38 +136,85 @@ class Ingredient(models.Model):
 # 🍸 VESSEL MODELS
 # =============================================================================
 
-# TODO: Implement Vessel model
-# class Vessel(models.Model):
-#     """
-#     Glassware and serving vessels for cocktails.
-#     Examples: Martini Glass, Rocks Glass, Coupe, etc.
-#     """
-#     name = models.CharField(max_length=100, unique=True)
-#     description = models.TextField(blank=True)
-#     capacity_ml = models.IntegerField(
-#         null=True, 
-#         blank=True,
-#         help_text="Typical capacity in milliliters"
-#     )
-#     image = models.ImageField(upload_to='vessels/', blank=True, null=True)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     
-#     def __str__(self):
-#         return self.name
-#     
-#     class Meta:
-#         ordering = ['name']
-
-# Vessel Model
 class Vessel(models.Model):
-    name = models.CharField(max_length=100)
-    volume = models.DecimalField(max_digits=10, decimal_places=2)  
-    material = models.CharField(max_length=100)
-    stemmed = models.BooleanField(default=False)  
-    created_on = models.DateTimeField(auto_now_add=True)
+    """
+    Glassware and serving vessels for cocktails.
+    Examples: Martini Glass, Rocks Glass, Coupe, etc.
+    
+    This model represents different types of drinkware that can be used
+    to serve cocktails. Each vessel has physical properties like volume,
+    material, and whether it's stemmed, which affects the drinking experience.
+    """
+    
+    # Core vessel information
+    name = models.CharField(
+        max_length=100,
+        help_text="Name of the vessel (e.g., 'Martini Glass', 'Old Fashioned Glass')"
+    )
+    
+    # Physical properties
+    volume = models.DecimalField(
+        max_digits=10,  # Allows for large volumes with precision
+        decimal_places=2,  # Two decimal places for precise measurements
+        help_text="Typical capacity of the vessel in milliliters (e.g., '240.00')"
+    )
+    
+    material = models.CharField(
+        max_length=100,
+        help_text="Material the vessel is made from (e.g., 'Glass', 'Crystal', 'Copper')"
+    )
+    
+    stemmed = models.BooleanField(
+        default=False,  # Most glasses are not stemmed
+        help_text="Whether the vessel has a stem (affects temperature retention)"
+    )
+    
+    # Timestamp for tracking when vessel was added
+    created_on = models.DateTimeField(
+        auto_now_add=True,  # Automatically sets timestamp when created
+        help_text="When this vessel was added to the database"
+    )
 
     def __str__(self):
+        """
+        String representation of the vessel.
+        Used in admin interface and form dropdowns.
+        """
         return self.name
+    
+    def is_stemmed(self):
+        """
+        Check if the vessel has a stem.
+        
+        Returns:
+            bool: True if vessel is stemmed, False otherwise
+            
+        Used for:
+        - Serving recommendations (stemmed glasses for chilled cocktails)
+        - Temperature control guidance
+        - Proper handling instructions
+        """
+        return self.stemmed
+    
+    def get_volume_in_oz(self):
+        """
+        Convert volume from milliliters to fluid ounces.
+        
+        Returns:
+            float: Volume in fluid ounces, rounded to 2 decimal places
+            
+        Useful for bartenders who work with imperial measurements.
+        """
+        # 1 fluid ounce = 29.5735 milliliters
+        return round(float(self.volume) / 29.5735, 2)
+    
+    class Meta:
+        # Default ordering for consistent display in lists and forms
+        ordering = ['name']  # Alphabetical order by vessel name
+        
+        # Optional: Add verbose names for admin interface
+        verbose_name = "Vessel"
+        verbose_name_plural = "Vessels"
 
 
 # =============================================================================
