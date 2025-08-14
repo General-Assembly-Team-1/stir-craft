@@ -34,6 +34,14 @@
 - Sample test for `Ingredient.flavor_tags` using `TaggableManager`
 - Plan to modularize form logic for reuse across views
 
+### ✅ Cocktail Forms & Views (NEW!)
+- **Advanced Form System**: Complete cocktail creation with inline formsets for multiple ingredients
+- **Dynamic Ingredient Management**: Add/remove ingredients with proper Django formset validation
+- **Pure Django Solution**: No JavaScript required - leverages Django's built-in formset capabilities
+- **Comprehensive Views**: Create, list, detail, and search functionality for cocktails
+- **Professional Templates**: Bootstrap-styled forms with proper error handling and user feedback
+- **Search & Filter**: Advanced cocktail filtering by ingredients, vessel type, alcohol content, and more
+
 ### ✅ Git Workflow
 - Shell script created to update all local branches from remote (`origin`)
 - Testing strategy outlined using Django’s `TestCase`, `setUpTestData`, and assertions
@@ -78,7 +86,115 @@
 
 ---
 
-## 🧠 Naming & Branding Notes
+## 🍸 Cocktail Forms System (NEW!)
+
+### Overview
+StirCraft now includes a comprehensive cocktail creation and management system using Django's inline formsets. This allows users to create complex cocktail recipes with multiple ingredients, measurements, and preparation notes in a single, intuitive form.
+
+### Key Components
+
+#### **Forms (`cocktail_forms.py`)**
+- **`CocktailForm`**: Main cocktail information (name, description, instructions, vessel, tags)
+- **`RecipeComponentForm`**: Individual ingredient with amount, unit, and preparation notes
+- **`RecipeComponentFormSet`**: Manages multiple ingredients using Django's `inlineformset_factory`
+- **`QuickIngredientForm`**: For adding new ingredients on-the-fly (future modal integration)
+- **`CocktailSearchForm`**: Advanced search and filtering for cocktail browsing
+
+#### **Views**
+- **`cocktail_create`**: Handles formset creation with proper validation and error handling
+- **`cocktail_list`**: Browse cocktails with search, filter, and pagination
+- **`cocktail_detail`**: Full recipe display with stats, ingredient details, and user actions
+
+#### **Templates**
+- **`cocktail_create.html`**: Rich form interface with dynamic ingredient management
+- **`cocktail_list.html`**: Responsive cocktail browsing with search filters
+- **`cocktail_detail.html`**: Complete recipe display with nutritional info and actions
+
+### Features
+
+#### **Dynamic Form Management**
+- Django formset handles multiple ingredients seamlessly
+- Automatic form validation for required fields
+- Smart alcohol content calculation based on ingredients
+- Order management for ingredient addition sequence
+
+#### **Advanced Validation**
+- Minimum 1 ingredient required per cocktail
+- Maximum 15 ingredients to prevent abuse
+- Proper unit validation with predefined choices
+- Age verification integration for alcoholic beverages
+
+#### **User Experience**
+- Bootstrap-styled responsive forms
+- Clear error messaging and field validation
+- Helpful tips and user guidance
+- Mobile-optimized form layouts
+
+#### **Search & Filter Capabilities**
+- Text search across cocktail names and descriptions
+- Filter by specific ingredients or vessel types
+- Alcoholic/non-alcoholic filtering
+- Color-based filtering
+- Sort by creation date, name, or creator
+
+### Usage Examples
+
+#### **Creating a Cocktail**
+```python
+# In views.py - the formset handles both cocktail and ingredients
+cocktail_form = CocktailForm(user=request.user)
+formset = RecipeComponentFormSet()
+
+# Form validates both main cocktail and all ingredients
+if cocktail_form.is_valid() and formset.is_valid():
+    cocktail = cocktail_form.save(commit=False)
+    cocktail.creator = request.user
+    cocktail.save()
+    
+    formset.instance = cocktail
+    components = formset.save()
+```
+
+#### **Template Integration**
+```django
+<!-- cocktail_create.html -->
+{{ formset.management_form }}
+{% for form in formset %}
+    <div class="ingredient-row">
+        {{ form.ingredient }}
+        {{ form.amount }} {{ form.unit }}
+        {{ form.preparation_note }}
+    </div>
+{% endfor %}
+```
+
+### URLs Added
+- `/cocktails/` - Browse all cocktails
+- `/cocktails/create/` - Create new cocktail
+- `/cocktails/<id>/` - View cocktail details
+
+### Technical Implementation Notes
+
+#### **Why Inline Formsets?**
+1. **Perfect Model Match**: Your `RecipeComponent` join table is designed exactly for this pattern
+2. **Clean Data Structure**: Each ingredient has precise amount, unit, and preparation notes
+3. **Django-Native**: Uses built-in `inlineformset_factory` - no custom JavaScript required initially
+4. **Scalable**: Easy to enhance with AJAX and dynamic features later
+
+#### **Performance Optimizations**
+- Uses `select_related()` and `prefetch_related()` for efficient queries
+- Pagination for large cocktail lists
+- Indexed database fields for fast searching
+- Minimal template queries with optimized context
+
+### Future Enhancements
+1. **AJAX Integration**: Add ingredients without page refresh
+2. **Auto-suggestions**: Typeahead for ingredient selection
+3. **Recipe Import**: Bulk import from cocktail APIs
+4. **Image Uploads**: Add cocktail photos
+5. **Advanced Validation**: Ingredient compatibility checking
+
+---
 - StirCraft evokes creativity, modularity, and flavor exploration
 - Wireframes and UI lean into playful but clean design
 - Flavor tags and vibe filters support expressive, user-driven discovery
@@ -248,3 +364,17 @@ python manage.py seed_from_thecocktaildb --clear --limit 25
    ```
 
 4. **Open a pull request for review.**
+
+---
+
+## 📚 Documentation
+
+For detailed technical documentation, development guides, and project history, see the **[docs/](./docs/)** folder:
+
+- **[Development Guide](./docs/DEVELOPMENT_GUIDE.md)** - Setup, workflow, and contribution guidelines
+- **[Cocktail Forms Technical Guide](./docs/COCKTAIL_FORMS_TECHNICAL_GUIDE.md)** - Complete technical documentation for the forms system
+- **[Project Changelog](./docs/PROJECT_CHANGELOG.md)** - Detailed development history and milestones
+
+---
+
+*For questions or support, please refer to the documentation or contact the development team.*
