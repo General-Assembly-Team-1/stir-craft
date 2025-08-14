@@ -74,12 +74,31 @@ WSGI_APPLICATION = 'stircraft.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'stircraft',
+        'USER': 'macfarley',
+        'PASSWORD': 'stircraft123',  # PostgreSQL password
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
+# PostgreSQL configuration (commented out for now)
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'stircraft',
+#         'USER': 'macfarley',
+#         'PASSWORD': '',
+#         'HOST': '',  # Empty host uses Unix domain socket
+#         'PORT': '',
+#     }
+# }
 
 
 # Password validation

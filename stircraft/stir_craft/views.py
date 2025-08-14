@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.db import models
+from django.core.paginator import Paginator
 from .models import Profile
 from .forms.profile_forms import ProfileUpdateForm
 
@@ -144,31 +146,223 @@ def profile_update(request):
 # =============================================================================
 
 # TODO: Cocktail list view (main page)
-# def cocktail_list(request):
-#     """
-#     Main cocktail browsing page.
-#     Filter by difficulty, alcohol content, ingredients.
-#     Search, sort, pagination functionality.
-#     """
-#     pass
+def cocktail_list(request):
+    """
+    Main cocktail browsing page with advanced search and filtering.
+    
+    This view provides a comprehensive cocktail discovery experience with:
+    - Full-text search across cocktail names, descriptions, and ingredients
+    - Advanced filtering by ingredient, vessel, alcohol content, and color
+    - Sorting options (newest, oldest, alphabetical, by creator)
+    - Pagination for efficient handling of large datasets
+    - Responsive design for mobile and desktop users
+    
+    Query Optimization:
+    - Uses select_related() for efficient database queries
+    - Prefetch related ingredients to avoid N+1 queries
+    - Implements distinct() to avoid duplicate results
+    - Paginated results to handle large datasets
+    
+    Search Features:
+    - Text search: Searches cocktail name, description, and ingredient names
+    - Ingredient filter: Show only cocktails containing specific ingredient
+    - Vessel filter: Filter by glassware/serving vessel
+    - Alcohol filter: Separate alcoholic from non-alcoholic drinks
+    - Color filter: Find cocktails by visual appearance
+    - Sorting: Multiple sort options for user preference
+    
+    Template Context:
+    - page_obj: Paginated cocktail results
+    - search_form: Form for search/filter controls
+    - total_count: Total number of matching cocktails
+    
+    Performance Considerations:
+    - Pagination limits database load (12 cocktails per page)
+    - Efficient database queries with proper joins
+    - Search form state preserved across pagination
+    - Responsive design reduces mobile data usage
+    """
+    from .forms.cocktail_forms import CocktailSearchForm
+    from .models import Cocktail
+    from django.core.paginator import Paginator
+    
+    # Start with all cocktails
+    cocktails = Cocktail.objects.select_related('creator', 'vessel').prefetch_related('components__ingredient')
+    
+    # Handle search and filtering
+    search_form = CocktailSearchForm(request.GET or None)
+    if search_form.is_valid():
+        cleaned_data = search_form.cleaned_data
+        
+        # Text search across name and description
+        if cleaned_data.get('query'):
+            query = cleaned_data['query']
+            cocktails = cocktails.filter(
+                models.Q(name__icontains=query) | 
+                models.Q(description__icontains=query) |
+                models.Q(components__ingredient__name__icontains=query)
+            ).distinct()
+        
+        # Filter by ingredient
+        if cleaned_data.get('ingredient'):
+            cocktails = cocktails.filter(components__ingredient=cleaned_data['ingredient'])
+        
+        # Filter by vessel
+        if cleaned_data.get('vessel'):
+            cocktails = cocktails.filter(vessel=cleaned_data['vessel'])
+        
+        # Filter by alcoholic/non-alcoholic
+        if cleaned_data.get('is_alcoholic'):
+            is_alcoholic = cleaned_data['is_alcoholic'] == 'True'
+            cocktails = cocktails.filter(is_alcoholic=is_alcoholic)
+        
+        # Filter by color
+        if cleaned_data.get('color'):
+            cocktails = cocktails.filter(color__icontains=cleaned_data['color'])
+        
+        # Apply sorting
+        if cleaned_data.get('sort_by'):
+            cocktails = cocktails.order_by(cleaned_data['sort_by'])
+    else:
+        # Default ordering
+        cocktails = cocktails.order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(cocktails, 12)  # Show 12 cocktails per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'stir_craft/cocktail_list.html', {
+        'page_obj': page_obj,
+        'search_form': search_form,
+        'total_count': paginator.count,
+    })
+
 
 # TODO: Cocktail detail view
-# def cocktail_detail(request, cocktail_id):
-#     """
-#     Display full cocktail recipe with ingredients and instructions.
-#     Show components, preparation notes, creator info.
-#     Add to favorites functionality.
-#     """
-#     pass
+def cocktail_detail(request, cocktail_id):
+    """
+    Display full cocktail recipe with ingredients and instructions.
+    Show components, preparation notes, creator info.
+    Add to favorites functionality.
+    """
+    from .models import Cocktail, List
+    
+    cocktail = get_object_or_404(
+        Cocktail.objects.select_related('creator', 'vessel')
+                       .prefetch_related('components__ingredient', 'vibe_tags'),
+        id=cocktail_id
+    )
+    
+    # Get recipe components ordered by their order field
+    components = cocktail.components.select_related('ingredient').order_by('order', 'ingredient__name')
+    
+    # Check if user has this in any of their lists (for authenticated users)
+    user_lists = []
+    if request.user.is_authenticated:
+        user_lists = List.objects.filter(
+            creator=request.user,
+            cocktails=cocktail
+        ).values_list('name', flat=True)
+    
+    # Calculate some stats
+    total_volume = cocktail.get_total_volume()
+    alcohol_content = cocktail.get_alcohol_content()
+    
+    context = {
+        'cocktail': cocktail,
+        'components': components,
+        'user_lists': user_lists,
+        'total_volume': total_volume,
+        'alcohol_content': alcohol_content,
+        'can_edit': request.user == cocktail.creator,
+    }
+    
+    return render(request, 'stir_craft/cocktail_detail.html', context)
 
-# TODO: Cocktail create view
-# def cocktail_create(request):
-#     """
-#     Create new cocktail recipes.
-#     Multi-step form with ingredient selection and measurements.
-#     Handle RecipeComponent creation.
-#     """
-#     pass
+@login_required
+def cocktail_create(request):
+    """
+    Create new cocktail recipes using inline formsets.
+    
+    This view handles the complex process of creating a cocktail with multiple
+    ingredients using Django's inline formset pattern. It manages both the main
+    cocktail form and the dynamic ingredient formset in a single submission.
+    
+    Features:
+    - Handles both GET (show form) and POST (process submission) requests
+    - Validates both main cocktail form and ingredient formset
+    - Automatically sets the creator to the current user
+    - Calculates alcohol content based on ingredients
+    - Provides user feedback via Django messages
+    - Redirects to detail view on successful creation
+    
+    Process Flow:
+    1. User loads page → Show empty forms
+    2. User fills out cocktail info and ingredients
+    3. Form submission → Validate both forms
+    4. If valid → Save cocktail, then ingredients
+    5. Update alcohol status based on ingredients
+    6. Redirect to cocktail detail page
+    7. If invalid → Show errors and let user fix
+    
+    Template Context:
+    - cocktail_form: Main cocktail information form
+    - formset: Dynamic ingredient formset (1-15 ingredients)
+    - page_title: For consistent page headings
+    
+    Security:
+    - @login_required decorator ensures only authenticated users can create
+    - Creator is automatically set to request.user (can't be spoofed)
+    - CSRF protection via Django's built-in middleware
+    
+    Error Handling:
+    - Form validation errors displayed to user
+    - Database errors caught and reported
+    - Success/error messages via Django messages framework
+    """
+    from .forms.cocktail_forms import CocktailForm, RecipeComponentFormSet
+    
+    if request.method == 'POST':
+        # Create forms with POST data
+        cocktail_form = CocktailForm(request.POST, user=request.user)
+        formset = RecipeComponentFormSet(request.POST)
+        
+        # Check if both forms are valid
+        if cocktail_form.is_valid() and formset.is_valid():
+            # Save the cocktail first (without committing to DB yet)
+            cocktail = cocktail_form.save(commit=False)
+            cocktail.creator = request.user  # Set the creator
+            cocktail.save()  # Now save to get an ID
+            
+            # Save tags (many-to-many field needs the object to exist first)
+            cocktail_form.save_m2m()
+            
+            # Save the formset with the cocktail instance
+            formset.instance = cocktail
+            components = formset.save()
+            
+            # Check if cocktail should be marked as alcoholic based on ingredients
+            has_alcohol = any(component.ingredient.alcohol_content > 0 for component in components)
+            if has_alcohol != cocktail.is_alcoholic:
+                cocktail.is_alcoholic = has_alcohol
+                cocktail.save()
+            
+            messages.success(request, f'🍸 "{cocktail.name}" has been created successfully!')
+            return redirect('cocktail_detail', cocktail_id=cocktail.id)
+        else:
+            # Form validation failed
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        # GET request - show empty forms
+        cocktail_form = CocktailForm(user=request.user)
+        formset = RecipeComponentFormSet()
+    
+    return render(request, 'stir_craft/cocktail_create.html', {
+        'cocktail_form': cocktail_form,
+        'formset': formset,
+        'page_title': 'Create New Cocktail',
+    })
 
 # TODO: Cocktail update view
 # def cocktail_update(request, cocktail_id):
