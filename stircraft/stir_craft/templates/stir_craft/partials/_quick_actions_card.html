@@ -1,0 +1,17 @@
+<!-- Quick Actions Sidebar Card -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">⚡ Quick Actions</h5>
+    </div>
+    <div class="card-body">
+        <div class="d-grid gap-2">
+            {% if user.is_authenticated %}
+                <button class="btn btn-outline-success">❤️ Add to Favorites</button>
+                <button class="btn btn-outline-info">📋 Copy Recipe</button>
+                <button class="btn btn-outline-warning">🔄 Create Variation</button>
+            {% endif %}
+            <button class="btn btn-outline-primary">📧 Share Recipe</button>
+            <button class="btn btn-outline-secondary">🖨️ Print Recipe</button>
+        </div>
+    </div>
+</div>

@@ -9,15 +9,7 @@
         <!-- Main Content -->
         <div class="col-lg-8">
             <div class="card shadow">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h1 class="mb-0">🍸 {{ cocktail.name }}</h1>
-                    {% if can_edit %}
-                        <div>
-                            <a href="#" class="btn btn-outline-light btn-sm">✏️ Edit</a>
-                            <a href="#" class="btn btn-outline-danger btn-sm">🗑️ Delete</a>
-                        </div>
-                    {% endif %}
-                </div>
+                {% include 'stir_craft/partials/_cocktail_header.html' %}
                 
                 <div class="card-body">
                     <!-- Description -->
@@ -26,47 +18,7 @@
                     {% endif %}
                     
                     <!-- Creator and Meta Info -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <p class="mb-1">
-                                <strong>Created by:</strong> 
-                                <a href="{% url 'profile_detail' cocktail.creator.id %}">{{ cocktail.creator.username }}</a>
-                            </p>
-                            <p class="mb-1">
-                                <strong>Created:</strong> {{ cocktail.created_at|date:"F d, Y" }}
-                            </p>
-                            {% if cocktail.vessel %}
-                                <p class="mb-1">
-                                    <strong>Glassware:</strong> {{ cocktail.vessel.name }}
-                                    {% if cocktail.vessel.volume %}
-                                        ({{ cocktail.vessel.get_volume_in_oz }} oz)
-                                    {% endif %}
-                                </p>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-6">
-                            {% if cocktail.color %}
-                                <p class="mb-1"><strong>Color:</strong> {{ cocktail.color }}</p>
-                            {% endif %}
-                            <p class="mb-1">
-                                <strong>Type:</strong> 
-                                {% if cocktail.is_alcoholic %}
-                                    <span class="badge bg-warning">Alcoholic</span>
-                                    {% if alcohol_content %}
-                                        ({{ alcohol_content }}% ABV)
-                                    {% endif %}
-                                {% else %}
-                                    <span class="badge bg-info">Non-alcoholic</span>
-                                {% endif %}
-                            </p>
-                            {% if total_volume %}
-                                <p class="mb-1">
-                                    <strong>Total Volume:</strong> {{ total_volume }} ml 
-                                    ({{ total_volume|floatformat:0|add:"0"|mul:0.033814 }} oz)
-                                </p>
-                            {% endif %}
-                        </div>
-                    </div>
+                    {% include 'stir_craft/partials/_cocktail_meta.html' %}
                     
                     <!-- Tags -->
                     {% if cocktail.vibe_tags.all %}
@@ -79,46 +31,7 @@
                     {% endif %}
                     
                     <!-- Ingredients -->
-                    <div class="mb-4">
-                        <h3>🧂 Ingredients</h3>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Ingredient</th>
-                                        <th>Amount</th>
-                                        <th>Type</th>
-                                        <th>Notes</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for component in components %}
-                                        <tr>
-                                            <td>
-                                                <strong>{{ component.ingredient.name }}</strong>
-                                                {% if component.ingredient.alcohol_content > 0 %}
-                                                    <small class="text-muted">({{ component.ingredient.alcohol_content }}% ABV)</small>
-                                                {% endif %}
-                                            </td>
-                                            <td>{{ component.amount }} {{ component.unit }}</td>
-                                            <td>
-                                                <span class="badge bg-light text-dark">
-                                                    {{ component.ingredient.get_ingredient_type_display }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                {% if component.preparation_note %}
-                                                    <em>{{ component.preparation_note }}</em>
-                                                {% else %}
-                                                    <span class="text-muted">—</span>
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    {% include 'stir_craft/partials/_ingredients_table.html' %}
                     
                     <!-- Instructions -->
                     <div class="mb-4">
@@ -133,69 +46,9 @@
         
         <!-- Sidebar -->
         <div class="col-lg-4">
-            <!-- User Lists -->
-            {% if user.is_authenticated %}
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">📁 Your Lists</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if user_lists %}
-                            <p>This cocktail is in your lists:</p>
-                            <ul class="list-unstyled">
-                                {% for list_name in user_lists %}
-                                    <li>✅ {{ list_name }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p class="text-muted">Add this cocktail to one of your lists:</p>
-                            <button class="btn btn-outline-primary btn-sm">+ Add to Favorites</button>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endif %}
-            
-            <!-- Ingredient Details -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">🔍 Ingredient Details</h5>
-                </div>
-                <div class="card-body">
-                    {% for component in components %}
-                        <div class="mb-3">
-                            <h6>{{ component.ingredient.name }}</h6>
-                            {% if component.ingredient.description %}
-                                <p class="small text-muted">{{ component.ingredient.description|truncatewords:20 }}</p>
-                            {% endif %}
-                            {% if component.ingredient.flavor_tags.all %}
-                                <div>
-                                    {% for tag in component.ingredient.flavor_tags.all %}
-                                        <span class="badge bg-success me-1">{{ tag.name }}</span>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <!-- Quick Actions -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">⚡ Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        {% if user.is_authenticated %}
-                            <button class="btn btn-outline-success">❤️ Add to Favorites</button>
-                            <button class="btn btn-outline-info">📋 Copy Recipe</button>
-                            <button class="btn btn-outline-warning">🔄 Create Variation</button>
-                        {% endif %}
-                        <button class="btn btn-outline-primary">📧 Share Recipe</button>
-                        <button class="btn btn-outline-secondary">🖨️ Print Recipe</button>
-                    </div>
-                </div>
-            </div>
+            {% include 'stir_craft/partials/_user_lists_card.html' %}
+            {% include 'stir_craft/partials/_ingredient_details_card.html' %}
+            {% include 'stir_craft/partials/_quick_actions_card.html' %}
         </div>
     </div>
     

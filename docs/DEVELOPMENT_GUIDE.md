@@ -44,6 +44,135 @@ python manage.py seed_from_thecocktaildb --clear --limit 25
 - `--clear`: Clear existing cocktail data before importing
 - Default behavior: Import ALL available cocktails (500+)
 
+## 🧩 Template Partials System (NEW!)
+
+### Overview
+We've implemented a template partials system to improve code reusability and maintainability. This works similar to React components, allowing us to break down complex templates into smaller, manageable pieces.
+
+### What Are Template Partials?
+Template partials are reusable template components that can be included in multiple templates using Django's `{% include %}` tag. They help reduce code duplication and make templates easier to read and maintain.
+
+### Our Partials Structure
+```
+templates/stir_craft/partials/
+├── _cocktail_header.html          # Cocktail name and edit buttons
+├── _cocktail_meta.html            # Creator info, alcohol content, etc.
+├── _ingredients_table.html        # Complete ingredients table
+├── _user_lists_card.html         # User lists sidebar card
+├── _ingredient_details_card.html  # Ingredient details sidebar
+└── _quick_actions_card.html      # Quick actions sidebar
+```
+
+### Usage Guidelines
+
+#### Including Partials
+```django
+<!-- Basic include -->
+{% include 'stir_craft/partials/_cocktail_header.html' %}
+
+<!-- Include with additional context -->
+{% include 'stir_craft/partials/_ingredients_table.html' with components=recipe.components.all %}
+```
+
+#### Naming Conventions
+- **File Names**: Use underscore prefix (e.g., `_component_name.html`)
+- **Directory**: Store in `templates/app_name/partials/`
+- **Purpose**: Name should clearly indicate what the partial contains
+
+#### When to Create Partials
+Create a partial when:
+- A template section is used in multiple places
+- A template becomes too long (>100 lines)
+- A section has a clear, single responsibility
+- You want to improve template readability
+
+### Example: Refactoring a Large Template
+**Before** (180 lines):
+```django
+<!-- cocktail_detail.html -->
+<div class="card shadow">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h1 class="mb-0">🍸 {{ cocktail.name }}</h1>
+        <!-- ... 50 more lines of header code -->
+    </div>
+    <div class="card-body">
+        <!-- ... 120 lines of body content -->
+    </div>
+</div>
+```
+
+**After** (40 lines):
+```django
+<!-- cocktail_detail.html -->
+<div class="card shadow">
+    {% include 'stir_craft/partials/_cocktail_header.html' %}
+    <div class="card-body">
+        {% include 'stir_craft/partials/_cocktail_meta.html' %}
+        {% include 'stir_craft/partials/_ingredients_table.html' %}
+        <!-- Instructions section stays inline as it's specific to this template -->
+    </div>
+</div>
+```
+
+### Best Practices
+
+#### Context Management
+- Partials inherit context from parent template
+- Pass additional context using `with` keyword
+- Keep partials focused on single responsibility
+
+#### Testing Partials
+- Test partials in isolation when possible
+- Verify they work with different context data
+- Check responsive behavior across devices
+
+#### Documentation
+- Comment the purpose of each partial
+- Document required context variables
+- Note any dependencies or assumptions
+
+### Reusing Partials Across Templates
+
+#### Cocktail Cards in Lists
+```django
+<!-- cocktail_list.html -->
+{% for cocktail in cocktails %}
+    <div class="col-md-4">
+        <div class="card">
+            {% include 'stir_craft/partials/_cocktail_header.html' %}
+            <!-- Add specific list view content -->
+        </div>
+    </div>
+{% endfor %}
+```
+
+#### Ingredient Information
+```django
+<!-- ingredient_detail.html -->
+{% include 'stir_craft/partials/_ingredient_details_card.html' with components=ingredient.components.all %}
+```
+
+### Team Workflow for Partials
+
+#### Creating New Partials
+1. Identify reusable template sections
+2. Extract to `partials/` directory with `_` prefix
+3. Update original templates to use `{% include %}`
+4. Test thoroughly across different contexts
+5. Document the partial's purpose and context requirements
+
+#### Modifying Existing Partials
+1. Consider impact on all templates using the partial
+2. Test changes across all usage contexts
+3. Update documentation if context requirements change
+4. Communicate changes to team
+
+#### Code Review Focus
+- Ensure partials have single responsibility
+- Verify proper context management
+- Check for responsive design
+- Confirm accessibility standards
+
 ## 🍸 Cocktail Forms Development Guide
 
 ### Overview

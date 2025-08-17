@@ -49,7 +49,6 @@ def profile_detail(request, user_id=None):
         'user': user,
     })
 
-# TODO: Profile update view
 @login_required
 def profile_update(request):
     """
@@ -145,7 +144,6 @@ def profile_update(request):
 # 🍹 COCKTAIL VIEWS
 # =============================================================================
 
-# TODO: Cocktail list view (main page)
 def cocktail_list(request):
     """
     Main cocktail browsing page with advanced search and filtering.
@@ -238,8 +236,7 @@ def cocktail_list(request):
         'total_count': paginator.count,
     })
 
-
-# TODO: Cocktail detail view
+@login_required
 def cocktail_detail(request, cocktail_id):
     """
     Display full cocktail recipe with ingredients and instructions.
