@@ -20,6 +20,13 @@ Welcome to the StirCraft documentation! This folder contains all technical docum
   - Development workflow and best practices
   - Troubleshooting guide and future enhancements
 
+- **[TEMPLATE_PARTIALS_GUIDE.md](./TEMPLATE_PARTIALS_GUIDE.md)** - Complete guide to template partials system
+  - How to use and create reusable template components
+  - Best practices for modular template development
+  - Team collaboration guidelines
+  - Testing and debugging partials
+  - Examples and common patterns
+
 ### **Project History**
 - **[PROJECT_CHANGELOG.md](./PROJECT_CHANGELOG.md)** - Detailed changelog of all development sessions
   - API integration implementation
