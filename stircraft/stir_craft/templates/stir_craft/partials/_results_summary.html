@@ -1,0 +1,11 @@
+<!-- Results Summary Partial -->
+{% if page_obj %}
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <p class="text-muted">
+                Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} 
+                of {{ total_count }} cocktails
+            </p>
+        </div>
+    </div>
+{% endif %}
