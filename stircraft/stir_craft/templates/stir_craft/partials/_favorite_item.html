@@ -1,0 +1,19 @@
+<!-- Favorite Item Partial -->
+<div class="favorite-item {% if not forloop.last %}border-bottom{% endif %}">
+    <div class="favorite-icon">
+        <i class="bi bi-cup-hot text-primary"></i>
+    </div>
+    <div class="favorite-content">
+        <h6 class="mb-1">
+            <a href="{% url 'cocktail_detail' cocktail.id %}" class="text-decoration-none">
+                {{ cocktail.name }}
+            </a>
+        </h6>
+        <small class="text-muted">by {{ cocktail.creator.username }}</small>
+    </div>
+    <div class="favorite-actions">
+        <button class="btn btn-sm btn-outline-danger" disabled title="Remove from Favorites (Coming Soon)">
+            <i class="bi bi-heart-fill"></i>
+        </button>
+    </div>
+</div>

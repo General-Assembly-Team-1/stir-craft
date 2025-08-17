@@ -110,10 +110,10 @@ def profile_update(request):
 #     """
 #     pass
 
-# TODO: Ingredient create view (admin/staff)
+# TODO: Ingredient create view 
 # def ingredient_create(request):
 #     """
-#     Create new ingredients (restricted to staff).
+#     Create new ingredients.
 #     Form handling with validation.
 #     """
 #     pass
@@ -224,6 +224,15 @@ def cocktail_list(request):
     else:
         # Default ordering
         cocktails = cocktails.order_by('-created_at')
+    
+    # Additional filter by creator (for dashboard links)
+    creator_id = request.GET.get('creator')
+    if creator_id:
+        try:
+            creator = User.objects.get(id=creator_id)
+            cocktails = cocktails.filter(creator=creator)
+        except (User.DoesNotExist, ValueError):
+            pass  # Ignore invalid creator IDs
     
     # Pagination
     paginator = Paginator(cocktails, 12)  # Show 12 cocktails per page
@@ -458,6 +467,78 @@ def home(request):
     # elevator pitch of the app
     # Call to action for users to explore cocktails
     return render(request, 'stir_craft/home.html')
+
+@login_required
+def dashboard(request):
+    """
+    User dashboard showing profile summary, creations, favorites, and lists.
+    
+    This view provides a comprehensive overview of the user's activity and content,
+    including their created cocktails (via "Your Creations" list), favorite recipes, 
+    custom lists, and quick actions for creating new content.
+    
+    Features:
+    - Profile summary with statistics
+    - "Your Creations" list (auto-updated, edit-locked)
+    - Favorites list (from user's "Favorites" list)
+    - Custom lists created by the user
+    - Quick action buttons for common tasks
+    
+    Context Data:
+    - user: Current authenticated user
+    - profile: User's profile information
+    - creations_list: Auto-managed list of user's cocktails
+    - favorites_list: User's favorites list
+    - user_lists: All custom lists created by the user (excluding system lists)
+    - stats: Dictionary with user statistics
+    
+    Template: stir_craft/dashboard.html
+    """
+    from .models import Cocktail, List, Profile
+    from django.db.models import Count
+    
+    # Get or create user profile
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    
+    # Get or create user's "Your Creations" list (auto-updated)
+    creations_list = List.get_or_create_creations_list(request.user)
+    
+    # Get or create user's favorites list
+    favorites_list = List.get_or_create_favorites_list(request.user)
+    
+    # Get user's custom lists (excluding system lists like favorites and creations)
+    user_lists = List.objects.filter(
+        creator=request.user, 
+        list_type='custom'
+    ).order_by('-updated_at')
+    
+    # Calculate user statistics
+    stats = {
+        'total_cocktails': creations_list.cocktail_count(),
+        'total_lists': user_lists.count() + 2,  # +2 for favorites and creations
+        'favorite_count': favorites_list.cocktail_count(),
+    }
+    
+    # Add age calculation to profile for template
+    if profile.birthdate:
+        from datetime import date
+        today = date.today()
+        age = today.year - profile.birthdate.year - (
+            (today.month, today.day) < (profile.birthdate.month, profile.birthdate.day)
+        )
+        profile.age = age
+    
+    context = {
+        'user': request.user,
+        'profile': profile,
+        'creations_list': creations_list,
+        'user_cocktails': creations_list.cocktails.all().order_by('-created_at'),  # For backward compatibility
+        'favorites_list': favorites_list,
+        'user_lists': user_lists,
+        'stats': stats,
+    }
+    
+    return render(request, 'stir_craft/dashboard.html', context)
 
 # TODO: About page
 # def about(request):

@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     # 🏠 GENERAL URLS
     path('', views.home, name='home'),
+    path('dashboard/', views.dashboard, name='dashboard'),
     
     # 🔑 AUTHENTICATION URLS (TODO: Uncomment when views are implemented)
     # path('sign-up/', views.sign_up, name='sign_up'),
