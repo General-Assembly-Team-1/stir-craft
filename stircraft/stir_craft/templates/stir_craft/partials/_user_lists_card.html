@@ -1,0 +1,21 @@
+<!-- User Lists Sidebar Card -->
+{% if user.is_authenticated %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">📁 Your Lists</h5>
+        </div>
+        <div class="card-body">
+            {% if user_lists %}
+                <p>This cocktail is in your lists:</p>
+                <ul class="list-unstyled">
+                    {% for list_name in user_lists %}
+                        <li>✅ {{ list_name }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">Add this cocktail to one of your lists:</p>
+                <button class="btn btn-outline-primary btn-sm">+ Add to Favorites</button>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}

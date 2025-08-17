@@ -1,0 +1,31 @@
+<!-- Favorites Card Partial -->
+<div class="card h-100">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="bi bi-heart-fill text-danger"></i> Favorites
+        </h5>
+        <div>
+            {% if favorites_list %}
+                <span class="badge bg-danger badge-count">{{ favorites_list.cocktail_count }} recipe{{ favorites_list.cocktail_count|pluralize }}</span>
+                <a href="#" class="btn btn-sm btn-outline-primary" title="View Favorites List (Coming Soon)">View All</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        {% if favorites_list and favorites_list.cocktails.all %}
+            {% for cocktail in favorites_list.cocktails.all|slice:":4" %}
+                {% include 'stir_craft/partials/_favorite_item.html' with cocktail=cocktail forloop=forloop %}
+            {% endfor %}
+            
+            {% if favorites_list.cocktail_count > 4 %}
+            <div class="text-center">
+                <a href="#" class="btn btn-outline-primary btn-sm" title="View All Favorites (Coming Soon)">
+                    View All {{ favorites_list.cocktail_count }} Favorites
+                </a>
+            </div>
+            {% endif %}
+        {% else %}
+            {% include 'stir_craft/partials/_empty_favorites_state.html' %}
+        {% endif %}
+    </div>
+</div>

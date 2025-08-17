@@ -141,3 +141,16 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# =============================================================================
+# 🔑 AUTHENTICATION SETTINGS
+# =============================================================================
+
+# Redirect users to dashboard after successful login
+LOGIN_REDIRECT_URL = '/dashboard/'
+
+# Redirect users to home page after logout
+LOGOUT_REDIRECT_URL = '/'
+
+# URL for login page (when @login_required decorator is triggered)
+LOGIN_URL = '/admin/login/'  # Using Django admin login for now

@@ -1,13 +1,6 @@
 # StirCraft: Cocktail Recipe Manager
 
-## 🥂 O### Technical Stack
-- **Backend**: Django 5.2.5 + PostgreSQL
-- **API Integration**: TheCocktailDB API for real cocktail data
-- **Data Processing**: Intelligent ingredient categorization and measurement parsing
-- **Frontend**: Django templates with vanilla CSS
-- **Tagging**: `django-taggit` for flavor profiles
-- **Testing**: Django's built-in test framework
-- **Version Control**: Git + GitHubw
+## 🥂 Overview
 **StirCraft** is a cocktail recipe manager and builder designed for flavor-forward exploration. Users can browse, create, and organize recipes, ingredients, and vessels — with dynamic filtering by vibe, flavor profile, and color. The app emphasizes modularity, user ownership, and playful branding.
 
 ---
@@ -20,13 +13,84 @@
 - **Intelligent Data Processing**: Automated ingredient categorization, measurement parsing, and vessel matching
 - **Management Commands**: `seed_from_thecocktaildb` command for importing cocktail data with comprehensive error handling
 
+### ✅ Cocktail Forms & Views
+- **Advanced Form System**: Complete cocktail creation with inline formsets for multiple ingredients
+- **Dynamic Ingredient Management**: Add/remove ingredients with proper Django formset validation
+- **Pure Django Solution**: No JavaScript required - leverages Django's built-in formset capabilities
+- **Comprehensive Views**: Create, list, detail, and search functionality for cocktails
+- **Professional Templates**: Bootstrap-styled forms with proper error handling and user feedback
+- **Template Partials**: Modular, reusable template components for improved maintainability
+- **Search & Filter**: Advanced cocktail filtering by ingredients, vessel type, alcohol content, and more
+
 ### ✅ Wireframes Completed
 - **Auth Page**: Combined Sign Up / Sign In with toggle (mobile) or side-by-side forms (desktop)
-- **Dashboard View**: Profile info, user-created lists, and recipes with “Add New” buttons
+- **Dashboard View**: Profile info, user-created lists, and recipes with "Add New" buttons
 - **Master Ingredients List**: Filterable by flavor tags (using `TaggableManager`), with responsive ingredient cards
 - **Error Page Template**: Displays error message, hero logo, and link to home
 - **Vessel Management Page**: Unified list and creation form; form is modular for reuse in recipe creation
-- **Recipe Catalog Page**: Filterable list with vibe, flavor, and color selectors; popularity counter (“On X Lists”); single “Add New Recipe” button
+- **Recipe Catalog Page**: Filterable list with vibe, flavor, and color selectors; popularity counter ("On X Lists"); single "Add New Recipe" button
+
+### ✅ Models & Testing
+- **Ingredient model** uses `django-taggit` for flavor tags
+- **Model tests scaffolded** for Ingredient, Recipe, and List
+- Sample test for `Ingredient.flavor_tags` using `TaggableManager`
+- Plan to modularize form logic for reuse across views
+
+### ✅ Git Workflow
+- Shell script created to update all local branches from remote (`origin`)
+- Testing strategy outlined using Django's `TestCase`, `setUpTestData`, and assertions
+
+---
+
+## 🎨 Frontend Styling: Bootstrap
+
+This project uses [Bootstrap](https://getbootstrap.com/) for frontend styling. Bootstrap provides CSS classes (e.g., `card-header`, `btn`, etc.) used throughout our templates.
+
+### How to Enable Bootstrap
+
+**Recommended (CDN):**
+Add the following line to the `<head>` section of your `base.html` template:
+
+```html
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+```
+
+This loads Bootstrap from the web. No installation is required.
+
+**Optional (Local Install):**
+If you prefer to use a local copy, you can download Bootstrap or install it via npm:
+
+```sh
+npm install bootstrap
+```
+
+Then link to the CSS file in your static files setup. See the [Bootstrap docs](https://getbootstrap.com/docs/5.3/getting-started/download/) for details.
+
+### Why Bootstrap?
+Bootstrap makes it easy to create responsive, modern layouts and UI components. All team members should ensure Bootstrap is enabled to see the intended styles.
+
+---
+
+## 🎯 MVP Goals
+
+### Core Features
+- User authentication (Sign Up / Sign In)
+- Dashboard with editable profile, user-created lists, and recipes
+- Ingredient and vessel management with reusable forms
+- Recipe creation with dynamic ingredient and vessel selection
+- Recipe catalog with filtering by vibe, flavor tags, and color
+- Error handling views for bad paths, restricted access, and failed requests
+
+### Technical Stack
+- **Backend**: Django 5.2.5 + PostgreSQL
+- **API Integration**: TheCocktailDB API for real cocktail data
+- **Data Processing**: Intelligent ingredient categorization and measurement parsing
+- **Frontend**: Django templates with Bootstrap CSS
+- **Tagging**: `django-taggit` for flavor profiles
+- **Testing**: Django's built-in test framework
+- **Version Control**: Git + GitHub
+
+### ✅ Wireframes Completed
 
 ### ✅ Models & Testing
 - **Ingredient model** uses `django-taggit` for flavor tags
