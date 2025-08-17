@@ -1,0 +1,30 @@
+<!-- Creation Cocktail Card (Edit-Locked) -->
+<div class="col-md-6 col-lg-4 mb-3">
+    <div class="card creation-card">
+        <div class="card-body">
+            <h6 class="card-title mb-2">
+                <a href="{% url 'cocktail_detail' cocktail.id %}" class="text-decoration-none">
+                    {{ cocktail.name }}
+                </a>
+            </h6>
+            <p class="card-text small text-muted mb-2">
+                {% if cocktail.description %}
+                    {{ cocktail.description|truncatechars:60 }}
+                {% else %}
+                    No description available
+                {% endif %}
+            </p>
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ cocktail.created_at|date:"M d" }}</small>
+                <div class="creation-actions">
+                    <button class="btn btn-outline-secondary btn-sm" disabled title="Edit locked for Your Creations list">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" disabled title="Delete locked for Your Creations list">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

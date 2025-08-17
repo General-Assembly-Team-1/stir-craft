@@ -1,0 +1,31 @@
+<!-- Lists Overview Card Partial -->
+<div class="card h-100">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="bi bi-list-ul text-info"></i> Your Lists
+        </h5>
+        <div>
+            <span class="badge bg-info badge-count">{{ user_lists.count }} list{{ user_lists.count|pluralize }}</span>
+            <button class="btn btn-sm btn-primary" disabled title="Create New List (Coming Soon)">
+                <i class="bi bi-plus"></i> New List
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if user_lists %}
+            {% for list in user_lists|slice:":5" %}
+                {% include 'stir_craft/partials/_list_item.html' with list=list forloop=forloop %}
+            {% endfor %}
+            
+            {% if user_lists.count > 5 %}
+            <div class="text-center">
+                <a href="#" class="btn btn-outline-primary btn-sm" title="View All Lists (Coming Soon)">
+                    View All {{ user_lists.count }} Lists
+                </a>
+            </div>
+            {% endif %}
+        {% else %}
+            {% include 'stir_craft/partials/_empty_lists_state.html' %}
+        {% endif %}
+    </div>
+</div>

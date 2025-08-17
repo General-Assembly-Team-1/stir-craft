@@ -1,0 +1,50 @@
+<!-- Profile Summary Card Partial -->
+<div class="card h-100">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="bi bi-person-circle"></i> Profile
+        </h5>
+        <a href="{% url 'profile_detail' %}" class="btn btn-sm btn-outline-primary">View Full</a>
+    </div>
+    <div class="card-body">
+        <div class="text-center mb-3">
+            <div class="bg-primary rounded-circle mx-auto mb-2 profile-avatar">
+                <i class="bi bi-person text-white"></i>
+            </div>
+            <h6 class="mb-1">{{ user.get_full_name|default:user.username }}</h6>
+            <small class="text-muted">Member since {{ user.date_joined|date:"F Y" }}</small>
+        </div>
+        
+        <div class="row stats-row">
+            <div class="col-4 stats-item">
+                <div class="stats-value text-primary">{{ stats.total_cocktails }}</div>
+                <small class="stats-label">Cocktails</small>
+            </div>
+            <div class="col-4 stats-item">
+                <div class="stats-value text-success">{{ stats.total_lists }}</div>
+                <small class="stats-label">Lists</small>
+            </div>
+            <div class="col-4 stats-item">
+                <div class="stats-value text-info">{{ stats.favorite_count }}</div>
+                <small class="stats-label">Favorites</small>
+            </div>
+        </div>
+
+        {% if profile.birthdate or profile.location %}
+        <hr>
+        {% if profile.birthdate %}
+        <div class="d-flex justify-content-between">
+            <span class="text-muted">Age:</span>
+            <span>{{ profile.age }} years old</span>
+        </div>
+        {% endif %}
+
+        {% if profile.location %}
+        <div class="d-flex justify-content-between">
+            <span class="text-muted">Location:</span>
+            <span>{{ profile.location }}</span>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>

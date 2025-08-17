@@ -402,11 +402,39 @@ class List(models.Model):
     """
     User-created collections of cocktails.
     Examples: "Favorites", "Summer Favorites", "Date Night Drinks", "Low-ABV Options"
+    
+    Special lists:
+    - "Your Creations": Auto-generated, edit-locked list containing all user's cocktails
+    - "Favorites": Default list for favorited cocktails
     """
+    
+    # List types for different behaviors
+    LIST_TYPES = [
+        ('custom', 'Custom List'),
+        ('favorites', 'Favorites List'),
+        ('creations', 'Your Creations List'),
+    ]
+    
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_lists')
     cocktails = models.ManyToManyField('Cocktail', blank=True, related_name='in_lists')
+    
+    # New fields for special list behavior
+    list_type = models.CharField(
+        max_length=20, 
+        choices=LIST_TYPES, 
+        default='custom',
+        help_text="Type of list - determines editing permissions and behavior"
+    )
+    is_editable = models.BooleanField(
+        default=True,
+        help_text="Whether users can edit this list (False for auto-generated lists)"
+    )
+    is_deletable = models.BooleanField(
+        default=True,
+        help_text="Whether users can delete this list (False for system lists)"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -418,15 +446,87 @@ class List(models.Model):
         """Return number of cocktails in this list."""
         return self.cocktails.count()
 
+    def is_system_list(self):
+        """Check if this is a system-managed list."""
+        return self.list_type in ['favorites', 'creations']
+
+    def sync_creations_list(self):
+        """
+        For 'creations' type lists, sync with all cocktails created by the user.
+        This ensures the list always contains all user's cocktails.
+        """
+        if self.list_type == 'creations':
+            # Get all cocktails created by this user
+            user_cocktails = Cocktail.objects.filter(creator=self.creator)
+            # Clear current cocktails and add all user's cocktails
+            self.cocktails.set(user_cocktails)
+
     @staticmethod
-    def create_default_list(user):
-        """Create a default 'Favorites' list for a new user."""
-        return List.objects.create(name="Favorites", description="Your favorite recipes", creator=user)
+    def create_default_lists(user):
+        """Create default lists for a new user."""
+        # Create "Your Creations" list (edit-locked)
+        creations_list = List.objects.create(
+            name="Your Creations",
+            description="All cocktails you've created - automatically updated",
+            creator=user,
+            list_type='creations',
+            is_editable=False,
+            is_deletable=False
+        )
+        
+        # Create "Favorites" list (editable)
+        favorites_list = List.objects.create(
+            name="Favorites",
+            description="Your favorite recipes",
+            creator=user,
+            list_type='favorites',
+            is_editable=True,
+            is_deletable=False
+        )
+        
+        return creations_list, favorites_list
+
+    @staticmethod
+    def get_or_create_creations_list(user):
+        """Get or create the 'Your Creations' list for a user."""
+        creations_list, created = List.objects.get_or_create(
+            creator=user,
+            list_type='creations',
+            defaults={
+                'name': "Your Creations",
+                'description': "All cocktails you've created - automatically updated",
+                'is_editable': False,
+                'is_deletable': False
+            }
+        )
+        
+        if created or True:  # Always sync to ensure it's up to date
+            creations_list.sync_creations_list()
+        
+        return creations_list
+
+    @staticmethod  
+    def get_or_create_favorites_list(user):
+        """Get or create the 'Favorites' list for a user."""
+        favorites_list, created = List.objects.get_or_create(
+            creator=user,
+            list_type='favorites',
+            defaults={
+                'name': "Favorites", 
+                'description': "Your favorite recipes",
+                'is_editable': True,
+                'is_deletable': False
+            }
+        )
+        return favorites_list
 
     class Meta:
         ordering = ['-updated_at']
-         # Allow same name for different creators
-        unique_together = ['name', 'creator'] 
+        # Allow same name for different creators, but ensure unique list types per user
+        unique_together = [
+            ['name', 'creator'],
+            ['creator', 'list_type']  # Each user can only have one list of each type
+        ] 
 
 
 # =============================================================================
@@ -455,3 +555,38 @@ class List(models.Model):
 #     original = models.ForeignKey('Cocktail', on_delete=models.CASCADE, related_name='forks')
 #     forked = models.ForeignKey('Cocktail', on_delete=models.CASCADE, related_name='forked_from')
 #     created_at = models.DateTimeField(auto_now_add=True)
+
+
+# =============================================================================
+# 🔄 DJANGO SIGNALS FOR AUTO-UPDATING LISTS
+# =============================================================================
+
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Cocktail)
+def update_creations_list_on_cocktail_save(sender, instance, created, **kwargs):
+    """
+    Automatically update the user's 'Your Creations' list when they create or update a cocktail.
+    """
+    creations_list = List.get_or_create_creations_list(instance.creator)
+    creations_list.sync_creations_list()
+
+@receiver(post_delete, sender=Cocktail)
+def update_creations_list_on_cocktail_delete(sender, instance, **kwargs):
+    """
+    Automatically update the user's 'Your Creations' list when they delete a cocktail.
+    """
+    try:
+        creations_list = List.objects.get(creator=instance.creator, list_type='creations')
+        creations_list.sync_creations_list()
+    except List.DoesNotExist:
+        pass  # List doesn't exist, nothing to update
+
+@receiver(post_save, sender=User)
+def create_default_lists_for_new_user(sender, instance, created, **kwargs):
+    """
+    Automatically create default lists (Favorites and Your Creations) for new users.
+    """
+    if created:
+        List.create_default_lists(instance)

@@ -44,6 +44,83 @@ python manage.py seed_from_thecocktaildb --clear --limit 25
 - `--clear`: Clear existing cocktail data before importing
 - Default behavior: Import ALL available cocktails (500+)
 
+## 🎨 CSS Organization & Styling (NEW!)
+
+### CSS Architecture Overview
+We've implemented a professional CSS organization system that separates global styles from page-specific styles for better maintainability and scalability.
+
+### CSS File Structure
+```
+stircraft/stir_craft/static/css/
+├── base.css          # Global styles and reusable components
+└── dashboard.css     # Dashboard-specific styles
+```
+
+### CSS Organization Guidelines
+
+#### Global Styles (base.css)
+- **Component styles**: Reusable UI components used across multiple templates
+- **Utility classes**: Common styling patterns and helpers
+- **Typography**: Global font settings and text styling
+- **Layout helpers**: Flexbox utilities, spacing, and grid helpers
+- **Form styling**: Consistent form element appearance
+
+#### Page-Specific Styles (dashboard.css)
+- **Page layout**: Styles specific to the dashboard page
+- **Custom components**: Dashboard-only components
+- **Responsive adjustments**: Page-specific responsive behavior
+- **Interactive elements**: Dashboard-specific hover and focus states
+
+### CSS Naming Conventions
+We follow a semantic naming approach:
+```css
+/* Component-based naming */
+.profile-header { }
+.list-card { }
+.cocktail-grid { }
+
+/* State-based naming */
+.is-editable { }
+.is-loading { }
+.has-content { }
+
+/* Modifier naming */
+.list-card--favorites { }
+.cocktail-card--featured { }
+```
+
+### Adding New Styles
+
+#### For Global Components
+Add to `base.css` when:
+- The style will be used across multiple templates
+- It's a reusable UI component
+- It's a utility class or helper
+
+#### For Page-Specific Styles
+Add to page-specific CSS files when:
+- The style is unique to one page/template
+- It modifies existing components for specific contexts
+- It handles page-specific responsive behavior
+
+### CSS Best Practices
+- **No inline styles**: All styles must be in CSS files
+- **Semantic class names**: Use descriptive, meaningful class names
+- **Component thinking**: Group related styles together
+- **Responsive design**: Mobile-first approach with progressive enhancement
+- **Performance**: Use efficient selectors and minimal nesting
+
+### Template Integration
+```django
+<!-- In base.html -->
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+<!-- In specific templates -->
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+```
+
+For detailed CSS guidelines, see **[CSS_ORGANIZATION.md](../docs/CSS_ORGANIZATION.md)**.
+
 ## 🧩 Template Partials System (NEW!)
 
 ### Overview
@@ -55,12 +132,18 @@ Template partials are reusable template components that can be included in multi
 ### Our Partials Structure
 ```
 templates/stir_craft/partials/
-├── _cocktail_header.html          # Cocktail name and edit buttons
-├── _cocktail_meta.html            # Creator info, alcohol content, etc.
-├── _ingredients_table.html        # Complete ingredients table
-├── _user_lists_card.html         # User lists sidebar card
-├── _ingredient_details_card.html  # Ingredient details sidebar
-└── _quick_actions_card.html      # Quick actions sidebar
+├── _profile_header.html           # User profile display
+├── _profile_stats.html            # Cocktail statistics  
+├── _profile_actions.html          # Profile action buttons
+├── _favorites_section.html        # Favorites list display
+├── _creations_section.html        # User creations display
+├── _lists_section.html            # Custom lists management
+├── _list_card.html               # Individual list component
+├── _list_actions.html            # List action buttons
+├── _cocktail_grid.html           # Cocktail display grid
+├── _cocktail_card.html           # Individual cocktail card
+├── _empty_state.html             # Empty list placeholder
+└── _loading_spinner.html         # Loading state component
 ```
 
 ### Usage Guidelines
@@ -68,10 +151,10 @@ templates/stir_craft/partials/
 #### Including Partials
 ```django
 <!-- Basic include -->
-{% include 'stir_craft/partials/_cocktail_header.html' %}
+{% include 'stir_craft/partials/_profile_header.html' %}
 
 <!-- Include with additional context -->
-{% include 'stir_craft/partials/_ingredients_table.html' with components=recipe.components.all %}
+{% include 'stir_craft/partials/_cocktail_grid.html' with cocktails=user_cocktails %}
 ```
 
 #### Naming Conventions
@@ -86,30 +169,21 @@ Create a partial when:
 - A section has a clear, single responsibility
 - You want to improve template readability
 
-### Example: Refactoring a Large Template
-**Before** (180 lines):
+### Example: Dashboard Implementation
+The dashboard template uses partials extensively:
 ```django
-<!-- cocktail_detail.html -->
-<div class="card shadow">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h1 class="mb-0">🍸 {{ cocktail.name }}</h1>
-        <!-- ... 50 more lines of header code -->
-    </div>
-    <div class="card-body">
-        <!-- ... 120 lines of body content -->
-    </div>
-</div>
-```
-
-**After** (40 lines):
-```django
-<!-- cocktail_detail.html -->
-<div class="card shadow">
-    {% include 'stir_craft/partials/_cocktail_header.html' %}
-    <div class="card-body">
-        {% include 'stir_craft/partials/_cocktail_meta.html' %}
-        {% include 'stir_craft/partials/_ingredients_table.html' %}
-        <!-- Instructions section stays inline as it's specific to this template -->
+<!-- dashboard.html (clean and readable) -->
+<div class="dashboard-container">
+    <div class="row">
+        <div class="col-lg-8">
+            {% include 'stir_craft/partials/_profile_header.html' %}
+            {% include 'stir_craft/partials/_favorites_section.html' %}
+            {% include 'stir_craft/partials/_creations_section.html' %}
+        </div>
+        <div class="col-lg-4">
+            {% include 'stir_craft/partials/_profile_stats.html' %}
+            {% include 'stir_craft/partials/_lists_section.html' %}
+        </div>
     </div>
 </div>
 ```
@@ -138,18 +212,16 @@ Create a partial when:
 <!-- cocktail_list.html -->
 {% for cocktail in cocktails %}
     <div class="col-md-4">
-        <div class="card">
-            {% include 'stir_craft/partials/_cocktail_header.html' %}
-            <!-- Add specific list view content -->
-        </div>
+        {% include 'stir_craft/partials/_cocktail_card.html' %}
     </div>
 {% endfor %}
 ```
 
-#### Ingredient Information
+#### Profile Information
 ```django
-<!-- ingredient_detail.html -->
-{% include 'stir_craft/partials/_ingredient_details_card.html' with components=ingredient.components.all %}
+<!-- user_profile.html -->
+{% include 'stir_craft/partials/_profile_header.html' %}
+{% include 'stir_craft/partials/_profile_stats.html' %}
 ```
 
 ### Team Workflow for Partials
@@ -173,95 +245,17 @@ Create a partial when:
 - Check for responsive design
 - Confirm accessibility standards
 
-## 🍸 Cocktail Forms Development Guide
-
-### Overview
-The cocktail forms system provides a complete solution for creating and managing cocktail recipes with multiple ingredients, measurements, and preparation notes.
-
-### Key Components
-
-#### Forms (`forms/cocktail_forms.py`)
-- **`CocktailForm`**: Main cocktail information (name, description, instructions, vessel, tags)
-- **`RecipeComponentFormSet`**: Manages multiple ingredients using Django's inline formsets
-- **`CocktailSearchForm`**: Advanced search and filtering capabilities
-- **`QuickIngredientForm`**: For future modal ingredient creation
-
-#### Views Added
-- **`cocktail_create`**: Handle formset creation with proper validation
-- **`cocktail_list`**: Browse cocktails with search/filter/pagination
-- **`cocktail_detail`**: Display complete recipe with stats and actions
-
-#### Templates Created
-- **`cocktail_create.html`**: Dynamic form with ingredient management
-- **`cocktail_list.html`**: Responsive cocktail browsing interface
-- **`cocktail_detail.html`**: Complete recipe display with nutritional info
-
-### Development Guidelines for Forms
-
-#### Creating New Forms
-```python
-# Example: Creating a custom form
-class MyCustomForm(forms.ModelForm):
-    class Meta:
-        model = MyModel
-        fields = ['field1', 'field2']
-        widgets = {
-            'field1': forms.TextInput(attrs={'class': 'form-control'}),
-        }
-```
-
-#### Working with Formsets
-```python
-# Using inline formsets for related models
-MyFormSet = inlineformset_factory(
-    parent_model=ParentModel,
-    model=ChildModel,
-    fields=['field1', 'field2'],
-    extra=3,  # Number of empty forms
-    min_num=1,  # Minimum required forms
-    max_num=10,  # Maximum allowed forms
-    can_delete=True
-)
-```
-
-#### Template Integration
-```django
-<!-- Form rendering with Bootstrap styling -->
-<div class="mb-3">
-    <label for="{{ form.field.id_for_label }}" class="form-label">{{ form.field.label }}</label>
-    {{ form.field }}
-    {% if form.field.errors %}
-        <div class="invalid-feedback d-block">{{ form.field.errors.0 }}</div>
-    {% endif %}
-</div>
-```
-
-### Testing Forms
-```python
-# Example form test
-def test_cocktail_form_valid(self):
-    form_data = {
-        'name': 'Test Cocktail',
-        'instructions': 'Mix well',
-        'is_alcoholic': True
-    }
-    form = CocktailForm(data=form_data)
-    self.assertTrue(form.is_valid())
-```
-
-### URL Patterns
-Add these to your URL configuration:
-```python
-urlpatterns = [
-    path('cocktails/', views.cocktail_list, name='cocktail_list'),
-    path('cocktails/create/', views.cocktail_create, name='cocktail_create'),
-    path('cocktails/<int:cocktail_id>/', views.cocktail_detail, name='cocktail_detail'),
-]
-```r Stir Craft! This document outlines the steps and best practices for developing our cocktail and mocktail app.
+For detailed template partials guidance, see **[TEMPLATE_PARTIALS_GUIDE.md](../docs/TEMPLATE_PARTIALS_GUIDE.md)**.
 
 ## 🚀 Recent Updates
 
-### Cocktail Forms & Views System (NEW!)
+### Dashboard Implementation System (NEW!)
+- **Auto-Managed Lists**: "Your Creations" lists that automatically sync with user's cocktails
+- **Enhanced List Model**: Added list_type, is_editable, is_deletable fields with Django signals
+- **Template Partials**: 12 reusable components for better maintainability and code organization
+- **CSS Organization**: Professional styling system with separated global and page-specific styles
+
+### Cocktail Forms & Views System
 - **Advanced Form Implementation**: Complete cocktail creation system using Django inline formsets
 - **Dynamic Ingredient Management**: Add/remove ingredients with real-time validation
 - **Professional Templates**: Bootstrap-styled responsive forms with JavaScript enhancements

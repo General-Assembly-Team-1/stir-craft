@@ -1,0 +1,258 @@
+/* 
+ * StirCraft Base CSS
+ * Contains styles for reusable components, partials, and global styling
+ */
+
+/* =============================================================================
+ * 🎨 GLOBAL STYLES
+ * ============================================================================= */
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.btn {
+    transition: all 0.15s ease-in-out;
+}
+
+.text-decoration-none:hover {
+    text-decoration: underline !important;
+}
+
+.card-header {
+    background: rgba(0, 123, 255, 0.05);
+    border-bottom: 1px solid rgba(0, 123, 255, 0.1);
+}
+
+/* =============================================================================
+ * 🌈 GRADIENT STYLES
+ * ============================================================================= */
+
+.bg-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important;
+}
+
+/* =============================================================================
+ * 👤 PROFILE COMPONENTS
+ * ============================================================================= */
+
+.profile-avatar {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-avatar i {
+    font-size: 24px;
+}
+
+/* =============================================================================
+ * 🍹 COCKTAIL CARD COMPONENTS
+ * ============================================================================= */
+
+.cocktail-card {
+    border: 0;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.cocktail-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.cocktail-card .card-body {
+    padding: 1rem;
+}
+
+.cocktail-card .card-title {
+    margin-bottom: 0.5rem;
+}
+
+.cocktail-card .card-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.cocktail-card .card-title a:hover {
+    color: var(--bs-primary);
+    text-decoration: underline;
+}
+
+/* =============================================================================
+ * 📋 LIST ITEM COMPONENTS
+ * ============================================================================= */
+
+.list-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+}
+
+.list-item:not(:last-child) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.list-item-icon {
+    background: var(--bs-light);
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    margin-right: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.list-item-content {
+    flex: 1;
+}
+
+.list-item-meta {
+    margin-left: auto;
+}
+
+/* =============================================================================
+ * 🚫 EMPTY STATE COMPONENTS
+ * ============================================================================= */
+
+.empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    color: var(--bs-secondary);
+    margin-bottom: 1rem;
+}
+
+.empty-state h6 {
+    margin-top: 1rem;
+    color: var(--bs-secondary);
+}
+
+.empty-state p {
+    color: var(--bs-secondary);
+    margin-bottom: 1.5rem;
+}
+
+/* =============================================================================
+ * ⚡ QUICK ACTIONS COMPONENTS
+ * ============================================================================= */
+
+.quick-action-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    min-height: 120px;
+    text-decoration: none;
+    transition: all 0.15s ease-in-out;
+}
+
+.quick-action-btn:hover {
+    transform: translateY(-2px);
+}
+
+.quick-action-btn i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.quick-action-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.quick-action-btn:disabled:hover {
+    transform: none;
+}
+
+/* =============================================================================
+ * 🔒 LOCKED ELEMENT STYLES
+ * ============================================================================= */
+
+.locked-indicator {
+    opacity: 0.7;
+    cursor: help;
+}
+
+.btn-locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-locked:disabled {
+    pointer-events: auto;
+}
+
+/* =============================================================================
+ * 📱 RESPONSIVE UTILITIES
+ * ============================================================================= */
+
+@media (max-width: 768px) {
+    .profile-avatar {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .profile-avatar i {
+        font-size: 20px;
+    }
+    
+    .quick-action-btn {
+        min-height: 100px;
+    }
+    
+    .quick-action-btn i {
+        font-size: 1.5rem;
+    }
+}
+
+/* =============================================================================
+ * 🎯 UTILITY CLASSES
+ * ============================================================================= */
+
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.text-truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.border-start-primary {
+    border-left: 3px solid var(--bs-primary);
+}
+
+.border-start-success {
+    border-left: 3px solid var(--bs-success);
+}
+
+.border-start-danger {
+    border-left: 3px solid var(--bs-danger);
+}
+
+.border-start-info {
+    border-left: 3px solid var(--bs-info);
+}
