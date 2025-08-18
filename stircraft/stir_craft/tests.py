@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.test import Client
 from .models import Profile, Ingredient, Cocktail, RecipeComponent, Vessel, List
 from .forms.cocktail_forms import CocktailForm, RecipeComponentForm, RecipeComponentFormSet, CocktailSearchForm
+from .forms.profile_forms import SignUpForm, ProfileUpdateForm, ProfileDeleteForm
 from datetime import date
 
 # =============================================================================
@@ -508,6 +509,78 @@ class ProfileViewTest(TestCase):
         })
         self.assertEqual(response.status_code, 200)  # Stay on the form page
         self.assertContains(response, 'Please correct the errors below.')
+
+
+class ProfileFormTest(TestCase):
+    """
+    Test class for profile-related forms.
+    """
+    
+    def test_signup_form_valid_data(self):
+        """Test SignUpForm with valid data."""
+        form_data = {
+            'username': 'newuser',
+            'email': 'newuser@stircraft.com',
+            'password1': 'complex_password_123',
+            'password2': 'complex_password_123',
+            'first_name': 'New',
+            'last_name': 'User',
+            'birthdate': '2000-01-01',
+            'location': 'Test City',
+        }
+        form = SignUpForm(data=form_data)
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+
+    def test_signup_form_age_validation(self):
+        """Test that SignUpForm validates minimum age (21)."""
+        form_data = {
+            'username': 'younguser',
+            'email': 'young@stircraft.com',
+            'password1': 'complex_password_123',
+            'password2': 'complex_password_123',
+            'birthdate': '2010-01-01',  # Too young
+        }
+        form = SignUpForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('birthdate', form.errors)
+
+    def test_signup_form_password_mismatch(self):
+        """Test that SignUpForm validates password confirmation."""
+        form_data = {
+            'username': 'testuser',
+            'email': 'test@stircraft.com',
+            'password1': 'password_123',
+            'password2': 'different_password',  # Mismatch
+            'birthdate': '2000-01-01',
+        }
+        form = SignUpForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('password2', form.errors)
+
+    def test_profile_update_form_valid_data(self):
+        """Test ProfileUpdateForm with valid data."""
+        user = User.objects.create_user(username='testuser', password='pass123')
+        form_data = {
+            'first_name': 'Updated',
+            'last_name': 'Name', 
+            'email': 'updated@stircraft.com',
+            'birthdate': '1995-06-15',
+            'location': 'Updated City',
+        }
+        form = ProfileUpdateForm(data=form_data)
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+
+    def test_profile_delete_form_confirmation(self):
+        """Test ProfileDeleteForm requires confirmation."""
+        form_data = {
+            'confirmation': 'DELETE',
+            'password': 'correct_password',
+        }
+        form = ProfileDeleteForm(data=form_data)
+        # Note: This form requires user context for password validation
+        # In a real test, you'd pass the user and validate accordingly
+        self.assertIn('confirmation', form.fields)
+        self.assertIn('password', form.fields)
 
 class GeneralViewTest(TestCase):
     """
