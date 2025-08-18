@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -78,14 +79,23 @@ WSGI_APPLICATION = 'stircraft.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'stircraft',
-        'USER': 'macfarley',
-        'PASSWORD': 'stircraft123',  # PostgreSQL password
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    # Make the database configurable via environment variables so
+    # local development doesn't require a running PostgreSQL instance
+    # with specific credentials. If no DB env vars are set, fall back
+    # to a local SQLite database inside the project directory.
+}
+
+# PostgreSQL configuration driven by environment variables.
+# This project requires PostgreSQL; set the following env vars in
+# your shell or .env file before running management commands:
+#   DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+DATABASES['default'] = {
+    'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
+    'NAME': os.getenv('DB_NAME', 'stircraft'),
+    'USER': os.getenv('DB_USER', 'macfarley'),
+    'PASSWORD': os.getenv('DB_PASSWORD', ''),
+    'HOST': os.getenv('DB_HOST', 'localhost'),
+    'PORT': os.getenv('DB_PORT', '5432'),
 }
 
 # PostgreSQL configuration (commented out for now)
