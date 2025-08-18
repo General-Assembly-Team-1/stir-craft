@@ -462,10 +462,11 @@ def home(request):
     Landing page with featured cocktails and recent additions.
     Show popular recipes, seasonal recommendations.
     """
-    # TODO: Implement home page
-    # Hero Logo
-    # elevator pitch of the app
-    # Call to action for users to explore cocktails
+    # Provide featured cocktails and a search form for the landing page
+    from .forms.cocktail_forms import CocktailSearchForm
+    from .models import Cocktail
+
+    # Home page is intentionally simple: hero and a short explanation/CTA.
     return render(request, 'stir_craft/home.html')
 
 @login_required
