@@ -291,36 +291,174 @@ For detailed template partials guidance, see **[TEMPLATE_PARTIALS_GUIDE.md](../d
 
 ## Setup
 
-1. **Clone the repository** and create/switch to your personal branch.
-2. **Install dependencies**:
-   ```bash
-   pipenv install
-   ```
-3. **Activate the virtual environment**:
-   ```bash
-   pipenv shell
-   ```
-4. **Ensure PostgreSQL is running** and database is configured (see main README.md).
-5. **Navigate to the Django project**:
-   ```bash
-   cd stircraft
-   ```
-6. **Apply migrations**:
-   ```bash
-   python manage.py migrate
-   ```
-7. **Seed the database with cocktail data**:
-   ```bash
-   python manage.py seed_from_thecocktaildb --limit 10
-   ```
-8. **Create a superuser** (optional):
-   ```bash
-   python manage.py createsuperuser
-   ```
-9. **Run the development server**:
-   ```bash
-   python manage.py runserver
-   ```
+### 1. Clone Repository & Install Dependencies
+```bash
+# Clone the repository and switch to your personal branch
+git clone <repository-url>
+cd stir-craft
+git checkout <your-branch-name>
+
+# Install Python dependencies
+pipenv install
+```
+
+### 2. PostgreSQL Database Setup
+
+This project requires PostgreSQL. Follow these steps to set up your local database:
+
+#### Install PostgreSQL (if not already installed)
+```bash
+# Ubuntu/Debian
+sudo apt update && sudo apt install postgresql postgresql-contrib
+
+# macOS with Homebrew
+brew install postgresql
+brew services start postgresql
+
+# Check if PostgreSQL is running
+sudo systemctl status postgresql    # Linux
+brew services list | grep postgres  # macOS
+```
+
+#### Create Database User and Database
+```bash
+# Create a PostgreSQL user for the project
+sudo -u postgres createuser --interactive --pwprompt macfarley
+# When prompted, enter password: stircraft123
+# Answer 'n' to superuser, 'y' to create databases, 'n' to create roles
+
+# Create the project database
+sudo -u postgres createdb --owner=macfarley stircraft
+
+# Alternative: Use psql directly
+sudo -u postgres psql
+CREATE USER macfarley WITH PASSWORD 'stircraft123';
+CREATE DATABASE stircraft OWNER macfarley;
+GRANT ALL PRIVILEGES ON DATABASE stircraft TO macfarley;
+\q
+```
+
+#### Configure Environment Variables
+The Django settings use environment variables for database configuration:
+
+```bash
+# Add to your ~/.bashrc, ~/.zshrc, or create a .env file:
+export DB_PASSWORD="stircraft123"
+
+# Optional: Override other database settings if needed
+export DB_NAME="stircraft"
+export DB_USER="macfarley" 
+export DB_HOST="localhost"
+export DB_PORT="5432"
+
+# Reload your shell or source the file
+source ~/.bashrc  # or ~/.zshrc
+```
+
+### 3. Django Setup & Migrations
+
+```bash
+# Activate the virtual environment
+pipenv shell
+
+# Navigate to Django project directory
+cd stircraft
+
+# Set database password for this session
+export DB_PASSWORD="stircraft123"
+
+# Run Django system check
+python manage.py check
+
+# Apply database migrations
+python manage.py migrate
+
+# Create a superuser account (optional but recommended)
+python manage.py createsuperuser
+
+# Seed the database with cocktail data
+python manage.py seed_from_thecocktaildb --limit 10
+
+# Start the development server
+python manage.py runserver
+```
+
+### 4. Verify Setup
+
+Test that everything is working:
+
+```bash
+# Run system checks
+export DB_PASSWORD="stircraft123"
+pipenv run python stircraft/manage.py check
+
+# Test database connection
+pipenv run python stircraft/manage.py shell -c "from django.contrib.auth.models import User; print(f'Users: {User.objects.count()}')"
+
+# Run the development server
+pipenv run python stircraft/manage.py runserver
+```
+
+### Troubleshooting Database Issues
+
+#### Connection Refused
+```bash
+# Check if PostgreSQL is running
+sudo systemctl status postgresql  # Linux
+brew services list               # macOS
+
+# Start PostgreSQL if not running
+sudo systemctl start postgresql  # Linux  
+brew services start postgresql   # macOS
+```
+
+#### Authentication Failed
+```bash
+# Reset user password
+sudo -u postgres psql -c "ALTER USER macfarley PASSWORD 'stircraft123';"
+
+# Ensure database exists and is owned by user
+sudo -u postgres psql -c "\l"  # List databases
+sudo -u postgres psql -c "ALTER DATABASE stircraft OWNER TO macfarley;"
+```
+
+#### Environment Variables Not Set
+```bash
+# Temporarily set for current session
+export DB_PASSWORD="stircraft123"
+
+# Permanently add to shell profile
+echo 'export DB_PASSWORD="stircraft123"' >> ~/.bashrc  # or ~/.zshrc
+source ~/.bashrc
+```
+
+### Quick Reference for Team Members
+
+**Essential Commands (run these every time):**
+```bash
+# Set database password
+export DB_PASSWORD="stircraft123"
+
+# Common Django commands
+pipenv run python stircraft/manage.py migrate
+pipenv run python stircraft/manage.py runserver
+pipenv run python stircraft/manage.py shell
+pipenv run python stircraft/manage.py createsuperuser
+
+# Import cocktail data
+pipenv run python stircraft/manage.py seed_from_thecocktaildb --limit 10
+```
+
+**First-time setup checklist:**
+- [ ] PostgreSQL installed and running
+- [ ] Database `stircraft` created with user `macfarley`
+- [ ] Environment variable `DB_PASSWORD="stircraft123"` set
+- [ ] Dependencies installed with `pipenv install`
+- [ ] Migrations applied with `python manage.py migrate`
+- [ ] Superuser created (optional)
+- [ ] Test data imported (optional)
+
+---
 
 ## Development Guidelines
 

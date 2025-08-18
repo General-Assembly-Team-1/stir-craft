@@ -286,12 +286,22 @@ if cocktail_form.is_valid() and formset.is_valid():
 
 2. **Create database and user:**
    ```bash
-   sudo -u postgres psql
-   CREATE DATABASE stircraft;
-   CREATE USER macfarley WITH PASSWORD 'stircraft123';
-   GRANT ALL PRIVILEGES ON DATABASE stircraft TO macfarley;
-   \q
+   sudo -u postgres createuser --interactive --pwprompt macfarley
+   # Enter password: stircraft123 when prompted
+   
+   sudo -u postgres createdb --owner=macfarley stircraft
    ```
+
+3. **Set environment variables:**
+   ```bash
+   # Add to your shell profile (~/.bashrc or ~/.zshrc)
+   export DB_PASSWORD="stircraft123"
+   
+   # Or set for current session only
+   export DB_PASSWORD="stircraft123"
+   ```
+
+   **Note**: The application uses environment variables for database configuration. See `docs/DEVELOPMENT_GUIDE.md` for detailed setup instructions and troubleshooting.
 
 ### Application Setup
 1. **Clone the repository:**
@@ -319,14 +329,18 @@ if cocktail_form.is_valid() and formset.is_valid():
    cd stircraft
    ```
 
-6. **Apply migrations:**
+6. **Set database password and apply migrations:**
    ```bash
+   # Set the database password for this session
+   export DB_PASSWORD="stircraft123"
+   
+   # Apply database migrations
    python manage.py migrate
    ```
 
 7. **Seed the database with cocktail data:**
    ```bash
-   # Import a small test batch (10 cocktails)
+   # Import a small test batch (10 cocktails)  
    python manage.py seed_from_thecocktaildb --limit 10
    
    # Import 100 cocktails from all letters

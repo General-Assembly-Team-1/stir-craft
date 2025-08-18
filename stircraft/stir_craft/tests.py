@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.test import Client
 from .models import Profile, Ingredient, Cocktail, RecipeComponent, Vessel, List
 from .forms.cocktail_forms import CocktailForm, RecipeComponentForm, RecipeComponentFormSet, CocktailSearchForm
+from .forms.profile_forms import SignUpForm, ProfileUpdateForm, ProfileDeleteForm
 from datetime import date
 
 # =============================================================================
@@ -226,6 +227,108 @@ class UserInteractionModelTest(BaseModelTest):
         self.assertTrue(True, "User interaction tests ready for implementation")
 
 
+class ListModelTest(BaseModelTest):
+    """
+    Test class for List model functionality including enhanced features.
+    """
+    
+    def test_list_creation(self):
+        """Test basic list creation."""
+        test_list = List.objects.create(
+            name="My Custom List",
+            creator=self.test_user,
+            list_type='custom',
+            is_editable=True,
+            is_deletable=True
+        )
+        self.assertEqual(test_list.name, "My Custom List")
+        self.assertEqual(test_list.creator, self.test_user)
+        self.assertEqual(test_list.list_type, 'custom')
+        self.assertTrue(test_list.is_editable)
+        self.assertTrue(test_list.is_deletable)
+
+    def test_auto_managed_lists_creation(self):
+        """Test creation of auto-managed lists (favorites and creations)."""
+        favorites = List.get_or_create_favorites_list(self.test_user)
+        self.assertEqual(favorites.list_type, 'favorites')
+        self.assertEqual(favorites.creator, self.test_user)
+        self.assertTrue(favorites.is_editable)
+        self.assertFalse(favorites.is_deletable)
+        
+        creations = List.get_or_create_creations_list(self.test_user)
+        self.assertEqual(creations.list_type, 'creations')
+        self.assertEqual(creations.creator, self.test_user)
+        self.assertFalse(creations.is_editable)
+        self.assertFalse(creations.is_deletable)
+
+    def test_default_lists_creation(self):
+        """Test that default lists are created for new users."""
+        new_user = User.objects.create_user(
+            username='new_user',
+            email='new@stircraft.com',
+            password='password123'
+        )
+        
+        List.create_default_lists(new_user)
+        
+        favorites = List.objects.get(creator=new_user, list_type='favorites')
+        creations = List.objects.get(creator=new_user, list_type='creations')
+        
+        self.assertEqual(favorites.name, 'Favorites')
+        self.assertEqual(creations.name, 'Your Creations')
+
+    def test_creations_list_sync(self):
+        """Test that creations list automatically syncs with user's cocktails."""
+        creations_list = List.get_or_create_creations_list(self.test_user)
+        
+        # Create a cocktail
+        cocktail = Cocktail.objects.create(
+            name='Test Sync Cocktail',
+            instructions='Test instructions',
+            creator=self.test_user
+        )
+        
+        # Manually sync (in production this happens via signals)
+        creations_list.sync_creations_list()
+        
+        # Verify cocktail was added to creations list
+        self.assertIn(cocktail, creations_list.cocktails.all())
+
+    def test_list_unique_constraints(self):
+        """Test that list unique constraints work correctly."""
+        # Create first list
+        List.objects.create(
+            name="Test List",
+            creator=self.test_user,
+            list_type='custom'
+        )
+        
+        # Try to create duplicate (same name, same creator)
+        with self.assertRaises(IntegrityError):
+            List.objects.create(
+                name="Test List",
+                creator=self.test_user,
+                list_type='custom'
+            )
+
+    def test_list_type_constraints(self):
+        """Test that users can only have one list of each auto-managed type."""
+        # Create favorites list
+        List.objects.create(
+            name="Favorites",
+            creator=self.test_user,
+            list_type='favorites'
+        )
+        
+        # Try to create another favorites list
+        with self.assertRaises(IntegrityError):
+            List.objects.create(
+                name="More Favorites",
+                creator=self.test_user,
+                list_type='favorites'
+            )
+
+
 class ProfileModelTest(TestCase):
     """
     Test class for Profile model functionality.
@@ -407,6 +510,78 @@ class ProfileViewTest(TestCase):
         self.assertEqual(response.status_code, 200)  # Stay on the form page
         self.assertContains(response, 'Please correct the errors below.')
 
+
+class ProfileFormTest(TestCase):
+    """
+    Test class for profile-related forms.
+    """
+    
+    def test_signup_form_valid_data(self):
+        """Test SignUpForm with valid data."""
+        form_data = {
+            'username': 'newuser',
+            'email': 'newuser@stircraft.com',
+            'password1': 'complex_password_123',
+            'password2': 'complex_password_123',
+            'first_name': 'New',
+            'last_name': 'User',
+            'birthdate': '2000-01-01',
+            'location': 'Test City',
+        }
+        form = SignUpForm(data=form_data)
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+
+    def test_signup_form_age_validation(self):
+        """Test that SignUpForm validates minimum age (21)."""
+        form_data = {
+            'username': 'younguser',
+            'email': 'young@stircraft.com',
+            'password1': 'complex_password_123',
+            'password2': 'complex_password_123',
+            'birthdate': '2010-01-01',  # Too young
+        }
+        form = SignUpForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('birthdate', form.errors)
+
+    def test_signup_form_password_mismatch(self):
+        """Test that SignUpForm validates password confirmation."""
+        form_data = {
+            'username': 'testuser',
+            'email': 'test@stircraft.com',
+            'password1': 'password_123',
+            'password2': 'different_password',  # Mismatch
+            'birthdate': '2000-01-01',
+        }
+        form = SignUpForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('password2', form.errors)
+
+    def test_profile_update_form_valid_data(self):
+        """Test ProfileUpdateForm with valid data."""
+        user = User.objects.create_user(username='testuser', password='pass123')
+        form_data = {
+            'first_name': 'Updated',
+            'last_name': 'Name', 
+            'email': 'updated@stircraft.com',
+            'birthdate': '1995-06-15',
+            'location': 'Updated City',
+        }
+        form = ProfileUpdateForm(data=form_data)
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+
+    def test_profile_delete_form_confirmation(self):
+        """Test ProfileDeleteForm requires confirmation."""
+        form_data = {
+            'confirmation': 'DELETE',
+            'password': 'correct_password',
+        }
+        form = ProfileDeleteForm(data=form_data)
+        # Note: This form requires user context for password validation
+        # In a real test, you'd pass the user and validate accordingly
+        self.assertIn('confirmation', form.fields)
+        self.assertIn('password', form.fields)
+
 class GeneralViewTest(TestCase):
     """
     Test class for general views.
@@ -416,7 +591,64 @@ class GeneralViewTest(TestCase):
         """Test that the home view renders the correct template."""
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'stir_craft/home.html')
+        self.assertTemplateUsed(response, 'home.html')
+
+
+class DashboardViewTest(TestCase):
+    """
+    Test class for dashboard view functionality.
+    """
+    
+    def setUp(self):
+        """Set up test data for dashboard tests."""
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='dashboard_user',
+            email='dashboard@stircraft.com',
+            password='test_password_123'
+        )
+        self.profile = Profile.objects.create(
+            user=self.user,
+            birthdate=date(2000, 1, 1)
+        )
+
+    def test_dashboard_requires_login(self):
+        """Test that dashboard view requires authentication."""
+        response = self.client.get(reverse('dashboard'))
+        self.assertEqual(response.status_code, 302)  # Redirect to login
+        self.assertIn('/admin/login/', response.url)
+
+    def test_dashboard_view_authenticated(self):
+        """Test dashboard view for authenticated user."""
+        self.client.login(username='dashboard_user', password='test_password_123')
+        response = self.client.get(reverse('dashboard'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'stir_craft/dashboard.html')
+        self.assertContains(response, self.user.username)
+
+    def test_dashboard_context_data(self):
+        """Test that dashboard provides correct context data."""
+        self.client.login(username='dashboard_user', password='test_password_123')
+        
+        # Create test data
+        cocktail = Cocktail.objects.create(
+            name='User Cocktail',
+            instructions='Test instructions',
+            creator=self.user
+        )
+        
+        response = self.client.get(reverse('dashboard'))
+        
+        # Check context contains expected data
+        self.assertIn('profile', response.context)
+        self.assertIn('creations_list', response.context)
+        self.assertIn('favorites_list', response.context)
+        self.assertIn('user_lists', response.context)
+        self.assertIn('stats', response.context)
+        
+        # Verify user's cocktail appears in creations
+        creations_list = response.context['creations_list']
+        self.assertIn(cocktail, creations_list.cocktails.all())
 
 
 # =============================================================================
