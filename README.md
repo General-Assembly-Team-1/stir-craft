@@ -166,12 +166,12 @@ StirCraft now includes a comprehensive cocktail creation and management system u
 
 #### **Views**
 - **`cocktail_create`**: Handles formset creation with proper validation and error handling
-- **`cocktail_list`**: Browse cocktails with search, filter, and pagination
+- **`cocktail_index`**: Browse cocktails with search, filter, and pagination
 - **`cocktail_detail`**: Full recipe display with stats, ingredient details, and user actions
 
 #### **Templates**
 - **`cocktail_create.html`**: Rich form interface with dynamic ingredient management
-- **`cocktail_list.html`**: Responsive cocktail browsing with search filters
+- **`cocktail_index.html`**: Responsive cocktail browsing with search filters
 - **`cocktail_detail.html`**: Complete recipe display with nutritional info and actions
 
 ### Features

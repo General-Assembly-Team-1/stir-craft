@@ -209,7 +209,7 @@ The dashboard template uses partials extensively:
 
 #### Cocktail Cards in Lists
 ```django
-<!-- cocktail_list.html -->
+<!-- cocktail_index.html -->
 {% for cocktail in cocktails %}
     <div class="col-md-4">
         {% include 'stir_craft/partials/_cocktail_card.html' %}

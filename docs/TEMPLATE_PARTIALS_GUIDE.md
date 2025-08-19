@@ -132,7 +132,7 @@ Move the HTML section to your new partial file:
 
 ### Example: Cocktail Cards in List View
 ```django
-<!-- cocktail_list.html -->
+<!-- cocktail_index.html -->
 {% for cocktail in cocktails %}
     <div class="col-md-4 mb-4">
         <div class="card h-100">

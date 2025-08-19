@@ -7,7 +7,7 @@
         </h5>
         <div>
             <span class="badge bg-primary badge-count">{{ creations_list.cocktail_count }} recipe{{ creations_list.cocktail_count|pluralize }}</span>
-            <a href="{% url 'cocktail_list' %}?creator={{ user.id }}" class="btn btn-sm btn-outline-primary">View All</a>
+            <a href="{% url 'cocktail_index' %}?creator={{ user.id }}" class="btn btn-sm btn-outline-primary">View All</a>
         </div>
     </div>
     <div class="card-body">
@@ -26,7 +26,7 @@
             
             {% if creations_list.cocktail_count > 6 %}
             <div class="text-center mt-3">
-                <a href="{% url 'cocktail_list' %}?creator={{ user.id }}" class="btn btn-outline-primary">
+                <a href="{% url 'cocktail_index' %}?creator={{ user.id }}" class="btn btn-outline-primary">
                     View All {{ creations_list.cocktail_count }} Cocktails
                 </a>
             </div>
