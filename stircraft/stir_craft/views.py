@@ -82,7 +82,7 @@ def profile_update(request):
     })
 
 # TODO: Profile list view (browse users)
-# def profile_list(request):
+# def profile_index(request):
 #     """
 #     Browse other users' profiles.
 #     Filter and search functionality.
@@ -94,8 +94,8 @@ def profile_update(request):
 # 🧂 INGREDIENT VIEWS
 # =============================================================================
 
-# TODO: Ingredient list view
-# def ingredient_list(request):
+# TODO: Ingredient index view
+# def ingredient_index(request):
 #     """
 #     Display all available ingredients.
 #     Filter by type, search by name, sort options.
@@ -123,8 +123,8 @@ def profile_update(request):
 # 🍸 VESSEL VIEWS
 # =============================================================================
 
-# TODO: Vessel list view
-# def vessel_list(request):
+# TODO: Vessel index view
+# def vessel_index(request):
 #     """
 #     Display all available vessels/glassware.
 #     Show capacity, descriptions, images.
@@ -144,7 +144,7 @@ def profile_update(request):
 # 🍹 COCKTAIL VIEWS
 # =============================================================================
 
-def cocktail_list(request):
+def cocktail_index(request):
     """
     Main cocktail browsing page with advanced search and filtering.
     
@@ -239,7 +239,7 @@ def cocktail_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    return render(request, 'stir_craft/cocktail_list.html', {
+    return render(request, 'stir_craft/cocktail_index.html', {
         'page_obj': page_obj,
         'search_form': search_form,
         'total_count': paginator.count,

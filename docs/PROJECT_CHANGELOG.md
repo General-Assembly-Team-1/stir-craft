@@ -209,7 +209,7 @@ templates/stir_craft/partials/
 
 #### 2. View Layer Implementation
 - **Developed** `cocktail_create` view with formset handling and validation
-- **Created** `cocktail_list` view with advanced search, filtering, and pagination
+- **Created** `cocktail_index` view with advanced search, filtering, and pagination
 - **Implemented** `cocktail_detail` view with comprehensive recipe display
 - **Added** proper authentication decorators and permission checking
 
@@ -254,7 +254,7 @@ RecipeComponentForm (individual ingredient + measurements)
 #### New Files
 - `stircraft/stir_craft/forms/cocktail_forms.py` (comprehensive form system)
 - `stircraft/stir_craft/templates/stir_craft/cocktail_create.html` (creation form)
-- `stircraft/stir_craft/templates/stir_craft/cocktail_list.html` (browse/search)
+- `stircraft/stir_craft/templates/stir_craft/cocktail_index.html` (browse/search)
 - `stircraft/stir_craft/templates/stir_craft/cocktail_detail.html` (recipe display)
 
 #### Modified Files

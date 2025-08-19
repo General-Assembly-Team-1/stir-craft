@@ -35,7 +35,7 @@ stircraft/stir_craft/
 ├── urls.py                       # URL patterns (updated)
 ├── templates/stir_craft/
 │   ├── cocktail_create.html      # Creation form template
-│   ├── cocktail_list.html        # Browse/search template
+│   ├── cocktail_index.html        # Browse/search template
 │   └── cocktail_detail.html      # Recipe display template
 └── models.py                     # Existing models (unchanged)
 ```
@@ -89,7 +89,7 @@ class CocktailForm(forms.ModelForm):
 - Success/error messages
 - Proper error handling
 
-#### cocktail_list View
+#### cocktail_index View
 **Features**: Search, filter, sort, paginate  
 **Performance**: Optimized queries with `select_related()` and `prefetch_related()`  
 **Search Options**: Text, ingredient, vessel, alcohol content, color

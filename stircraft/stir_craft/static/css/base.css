@@ -224,6 +224,58 @@
 /* =============================================================================
  * 🎯 UTILITY CLASSES
  * ============================================================================= */
+/* =============================================================================
+ * 🍸 COCKTAIL FORM STYLES (moved from template: stir_craft/templates/stir_craft/cocktail_create.html)
+ * ============================================================================= */
+.ingredient-formset {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+}
+
+.ingredient-row {
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr 2fr 1fr auto;
+    gap: 0.5rem;
+    align-items: end;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    background-color: white;
+}
+
+.delete-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-ingredient-btn {
+    margin-top: 1rem;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    background-color: white;
+}
+
+.section-title {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+/* Home hero partial logo styling (moved from template partials/_home_hero.html) */
+.home-hero-logo {
+    max-height: 260px;
+    object-fit: contain;
+}
 
 .text-truncate-2 {
     display: -webkit-box;

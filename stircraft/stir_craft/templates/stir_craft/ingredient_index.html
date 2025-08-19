@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ingredients{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/ingredients.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<!-- INGREDIENT INDEX (renamed from ingredient_list.html)
+     Purpose: Browse ingredients. Reuse _ingredients_table partial for lists or include search filters.
+-->
+
+<div class="container">
+    <h1>Ingredients</h1>
+    <p class="text-muted">(Placeholder - ingredient index content)</p>
+</div>
+
+{% endblock %}
