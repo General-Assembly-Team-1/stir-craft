@@ -465,23 +465,27 @@ class List(models.Model):
     def create_default_lists(user):
         """Create default lists for a new user."""
         # Create "Your Creations" list (edit-locked)
-        creations_list = List.objects.create(
-            name="Your Creations",
-            description="All cocktails you've created - automatically updated",
+        creations_list, created = List.objects.get_or_create(
             creator=user,
             list_type='creations',
-            is_editable=False,
-            is_deletable=False
+            defaults={
+                'name': "Your Creations",
+                'description': "All cocktails you've created - automatically updated",
+                'is_editable': False,
+                'is_deletable': False
+            }
         )
         
         # Create "Favorites" list (editable)
-        favorites_list = List.objects.create(
-            name="Favorites",
-            description="Your favorite recipes",
+        favorites_list, created = List.objects.get_or_create(
             creator=user,
             list_type='favorites',
-            is_editable=True,
-            is_deletable=False
+            defaults={
+                'name': "Favorites",
+                'description': "Your favorite recipes",
+                'is_editable': True,
+                'is_deletable': False
+            }
         )
         
         return creations_list, favorites_list
