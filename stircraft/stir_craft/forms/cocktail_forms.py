@@ -188,6 +188,13 @@ class RecipeComponentForm(forms.ModelForm):
         # Set reasonable defaults for order field
         self.fields['order'].help_text = "Order of addition (0 = first, 1 = second, etc.)"
 
+    def clean_amount(self):
+        """Validate that amount is positive."""
+        amount = self.cleaned_data.get('amount')
+        if amount is not None and amount <= 0:
+            raise forms.ValidationError("Amount must be greater than 0")
+        return amount
+
 
 # Create the formset for handling multiple recipe components
 # This is the key to managing multiple ingredients in a single form submission

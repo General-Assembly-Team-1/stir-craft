@@ -1,6 +1,7 @@
 <!-- Cocktail Meta Information Partial -->
 <div class="row mb-4">
     <div class="col-md-6">
+        {% load math_filters %}
         <p class="mb-1">
             <strong>Created by:</strong> 
             <a href="{% url 'profile_detail' cocktail.creator.id %}">{{ cocktail.creator.username }}</a>
@@ -32,7 +33,7 @@
                 <span class="badge bg-info">Non-alcoholic</span>
             {% endif %}
         </p>
-        {% if total_volume %}
+    {% if total_volume %}
             <p class="mb-1">
                 <strong>Total Volume:</strong> {{ total_volume }} ml 
                 ({{ total_volume|floatformat:0|add:"0"|mul:0.033814 }} oz)

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile.user.username }}'s Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2>{{ profile.user.username }}'s Profile</h2>
+                </div>
+                <div class="card-body">
+                    <p><strong>Username:</strong> {{ profile.user.username }}</p>
+                    {% if profile.user.first_name %}
+                        <p><strong>Name:</strong> {{ profile.user.first_name }} {{ profile.user.last_name }}</p>
+                    {% endif %}
+                    {% if profile.user.email %}
+                        <p><strong>Email:</strong> {{ profile.user.email }}</p>
+                    {% endif %}
+                    {% if profile.location %}
+                        <p><strong>Location:</strong> {{ profile.location }}</p>
+                    {% endif %}
+                    {% if profile.birthdate %}
+                        <p><strong>Member since:</strong> {{ profile.user.date_joined|date:"F Y" }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Stats</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Cocktails Created:</strong> {{ stats.cocktails_created|default:0 }}</p>
+                    <p><strong>Favorites:</strong> {{ stats.favorites_count|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

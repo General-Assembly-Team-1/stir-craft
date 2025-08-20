@@ -4,51 +4,7 @@
 {% block title %}{{ page_title }}{% endblock %}
 
 {% block extra_css %}
-<style>
-    .ingredient-formset {
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        background-color: #f8f9fa;
-    }
-    
-    .ingredient-row {
-        display: grid;
-        grid-template-columns: 3fr 1fr 1fr 2fr 1fr auto;
-        gap: 0.5rem;
-        align-items: end;
-        margin-bottom: 0.5rem;
-        padding: 0.5rem;
-        border: 1px solid #dee2e6;
-        border-radius: 0.25rem;
-        background-color: white;
-    }
-    
-    .delete-checkbox {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .add-ingredient-btn {
-        margin-top: 1rem;
-    }
-    
-    .form-section {
-        margin-bottom: 2rem;
-        padding: 1.5rem;
-        border: 1px solid #e9ecef;
-        border-radius: 0.5rem;
-        background-color: white;
-    }
-    
-    .section-title {
-        color: #495057;
-        margin-bottom: 1rem;
-        font-weight: 600;
-    }
-</style>
+{# Styles moved to: static/css/base.css — see "/static/css/base.css" (COCKTAIL FORM STYLES) #}
 {% endblock %}
 
 {% block content %}
@@ -225,7 +181,7 @@
                         
                         <!-- Form Actions -->
                         <div class="d-flex justify-content-between">
-                            <a href="{% url 'cocktail_list' %}" class="btn btn-secondary">Cancel</a>
+                            <a href="{% url 'cocktail_index' %}" class="btn btn-secondary">Cancel</a>
                             <button type="submit" class="btn btn-primary">🍸 Create Cocktail</button>
                         </div>
                     </form>
