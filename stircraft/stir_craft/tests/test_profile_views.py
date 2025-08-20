@@ -61,7 +61,7 @@ class ProfileFormTest(TestCase):
             'last_name': 'Name', 
             'email': 'updated@stircraft.com',
             'birthdate': '1995-06-15',
-            'location': 'Updated City',
+            'location': 'NYC',  # Shortened to fit 10 char limit
         }
         form = ProfileUpdateForm(data=form_data)
         self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
@@ -75,7 +75,7 @@ class ProfileFormTest(TestCase):
         form = ProfileDeleteForm(data=form_data)
         # Note: This form requires user context for password validation
         # In a real test, you'd pass the user and validate accordingly
-        self.assertIn('confirmation', form.fields)
+        self.assertIn('username_confirmation', form.fields)
         self.assertIn('password', form.fields)
 
 
@@ -147,7 +147,7 @@ class GeneralViewTest(TestCase):
         """Test that the home view renders the correct template."""
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home.html')
+        self.assertTemplateUsed(response, 'stir_craft/home.html')
 
 
 class DashboardViewTest(TestCase):

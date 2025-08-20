@@ -185,7 +185,7 @@ def cocktail_index(request):
     from django.core.paginator import Paginator
     
     # Start with all cocktails
-    cocktails = Cocktail.objects.select_related('creator', 'vessel').prefetch_related('components__ingredient')
+    cocktails = Cocktail.objects.select_related('creator', 'vessel').prefetch_related('components__ingredient', 'vibe_tags')
     
     # Handle search and filtering
     search_form = CocktailSearchForm(request.GET or None)

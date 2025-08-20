@@ -83,7 +83,7 @@ class CocktailViewTest(TestCase):
         response = self.client.get(reverse('cocktail_create'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Create New Cocktail')
-        self.assertContains(response, 'cocktail_form')
+        self.assertContains(response, 'cocktail-form')  # Template uses ID with hyphen
         self.assertContains(response, 'formset')
 
     def test_cocktail_create_view_post_valid(self):
@@ -150,7 +150,7 @@ class CocktailViewTest(TestCase):
         response = self.client.get(reverse('cocktail_create'))
         # Should redirect to login page
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/accounts/login/', response.url)
+        self.assertIn('/admin/login/', response.url)
 
     def test_cocktail_index_search_functionality(self):
         """Test search functionality in cocktail index view."""

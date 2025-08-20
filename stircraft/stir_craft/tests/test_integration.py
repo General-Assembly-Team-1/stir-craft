@@ -123,7 +123,7 @@ class CocktailSystemIntegrationTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Classic Dry Martini')
         self.assertContains(response, 'London Dry Gin')
-        self.assertContains(response, '60 ml')
+        self.assertContains(response, '60.00 ml')  # Template shows with 2 decimal places
         self.assertContains(response, 'Chilled')
         
         # Step 8: Test search functionality
