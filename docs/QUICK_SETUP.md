@@ -1,8 +1,10 @@
 # StirCraft Quick Setup Guide
 
-## 🚀 Get Running in 5 Minutes
+## 🚀 Get Running in 10 Minutes
 
-### Prerequisites Check
+**Follow these steps in order for a smooth setup:**
+
+### 1. Prerequisites Check
 ```bash
 # Check if you have these installed:
 python3 --version    # Should be 3.12+
@@ -10,60 +12,89 @@ psql --version       # PostgreSQL client
 pip --version        # Python package manager
 ```
 
-### Database Setup (One-time)
+### 2. Database Setup (One-time)
 ```bash
-# 1. Create PostgreSQL user and database
-sudo -u postgres createuser --interactive --pwprompt macfarley
-# Enter password: stircraft123
+# Create PostgreSQL user with password
+sudo -u postgres psql -c "ALTER USER $(whoami) PASSWORD 'stircraft123';"
 
-sudo -u postgres createdb --owner=macfarley stircraft
+# Create database 
+sudo -u postgres createdb --owner=$(whoami) stircraft
 
-# 2. Set environment variable (add to ~/.bashrc or ~/.zshrc)
-export DB_PASSWORD="stircraft123"
+# Set environment variable (optional but recommended)
+echo 'export DB_PASSWORD="stircraft123"' >> ~/.bashrc
+source ~/.bashrc  # or restart terminal
 ```
 
-### Application Setup (One-time)
+### 3. Application Setup (One-time)
 ```bash
-# 3. Clone and setup project
+# Clone and setup project
 git clone <repo-url>
 cd stir-craft
+
+# Install dependencies
 pipenv install
 
-# 4. Run migrations
-export DB_PASSWORD="stircraft123"
-pipenv run python stircraft/manage.py migrate
+# Run migrations  
+DB_PASSWORD=stircraft123 pipenv run python stircraft/manage.py migrate
 
-# 5. Import test data (optional)
-pipenv run python stircraft/manage.py seed_from_thecocktaildb --limit 10
+# Import test data (optional but recommended)
+DB_PASSWORD=stircraft123 pipenv run python stircraft/manage.py seed_from_thecocktaildb --limit 10
 ```
 
-### Daily Development
+### 4. Verify Everything Works
+```bash
+# Run the test suite to make sure everything is set up correctly
+./scripts/run_tests.sh
+
+# If tests pass, you're good to go!
+```
+
+### 5. Daily Development
 ```bash
 # Navigate to project
 cd stir-craft
 
-# Set database password
-export DB_PASSWORD="stircraft123"
-
 # Start development server
-pipenv run python stircraft/manage.py runserver
+DB_PASSWORD=stircraft123 pipenv run python stircraft/manage.py runserver
+
+# Visit: http://127.0.0.1:8000
+```
+
+## 🛠 Available Scripts
+
+**From project root:**
+```bash
+./scripts/run_tests.sh              # Run all tests (use this often!)
+./scripts/run_tests.sh --verbose    # Detailed test output
+./scripts/update_branches_team.sh   # Sync with team changes
+./scripts/update_test_report.py     # Generate test failure report
 ```
 
 ## 🆘 Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
-| `password authentication failed` | `sudo -u postgres psql -c "ALTER USER macfarley PASSWORD 'stircraft123';"` |
-| `database "stircraft" does not exist` | `sudo -u postgres createdb --owner=macfarley stircraft` |
+| `password authentication failed` | Run the database setup commands again |
+| `database "stircraft" does not exist` | `sudo -u postgres createdb --owner=$(whoami) stircraft` |
 | `No module named 'django'` | Run `pipenv install` then use `pipenv run` |
 | `connection refused` | Start PostgreSQL: `sudo systemctl start postgresql` |
+| `tests fail` | Check `docs/POSTGRES_SETUP.md` for detailed DB setup |
 
-## 📚 Full Documentation
+## ✅ Success Indicators
 
-- **Complete Setup**: `docs/DEVELOPMENT_GUIDE.md`
-- **CSS Guidelines**: `docs/CSS_ORGANIZATION.md`  
-- **Recent Changes**: `docs/PROJECT_CHANGELOG.md`
+You're set up correctly when:
+- [ ] `./scripts/run_tests.sh` shows "57/57 tests passing"
+- [ ] Development server starts without errors
+- [ ] You can visit http://127.0.0.1:8000 and see the app
+
+## 📚 Next Steps
+
+**After setup works:**
+1. **Database Details**: `docs/POSTGRES_SETUP.md` (if you had DB issues)
+2. **Development Workflow**: `docs/DEVELOPMENT_GUIDE.md`  
+3. **Test Status**: `docs/TEST_FAILURE_REPORT.md`
+4. **Recent Changes**: `docs/PROJECT_CHANGELOG.md`
 
 ---
 
-*Need help? Check the full DEVELOPMENT_GUIDE.md or ask the team!*
+*Having trouble? The database setup is the most common issue - see `docs/POSTGRES_SETUP.md` for detailed help.*

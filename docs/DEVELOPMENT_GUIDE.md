@@ -1,6 +1,19 @@
-# Stir Craft – Internal Development Guide
+# Stir Craft – Development Guide
 
-Welcome to the main app## Development Guidelines
+**Prerequisites:** Make sure you've completed the setup in `docs/QUICK_SETUP.md` and `docs/POSTGRES_SETUP.md` first.
+
+## 🛠 Available Scripts
+
+**Essential scripts for daily development:**
+
+```bash
+./scripts/run_tests.sh              # Run all tests (do this often!)
+./scripts/run_tests.sh --verbose    # Detailed test output for debugging
+./scripts/update_branches_team.sh   # Sync your local branches with team changes  
+./scripts/update_test_report.py     # Auto-generate test failure reports
+```
+
+## Development Guidelines
 
 - Add new models, views, and templates inside `stir_craft/`.
 - Use Django's app structure for scalability.
@@ -8,7 +21,7 @@ Welcome to the main app## Development Guidelines
 - Write tests in `stir_craft/tests/` (modular test files under `stir_craft/tests/`).
 - Run tests before pushing:
   ```bash
-  python manage.py test
+  ./scripts/run_tests.sh
   ```
 
 ## Data Management

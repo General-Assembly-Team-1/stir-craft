@@ -1,130 +1,116 @@
-# StirCraft Documentation
+# 🚀 StirCraft Developer Guide - START HERE
 
-Welcome to the StirCraft documentation hub. This folder contains comprehensive guides for developers, users, and project maintainers.
+**Welcome to StirCraft!** This is your entry point to the project. Read this first, then follow the guided path below.
+
+## 📋 Quick Start Checklist
+
+**New to the project? Follow this order:**
+
+### 1. **SETUP** (Required for everyone)
+- [ ] Read `QUICK_SETUP.md` - Get the project running locally
+- [ ] Read `POSTGRES_SETUP.md` - Database setup (essential for testing)
+
+### 2. **TESTING** (Before you code anything)
+- [ ] Run `../scripts/run_tests.sh` to verify everything works
+- [ ] Check `TEST_FAILURE_REPORT.md` for current test status
+
+### 3. **DEVELOPMENT** (When you're ready to contribute)
+- [ ] Read `DEVELOPMENT_GUIDE.md` - Coding standards and workflow
+- [ ] Check `PROJECT_CHANGELOG.md` - Recent changes and context
+
+### 4. **ADVANCED** (For specific features)
+- [ ] `COCKTAIL_FORMS_TECHNICAL_GUIDE.md` - Form system details
+- [ ] `TEMPLATE_PARTIALS_GUIDE.md` - Template organization
+- [ ] `CSS_ORGANIZATION.md` - Styling system
+
+## 🎯 What You Need to Know
+
+### If you're here to...
+
+**🔧 Fix a bug** → Read setup docs, run tests, then `DEVELOPMENT_GUIDE.md`
+
+**✨ Add a feature** → All of the above + the relevant technical guides
+
+**🧪 Run tests** → `POSTGRES_SETUP.md` + use `../scripts/run_tests.sh`
+
+**📝 Update documentation** → `DEVELOPMENT_GUIDE.md` for standards
+
+**🎨 Work on UI/CSS** → Setup + `CSS_ORGANIZATION.md` + `TEMPLATE_PARTIALS_GUIDE.md`
 
 ## � Documentation Structure
 
-### Technical Guides
-- **[CSS_ORGANIZATION.md](CSS_ORGANIZATION.md)** - Complete guide to our CSS architecture and styling patterns
-- **[COCKTAIL_FORMS_TECHNICAL_GUIDE.md](COCKTAIL_FORMS_TECHNICAL_GUIDE.md)** - Detailed technical reference for form implementation
-- **[TEMPLATE_PARTIALS_GUIDE.md](TEMPLATE_PARTIALS_GUIDE.md)** - Complete guide to our template partial system
+```
+docs/
+├── README.md ← START HERE (this file)
+├── QUICK_SETUP.md ← Step 1: Get project running
+├── POSTGRES_SETUP.md ← Step 2: Database setup
+├── DEVELOPMENT_GUIDE.md ← Step 3: Development workflow
+├── TEST_FAILURE_REPORT.md ← Current test status
+├── PROJECT_CHANGELOG.md ← What's changed recently
+└── Technical Guides/
+    ├── COCKTAIL_FORMS_TECHNICAL_GUIDE.md
+    ├── TEMPLATE_PARTIALS_GUIDE.md
+    ├── CSS_ORGANIZATION.md
+    ├── NAMING_CONVENTION_UPDATES.md
+    └── TESTING_INFRASTRUCTURE.md
 
-### Developer Resources  
-- **[DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md)** - Setup instructions, workflow, and development best practices
+scripts/
+├── run_tests.sh ← Easy test running
+├── update_test_report.py ← Auto test reporting
+├── update_branches.sh ← Git branch management
+└── update_branches_team.sh ← Team branch sync
+```
 
-### Project Management
-- **[PROJECT_CHANGELOG.md](PROJECT_CHANGELOG.md)** - Detailed development history and session summaries
+## ⚡ Quick Commands
 
-## 🎯 Quick Reference Guide
+**First time setup:**
+```bash
+# 1. Set up the project
+./scripts/run_tests.sh  # This will guide you through any missing setup
 
-### For New Team Members
-1. **Start Here**: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md) - Complete setup and workflow guide
-2. **Understand Styling**: [CSS_ORGANIZATION.md](CSS_ORGANIZATION.md) - Our CSS architecture and naming conventions
-3. **Check Recent Changes**: [PROJECT_CHANGELOG.md](PROJECT_CHANGELOG.md) - What's new since last update
+# 2. If tests fail with DB errors, run:
+sudo -u postgres psql -c "ALTER USER $(whoami) PASSWORD 'stircraft123';"
+export DB_PASSWORD=stircraft123
+```
 
-### For Specific Development Issues
+**Daily development:**
+```bash
+# Before coding
+./scripts/update_branches_team.sh  # Sync with team changes
+./scripts/run_tests.sh             # Verify everything works
 
-#### 🔧 Setup & Environment
-- **Initial Setup**: DEVELOPMENT_GUIDE.md → Setup section
-- **Database Issues**: DEVELOPMENT_GUIDE.md → Data Management section
-- **Branch Management**: DEVELOPMENT_GUIDE.md → Workflow & Branching section
+# After coding
+./scripts/run_tests.sh             # Test your changes
+git add . && git commit -m "..."   # Commit if tests pass
+```
 
-#### 🎨 Frontend Development
-- **CSS Questions**: CSS_ORGANIZATION.md → Component organization and naming
-- **Template Structure**: TEMPLATE_PARTIALS_GUIDE.md → Partial system and reusable components
-- **Form Styling**: CSS_ORGANIZATION.md → Form-specific styles
+## 🆘 Getting Help
 
-#### 🍸 Feature Development
-- **Form Implementation**: COCKTAIL_FORMS_TECHNICAL_GUIDE.md → Comprehensive form system
-- **Template Partials**: TEMPLATE_PARTIALS_GUIDE.md → Creating reusable components
-- **Dashboard Features**: PROJECT_CHANGELOG.md → Latest session for dashboard implementation
+### Common Issues
 
-#### 🔍 Troubleshooting
-- **Recent Errors**: Check PROJECT_CHANGELOG.md for known issues and solutions
-- **Code Changes**: Review latest PROJECT_CHANGELOG.md entries for context
-- **Best Practices**: Each technical guide includes troubleshooting sections
+**"Tests won't run"** → Check `POSTGRES_SETUP.md`
 
-### For Project History & Context
-- **Recent Development**: PROJECT_CHANGELOG.md → Latest session summary
-- **Technical Evolution**: PROJECT_CHANGELOG.md → Previous session summaries
-- **Architecture Decisions**: Review all technical guides for reasoning behind implementations
+**"Don't know where to start"** → Follow the checklist above in order
 
-## � Which Documentation to Read
+**"Complex form/template issue"** → See the technical guides
 
-### 🆕 I'm New to the Project
-**Read in this order:**
-1. DEVELOPMENT_GUIDE.md (setup and workflow)
-2. CSS_ORGANIZATION.md (styling standards)
-3. PROJECT_CHANGELOG.md (recent changes)
+**"Git/branch confusion"** → See branch management in `DEVELOPMENT_GUIDE.md`
 
-### 🐛 I Found a Bug or Error
-**Check these:**
-1. PROJECT_CHANGELOG.md → Latest session (known issues)
-2. Relevant technical guide (specific implementation details)
-3. DEVELOPMENT_GUIDE.md → Testing section
+### Documentation Priority
 
-### 🎨 I'm Working on Frontend/Styling
-**Focus on:**
-1. CSS_ORGANIZATION.md (primary reference)
-2. TEMPLATE_PARTIALS_GUIDE.md (component structure)
-3. DEVELOPMENT_GUIDE.md → Template Partials System section
+**MUST READ:** README.md (this), QUICK_SETUP.md, POSTGRES_SETUP.md
 
-### 🍸 I'm Adding New Features
-**Reference:**
-1. COCKTAIL_FORMS_TECHNICAL_GUIDE.md (for form-related features)
-2. TEMPLATE_PARTIALS_GUIDE.md (for UI components)
-3. DEVELOPMENT_GUIDE.md (workflow and testing)
+**SHOULD READ:** DEVELOPMENT_GUIDE.md, TEST_FAILURE_REPORT.md
 
-### 📋 I Need to Understand Recent Changes
-**Start with:**
-1. PROJECT_CHANGELOG.md → Latest session summary
-2. Specific technical guides mentioned in changelog
-3. DEVELOPMENT_GUIDE.md for any new workflow changes
-
-## 🆕 Latest Updates (Current Session)
-
-### Major Changes Since Last Update
-- **Dashboard Implementation**: Complete user dashboard with profile, favorites, and creations
-- **Template Partials System**: 12 reusable components for better maintainability
-- **CSS Organization**: Moved all styles from templates to organized CSS files
-- **Auto-Managed Lists**: "Your Creations" lists automatically sync with user's cocktails
-
-### New Documentation Added
-- **CSS_ORGANIZATION.md**: Complete guide to our new CSS architecture
-- **Enhanced DEVELOPMENT_GUIDE.md**: Added template partials system documentation
-- **Updated PROJECT_CHANGELOG.md**: Full session summary with technical details
-
-### Action Items for Team
-1. **Review CSS_ORGANIZATION.md** - Understand new styling standards
-2. **Check PROJECT_CHANGELOG.md** - Review dashboard implementation details
-3. **Update local branches** - Latest changes include database migrations
-
-## � Documentation Standards
-
-### File Naming
-- Use descriptive, UPPERCASE filenames with underscores
-- Include file type in name (e.g., `_GUIDE.md`, `_TECHNICAL.md`)
-- Keep names concise but clear
-
-### Content Structure
-- Start with clear overview and table of contents
-- Use consistent heading hierarchy (H1 → H2 → H3)
-- Include code examples where relevant
-- Add cross-references to related documentation
-
-### Maintenance
-- Update documentation when making related code changes
-- Keep PROJECT_CHANGELOG.md current with each development session
-- Review and update links when files are moved or renamed
-
-## 🔄 Staying Current
-
-This documentation is actively maintained. For the most recent updates:
-1. Check git history: `git log --oneline docs/`
-2. Review latest PROJECT_CHANGELOG.md entries
-3. Look for "NEW!" or "UPDATED!" markers in documentation
+**AS NEEDED:** Technical guides for specific features you're working on
 
 ---
 
-*Last Updated: Dashboard Implementation Session*  
-*Maintainer: Development Team*
+## 🎉 Ready to Start?
+
+1. **First:** `QUICK_SETUP.md`
+2. **Then:** `POSTGRES_SETUP.md` 
+3. **Test:** `../scripts/run_tests.sh`
+4. **Code:** `DEVELOPMENT_GUIDE.md`
+
+**Questions?** Check the specific guide for your task, or ask the team!
