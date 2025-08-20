@@ -365,6 +365,15 @@ class ProfileDeleteForm(forms.Form):
         help_text="Type your exact username to confirm account deletion. This action cannot be undone."
     )
     
+    password = forms.CharField(
+        required=True,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your password to confirm'
+        }),
+        help_text="Enter your current password for additional security."
+    )
+    
     def __init__(self, *args, **kwargs):
         """
         Initialize with user instance for validation.
@@ -389,6 +398,20 @@ class ProfileDeleteForm(forms.Form):
             )
         
         return username_confirmation
+    
+    def clean_password(self):
+        """
+        Validate that entered password matches current user's password.
+        """
+        password = self.cleaned_data.get('password')
+        
+        if not self.user:
+            raise ValidationError("User validation error.")
+        
+        if not self.user.check_password(password):
+            raise ValidationError("Incorrect password. Please try again.")
+        
+        return password
 
 
 # =============================================================================

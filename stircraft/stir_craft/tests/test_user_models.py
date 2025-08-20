@@ -122,6 +122,9 @@ class ListModelTest(TestCase):
 
     def test_list_type_constraints(self):
         """Test that users can only have one list of each auto-managed type."""
+        # Clear any existing lists created by signals in setUp
+        List.objects.filter(creator=self.test_user).delete()
+        
         # Create favorites list
         List.objects.create(
             name="Favorites",

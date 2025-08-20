@@ -53,6 +53,7 @@ class CocktailViewTest(TestCase):
 
     def test_cocktail_detail_view(self):
         """Test cocktail detail view shows complete recipe."""
+        self.client.login(username='cocktail_user', password='test_password_123')
         cocktail = Cocktail.objects.create(
             name='Detailed Cocktail',
             description='A test cocktail with details',

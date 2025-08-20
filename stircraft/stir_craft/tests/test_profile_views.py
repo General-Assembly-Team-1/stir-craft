@@ -105,6 +105,7 @@ class ProfileViewTest(TestCase):
 
     def test_profile_detail_specific_user(self):
         """Test that profile detail view displays a specific user's profile."""
+        self.client.login(username='testuser', password='password123')
         other_user = User.objects.create_user(
             username='otheruser',
             email='otheruser@example.com',
@@ -122,7 +123,11 @@ class ProfileViewTest(TestCase):
         """Test that profile update view successfully updates the profile."""
         self.client.login(username='testuser', password='password123')
         response = self.client.post(reverse('profile_update'), {
-            'birthdate': '1999-01-01'
+            'first_name': 'Test',
+            'last_name': 'User',
+            'email': 'testuser@example.com',
+            'birthdate': '1999-01-01',
+            'location': 'Test City'
         })
         self.assertEqual(response.status_code, 302)  # Redirect after success
         self.profile.refresh_from_db()
