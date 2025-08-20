@@ -5,7 +5,7 @@ Welcome to the main app## Development Guidelines
 - Add new models, views, and templates inside `stir_craft/`.
 - Use Django's app structure for scalability.
 - Static files (images, CSS, JS) go in `stir_craft/static/`.
-- Write tests in `stir_craft/tests.py`.
+- Write tests in `stir_craft/tests/` (modular test files under `stir_craft/tests/`).
 - Run tests before pushing:
   ```bash
   python manage.py test
@@ -465,7 +465,7 @@ pipenv run python stircraft/manage.py seed_from_thecocktaildb --limit 10
 - Add new models, views, and templates inside `stir_craft/`.
 - Use Django’s app structure for scalability.
 - Static files (images, CSS, JS) go in `stir_craft/static/`.
-- Write tests in `stir_craft/tests.py`.
+- Write tests in `stir_craft/tests/` (modular test files under `stir_craft/tests/`).
 - Run tests before pushing:
   ```bash
   python manage.py test
@@ -476,7 +476,7 @@ pipenv run python stircraft/manage.py seed_from_thecocktaildb --limit 10
 We have implemented a comprehensive testing scaffold to ensure the reliability of our models and features. Follow these steps to use the testing framework after creating a new feature:
 
 1. **Write Tests for Your Feature:**
-   - Add test methods to the appropriate test class in `stir_craft/tests.py`.
+   - Add test methods to the appropriate test file under `stir_craft/tests/`.
    - Use assertions to validate expected behavior (e.g., `assertEqual`, `assertTrue`).
    - If your feature involves multiple models, write integration tests to verify their interactions.
 
