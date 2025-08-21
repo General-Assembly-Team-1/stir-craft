@@ -12,11 +12,19 @@
 
 ### 2. **TESTING** (Before you code anything)
 - [ ] Run `../scripts/run_tests.sh` to verify everything works
-- [ ] Check `TEST_FAILURE_REPORT.md` for current test status
+- [ ] Check `TEST_FAILURE_REPORT.md` for current test status (⚠️ 2 failing tests need fixes)
+- [ ] Note: Some template-related tests will fail until missing templates are created
+
+### 3. **CURRENT STATUS** (August 21, 2025)
+- [ ] ✅ Backend 90% complete (cocktail CRUD, list management, forms)
+- [ ] 🟡 Frontend 70% complete (missing 5 list templates)  
+- [ ] ❌ Auth views commented out (templates exist)
+- [ ] ❌ No deployment infrastructure yet
 
 ### 3. **DEVELOPMENT** (When you're ready to contribute)
 - [ ] Read `DEVELOPMENT_GUIDE.md` - Coding standards and workflow
 - [ ] Check `PROJECT_CHANGELOG.md` - Recent changes and context
+- [ ] Review `DEPLOYMENT_ROADMAP.md` - See what needs to be done for deployment
 
 ### 4. **ADVANCED** (For specific features)
 - [ ] `COCKTAIL_FORMS_TECHNICAL_GUIDE.md` - Form system details
@@ -62,6 +70,15 @@ scripts/
 ```
 
 ## ⚡ Quick Commands
+
+**Project Status (August 21, 2025):**
+```bash
+# Check current test status (2 failing due to missing templates)
+./scripts/run_tests.sh
+
+# See what's ready for deployment
+cat docs/DEPLOYMENT_ROADMAP.md
+```
 
 **First time setup:**
 ```bash

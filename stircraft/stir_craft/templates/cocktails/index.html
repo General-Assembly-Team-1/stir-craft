@@ -1,0 +1,46 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Cocktails{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/cocktail.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<!-- COCKTAIL INDEX (formerly cocktail_list.html)
+     Purpose: Index/browse template for cocktails. Uses partials:
+     - _cocktail_index_header.html
+     - _cocktail_card.html
+     - _search_filter_form.html
+-->
+
+<div class="container">
+    <!-- COCKTAIL INDEX (formerly cocktail_list.html)
+     Template for browsing cocktails with search and filters
+     - _cocktail_index_header.html
+     - _search_filter_form.html 
+     - _cocktail_card.html partials
+     - _pagination.html
+-->
+
+    {% include 'partials/shared/_cocktail_index_header.html' %}
+    <div class="row">
+        <!-- List of cocktails rendered via _cocktail_card partial -->
+        <div class="col-12">
+            <div class="row">
+                {% for cocktail in page_obj %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        {% include 'partials/cocktails/_cocktail_card.html' with cocktail=cocktail %}
+                    </div>
+                {% empty %}
+                    <div class="col-12">No cocktails found.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {% include 'partials/shared/_pagination.html' with page_obj=page_obj %}
+</div>
+
+{% endblock %}

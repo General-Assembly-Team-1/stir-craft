@@ -213,17 +213,19 @@ class CocktailViewTest(TestCase):
             'instructions': 'New instructions',
             'vessel': self.vessel.id,
 
+            # Management form - crucial for formsets
             'components-TOTAL_FORMS': '1',
-            'components-INITIAL_FORMS': '1',
+            'components-INITIAL_FORMS': '1', 
             'components-MIN_NUM_FORMS': '1',
             'components-MAX_NUM_FORMS': '15',
 
-            # Update existing component (id will be filled by formset via initial)
+            # Update existing component
             'components-0-id': str(cocktail.components.first().id),
             'components-0-ingredient': self.juice.id,
             'components-0-amount': '45',
             'components-0-unit': 'ml',
             'components-0-order': '1',
+            'components-0-DELETE': '',  # Required for can_delete=True formsets
         }
 
         response = self.client.post(reverse('cocktail_update', args=[cocktail.id]), data=post_data)

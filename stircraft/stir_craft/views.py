@@ -8,7 +8,37 @@ from .models import Profile
 from .forms.profile_forms import ProfileUpdateForm
 
 # =============================================================================
-# 🔑 AUTHENTICATION VIEWS
+# �️ UTILITY FUNCTIONS
+# =============================================================================
+
+def render_error(request, status_code, error_message=None, exception=None):
+    """
+    Render a dynamic error page with the specified status code and message.
+    
+    Args:
+        request: Django request object
+        status_code: HTTP status code (403, 404, 500, etc.)
+        error_message: Custom error message to display
+        exception: Exception object for debug information
+    
+    Returns:
+        HttpResponse with the error template and appropriate status code
+    """
+    context = {
+        'status_code': status_code,
+        'error_message': error_message,
+    }
+    
+    # Add debug information if in debug mode
+    from django.conf import settings
+    if settings.DEBUG and exception:
+        context['debug'] = True
+        context['exception'] = str(exception)
+    
+    return render(request, 'errors/error.html', context, status=status_code)
+
+# =============================================================================
+# �🔑 AUTHENTICATION VIEWS
 # =============================================================================
 
 # TODO: Sign Up View
@@ -44,7 +74,7 @@ def profile_detail(request, user_id=None):
 
     profile = get_object_or_404(Profile, user=user)
 
-    return render(request, 'stir_craft/profile_detail.html', {
+    return render(request, 'users/profile_detail.html', {
         'profile': profile,
         'user': user,
     })
@@ -76,7 +106,7 @@ def profile_update(request):
         # GET request - show form with current data
         form = ProfileUpdateForm(instance=profile, user=request.user)
     
-    return render(request, 'stir_craft/profile_update.html', {
+    return render(request, 'users/profile_update.html', {
         'form': form,
         'profile': profile,
     })
@@ -239,7 +269,7 @@ def cocktail_index(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    return render(request, 'stir_craft/cocktail_index.html', {
+    return render(request, 'cocktails/index.html', {
         'page_obj': page_obj,
         'search_form': search_form,
         'total_count': paginator.count,
@@ -284,7 +314,7 @@ def cocktail_detail(request, cocktail_id):
         'can_edit': request.user == cocktail.creator,
     }
     
-    return render(request, 'stir_craft/cocktail_detail.html', context)
+    return render(request, 'cocktails/detail.html', context)
 
 @login_required
 def cocktail_create(request):
@@ -364,7 +394,7 @@ def cocktail_create(request):
         cocktail_form = CocktailForm(user=request.user)
         formset = RecipeComponentFormSet()
     
-    return render(request, 'stir_craft/cocktail_create.html', {
+    return render(request, 'cocktails/create.html', {
         'cocktail_form': cocktail_form,
         'formset': formset,
         'page_title': 'Create New Cocktail',
@@ -389,7 +419,7 @@ def cocktail_update(request, cocktail_id):
 
     # Only creator can edit
     if request.user != cocktail.creator:
-        return render(request, '403.html', status=403)
+        return render_error(request, 403, 'Only the creator of this cocktail can edit it.')
 
     if request.method == 'POST':
         cocktail_form = CocktailForm(request.POST, instance=cocktail, user=request.user)
@@ -399,7 +429,9 @@ def cocktail_update(request, cocktail_id):
             try:
                 with transaction.atomic():
                     cocktail = cocktail_form.save()
-                    cocktail_form.save_m2m()
+                    # Only call save_m2m if the form has it (for many-to-many fields)
+                    if hasattr(cocktail_form, 'save_m2m'):
+                        cocktail_form.save_m2m()
 
                     # Save formset (handles create/update/delete)
                     formset.instance = cocktail
@@ -413,15 +445,16 @@ def cocktail_update(request, cocktail_id):
 
                 messages.success(request, f'🍸 "{cocktail.name}" has been updated successfully!')
                 return redirect('cocktail_detail', cocktail_id=cocktail.id)
-            except Exception:
+            except Exception as e:
                 messages.error(request, 'An error occurred saving your cocktail. Please try again.')
+                # Continue to re-render the form with the error message
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
         cocktail_form = CocktailForm(instance=cocktail, user=request.user)
         formset = RecipeComponentFormSet(instance=cocktail)
 
-    return render(request, 'stir_craft/cocktail_create.html', {
+    return render(request, 'cocktails/create.html', {
         'cocktail_form': cocktail_form,
         'formset': formset,
         'page_title': f'Edit: {cocktail.name}',
@@ -451,7 +484,7 @@ def cocktail_delete(request, cocktail_id):
             messages.success(request, f'🍸 "{name}" has been deleted.')
             return redirect('cocktail_index')
 
-        return render(request, 'stir_craft/cocktail_confirm_delete.html', {
+        return render(request, 'cocktails/confirm_delete.html', {
             'cocktail': cocktail,
         })
 
@@ -501,58 +534,419 @@ def cocktail_delete(request, cocktail_id):
             return redirect('cocktail_detail', cocktail_id=cocktail.id)
 
         # Show a specialized confirmation for anonymization
-        return render(request, 'stir_craft/cocktail_confirm_delete.html', {
+        return render(request, 'cocktails/confirm_delete.html', {
             'cocktail': cocktail,
             'anonymize': True,
         })
 
     # Other non-staff users cannot delete or anonymize cocktails they don't own
-    return render(request, '403.html', status=403)
+    return render_error(request, 403, 'Only the creator or staff can delete this cocktail.')
 
 
 # =============================================================================
 # 📁 LIST VIEWS (Favorites & Collections)
 # =============================================================================
 
-# TODO: List detail view
-# def list_detail(request, list_id):
-#     """
-#     Display cocktails in a specific list.
-#     Handle privacy settings, show list metadata.
-#     """
-#     pass
+def list_detail(request, list_id):
+    """
+    Display cocktails in a specific list.
+    Handle privacy settings, show list metadata.
+    Show add/remove buttons for list owner.
+    """
+    from .models import List, Cocktail
+    from .forms.cocktail_forms import CocktailSearchForm
+    from django.core.paginator import Paginator
+    
+    list_obj = get_object_or_404(List, id=list_id)
+    
+    # Check if user can view this list (for now, all lists are viewable)
+    # TODO: Add privacy settings later if needed
+    
+    # Get cocktails in this list with search/filtering
+    cocktails = list_obj.cocktails.select_related('creator', 'vessel').prefetch_related('components__ingredient', 'vibe_tags')
+    
+    # Handle search within the list
+    search_form = CocktailSearchForm(request.GET or None)
+    if search_form.is_valid():
+        cleaned_data = search_form.cleaned_data
+        
+        # Text search
+        if cleaned_data.get('query'):
+            query = cleaned_data['query']
+            cocktails = cocktails.filter(
+                models.Q(name__icontains=query) |
+                models.Q(description__icontains=query) |
+                models.Q(components__ingredient__name__icontains=query)
+            ).distinct()
+        
+        # Filter by ingredient
+        if cleaned_data.get('ingredient'):
+            cocktails = cocktails.filter(components__ingredient=cleaned_data['ingredient'])
+        
+        # Filter by vessel
+        if cleaned_data.get('vessel'):
+            cocktails = cocktails.filter(vessel=cleaned_data['vessel'])
+        
+        # Filter by alcoholic
+        if cleaned_data.get('is_alcoholic'):
+            is_alcoholic = cleaned_data['is_alcoholic'] == 'True'
+            cocktails = cocktails.filter(is_alcoholic=is_alcoholic)
+        
+        # Filter by color
+        if cleaned_data.get('color'):
+            cocktails = cocktails.filter(color__icontains=cleaned_data['color'])
+        
+        # Apply sorting
+        if cleaned_data.get('sort_by'):
+            cocktails = cocktails.order_by(cleaned_data['sort_by'])
+    else:
+        cocktails = cocktails.order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(cocktails, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Check permissions
+    can_edit = request.user.is_authenticated and (
+        request.user == list_obj.creator or request.user.is_staff
+    ) and list_obj.is_editable
+    
+    context = {
+        'list_obj': list_obj,
+        'page_obj': page_obj,
+        'search_form': search_form,
+        'total_count': paginator.count,
+        'can_edit': can_edit,
+        'is_owner': request.user == list_obj.creator if request.user.is_authenticated else False,
+    }
+    
+    return render(request, 'lists/detail.html', context)
 
-# TODO: List create view
-# def list_create(request):
-#     """
-#     Create new cocktail collection.
-#     Set visibility, name, description.
-#     """
-#     pass
+@login_required
+def list_create(request):
+    """
+    Create new cocktail collection.
+    Set name, description for custom lists.
+    """
+    from .forms.list_forms import ListForm
+    
+    if request.method == 'POST':
+        form = ListForm(request.POST, user=request.user)
+        
+        if form.is_valid():
+            list_obj = form.save(commit=False)
+            list_obj.creator = request.user
+            list_obj.list_type = 'custom'  # Only custom lists can be created manually
+            list_obj.save()
+            
+            messages.success(request, f'🗂️ List "{list_obj.name}" has been created successfully!')
+            return redirect('list_detail', list_id=list_obj.id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = ListForm(user=request.user)
+    
+    return render(request, 'lists/list_form.html', {
+        'form': form,
+        'page_title': 'Create New List',
+        'submit_text': 'Create List',
+    })
 
-# TODO: List update view
-# def list_update(request, list_id):
-#     """
-#     Edit list details (only by creator).
-#     Add/remove cocktails, change visibility.
-#     """
-#     pass
+@login_required
+def list_update(request, list_id):
+    """
+    Edit list details (only by creator).
+    Add/remove cocktails, change name/description.
+    """
+    from .forms.list_forms import ListForm, ListCocktailForm
+    from .models import List
+    
+    list_obj = get_object_or_404(List, id=list_id)
+    
+    # Check permissions
+    if request.user != list_obj.creator:
+        messages.error(request, "You can only edit your own lists.")
+        return redirect('list_detail', list_id=list_id)
+    
+    if not list_obj.is_editable:
+        messages.error(request, "This list cannot be edited.")
+        return redirect('list_detail', list_id=list_id)
+    
+    if request.method == 'POST':
+        # Check which form was submitted
+        if 'update_details' in request.POST:
+            # Update list name/description
+            form = ListForm(request.POST, instance=list_obj, user=request.user)
+            if form.is_valid():
+                form.save()
+                messages.success(request, f'List "{list_obj.name}" has been updated successfully!')
+                return redirect('list_detail', list_id=list_obj.id)
+        
+        elif 'update_cocktails' in request.POST:
+            # Update cocktail membership
+            cocktail_form = ListCocktailForm(request.POST, instance=list_obj, user=request.user)
+            if cocktail_form.is_valid():
+                cocktail_form.save()
+                messages.success(request, 'Cocktail list has been updated!')
+                return redirect('list_detail', list_id=list_obj.id)
+    else:
+        form = ListForm(instance=list_obj, user=request.user)
+        cocktail_form = ListCocktailForm(instance=list_obj, user=request.user)
+    
+    return render(request, 'lists/list_update.html', {
+        'list_obj': list_obj,
+        'form': form,
+        'cocktail_form': cocktail_form,
+        'page_title': f'Edit: {list_obj.name}',
+    })
 
-# TODO: Add to list view (AJAX)
-# def add_to_list(request, cocktail_id, list_id):
-#     """
-#     Add cocktail to a user's list.
-#     Handle AJAX requests for quick adding.
-#     """
-#     pass
+@login_required
+def add_to_list(request, cocktail_id, list_id):
+    """
+    Add cocktail to a user's list.
+    Handle AJAX requests for quick adding.
+    """
+    from .models import List, Cocktail
+    from django.http import JsonResponse
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST method required'})
+    
+    # Get the cocktail and list
+    cocktail = get_object_or_404(Cocktail, id=cocktail_id)
+    list_obj = get_object_or_404(List, id=list_id)
+    
+    # Check permissions
+    if request.user != list_obj.creator:
+        return JsonResponse({'success': False, 'error': 'Permission denied'})
+    
+    if not list_obj.is_editable:
+        return JsonResponse({'success': False, 'error': 'List is not editable'})
+    
+    # Add cocktail to list if not already there
+    if cocktail in list_obj.cocktails.all():
+        return JsonResponse({'success': False, 'error': 'Cocktail already in list'})
+    
+    list_obj.cocktails.add(cocktail)
+    
+    # Return success response
+    return JsonResponse({
+        'success': True,
+        'message': f'"{cocktail.name}" added to "{list_obj.name}"',
+        'cocktail_count': list_obj.cocktail_count()
+    })
 
-# TODO: User's lists view
-# def user_lists(request, user_id=None):
-#     """
-#     Show all lists created by a user.
-#     Handle privacy filtering for other users.
-#     """
-#     pass
+@login_required
+def remove_from_list(request, cocktail_id, list_id):
+    """
+    Remove cocktail from a user's list.
+    Handle AJAX requests for quick removal.
+    """
+    from .models import List, Cocktail
+    from django.http import JsonResponse
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST method required'})
+    
+    # Get the cocktail and list
+    cocktail = get_object_or_404(Cocktail, id=cocktail_id)
+    list_obj = get_object_or_404(List, id=list_id)
+    
+    # Check permissions
+    if request.user != list_obj.creator:
+        return JsonResponse({'success': False, 'error': 'Permission denied'})
+    
+    if not list_obj.is_editable:
+        return JsonResponse({'success': False, 'error': 'List is not editable'})
+    
+    # Remove cocktail from list
+    if cocktail not in list_obj.cocktails.all():
+        return JsonResponse({'success': False, 'error': 'Cocktail not in list'})
+    
+    list_obj.cocktails.remove(cocktail)
+    
+    # Return success response
+    return JsonResponse({
+        'success': True,
+        'message': f'"{cocktail.name}" removed from "{list_obj.name}"',
+        'cocktail_count': list_obj.cocktail_count()
+    })
+
+def user_lists(request, user_id=None):
+    """
+    Show all lists created by a user.
+    Handle privacy filtering for other users.
+    """
+    from .models import List
+    
+    # Determine which user's lists to show
+    if user_id:
+        user = get_object_or_404(User, id=user_id)
+    else:
+        if not request.user.is_authenticated:
+            return redirect('home')
+        user = request.user
+    
+    # Get user's lists (exclude system lists for other users' view)
+    if request.user == user:
+        # Show all lists for the owner
+        lists = List.objects.filter(creator=user).order_by('-updated_at')
+    else:
+        # For other users, only show custom lists (hide system lists like favorites)
+        # TODO: Add privacy settings later
+        lists = List.objects.filter(
+            creator=user, 
+            list_type='custom'
+        ).order_by('-updated_at')
+    
+    # Pagination
+    paginator = Paginator(lists, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'user': user,
+        'page_obj': page_obj,
+        'is_owner': request.user == user,
+        'total_count': paginator.count,
+    }
+    
+    return render(request, 'lists/user_lists.html', context)
+
+@login_required
+def list_delete(request, list_id):
+    """
+    Delete a list (only custom lists can be deleted).
+    Show confirmation page and handle deletion.
+    """
+    from .models import List
+    
+    list_obj = get_object_or_404(List, id=list_id)
+    
+    # Check permissions
+    if request.user != list_obj.creator:
+        messages.error(request, "You can only delete your own lists.")
+        return redirect('list_detail', list_id=list_id)
+    
+    if not list_obj.is_deletable:
+        messages.error(request, "This list cannot be deleted.")
+        return redirect('list_detail', list_id=list_id)
+    
+    if request.method == 'POST':
+        list_name = list_obj.name
+        list_obj.delete()
+        messages.success(request, f'🗂️ List "{list_name}" has been deleted.')
+        return redirect('user_lists')
+    
+    return render(request, 'lists/confirm_delete.html', {
+        'list_obj': list_obj,
+    })
+
+@login_required
+def toggle_favorite(request, cocktail_id):
+    """
+    Toggle a cocktail's favorite status for the current user.
+    Used for AJAX favorite buttons throughout the site.
+    """
+    from .models import Cocktail, List
+    from django.http import JsonResponse
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST method required'})
+    
+    cocktail = get_object_or_404(Cocktail, id=cocktail_id)
+    favorites_list = List.get_or_create_favorites_list(request.user)
+    
+    # Check if cocktail is already in favorites
+    is_favorited = cocktail in favorites_list.cocktails.all()
+    
+    if is_favorited:
+        # Remove from favorites
+        favorites_list.cocktails.remove(cocktail)
+        action = 'removed'
+        favorited = False
+    else:
+        # Add to favorites
+        favorites_list.cocktails.add(cocktail)
+        action = 'added'
+        favorited = True
+    
+    return JsonResponse({
+        'success': True,
+        'favorited': favorited,
+        'action': action,
+        'message': f'"{cocktail.name}" {action} {"to" if favorited else "from"} favorites',
+        'favorites_count': favorites_list.cocktail_count()
+    })
+
+@login_required
+def quick_add_modal(request, cocktail_id):
+    """
+    Show a modal for quickly adding a cocktail to user's lists.
+    Returns HTML for insertion into page via AJAX.
+    """
+    from .models import Cocktail, List
+    from .forms.list_forms import QuickAddToListForm
+    
+    cocktail = get_object_or_404(Cocktail, id=cocktail_id)
+    
+    if request.method == 'POST':
+        form = QuickAddToListForm(request.POST, user=request.user, cocktail=cocktail)
+        if form.is_valid():
+            target_list = form.save()
+            if target_list:
+                messages.success(request, f'"{cocktail.name}" added to "{target_list.name}"!')
+                return redirect('cocktail_detail', cocktail_id=cocktail.id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = QuickAddToListForm(user=request.user, cocktail=cocktail)
+    
+    # Get user's current lists that already contain this cocktail
+    current_lists = List.objects.filter(
+        creator=request.user,
+        cocktails=cocktail
+    ).values_list('name', flat=True)
+    
+    return render(request, 'partials/lists/quick_add_modal.html', {
+        'form': form,
+        'cocktail': cocktail,
+        'current_lists': current_lists,
+    })
+
+def list_feed(request):
+    """
+    Show a feed of recently updated public lists.
+    Discover new cocktail collections from other users.
+    """
+    from .models import List
+    from django.core.paginator import Paginator
+    
+    # Get public custom lists (exclude system lists)
+    # TODO: Add privacy settings when implemented
+    lists = List.objects.filter(
+        list_type='custom'
+    ).select_related('creator').prefetch_related('cocktails').order_by('-updated_at')
+    
+    # Add search functionality
+    query = request.GET.get('q')
+    if query:
+        lists = lists.filter(
+            models.Q(name__icontains=query) |
+            models.Q(description__icontains=query)
+        )
+    
+    # Pagination
+    paginator = Paginator(lists, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'lists/list_feed.html', {
+        'page_obj': page_obj,
+        'query': query,
+        'total_count': paginator.count,
+    })
 
 
 # =============================================================================
@@ -590,7 +984,7 @@ def home(request):
     from .models import Cocktail
 
     # Home page is intentionally simple: hero and a short explanation/CTA.
-    return render(request, 'stir_craft/home.html')
+    return render(request, 'base/home.html')
 
 @login_required
 def dashboard(request):
@@ -616,7 +1010,7 @@ def dashboard(request):
     - user_lists: All custom lists created by the user (excluding system lists)
     - stats: Dictionary with user statistics
     
-    Template: stir_craft/dashboard.html
+    Template: users/dashboard.html
     """
     from .models import Cocktail, List, Profile
     from django.db.models import Count
@@ -662,13 +1056,19 @@ def dashboard(request):
         'stats': stats,
     }
     
-    return render(request, 'stir_craft/dashboard.html', context)
+    return render(request, 'users/dashboard.html', context)
 
-# TODO: About page
-# def about(request):
-#     """
-#     About page with app information and team details.
-#     """
-#     pass
+def about(request):
+    """
+    Simple about page describing the app and team.
+
+    This is intentionally lightweight: it renders a template that inherits
+    from `base.html` and provides a short description, links to docs, and
+    a small team block. Kept minimal so it's safe to render without extra
+    context or database access.
+    """
+    return render(request, 'base/about.html', {
+        'page_title': 'About Stir Craft',
+    })
 
 # Create your views here.

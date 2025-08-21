@@ -1,0 +1,20 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Ingredient{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/ingredients.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<!-- INGREDIENT DETAIL SCAFFOLD
+     Purpose: Show ingredient metadata and related cocktails. Use partials like _ingredient_details_card.
+-->
+
+<div class="container">
+    <h1>{{ ingredient.name }}</h1>
+    <p class="text-muted">(Placeholder - ingredient detail content)</p>
+</div>
+
+{% endblock %}
