@@ -1,169 +1,203 @@
 # StirCraft — Deployment Roadmap (Heroku-focused)
 
-This roadmap is focused on finishing the Cocktail CRUD surface (highest priority) and then preparing the app for deployment to Heroku. Each entry is formatted so you can copy/paste it into GitHub issues or a project board.
+**Last Updated: August 21, 2025**
+
+This roadmap tracks the progress toward deploying StirCraft to Heroku. Major backend functionality is now complete, with remaining work focused on templates, auth implementation, and deployment infrastructure.
+
+---
+
+## Current Status Summary
+
+✅ **Completed:** Cocktail CRUD views, List management views, Forms, URL routing, Navigation, Basic templates  
+🟡 **In Progress:** Missing templates for list management  
+❌ **Blocked:** Auth views (commented out), Deployment infrastructure  
 
 ---
 
 ## Quick plan
 
-- Finish Cocktail CRUD (update/delete + templates + tests)
-- Implement minimal auth (sign-up/sign-in) so creator permissions work
-- Implement Lists & Ingredients views used by the UX
-- Prepare Heroku infra (requirements, Procfile, staticfiles, production settings)
-- Add CI (tests on PRs) and optional Heroku deploy workflow
+- ✅ ~~Finish Cocktail CRUD (update/delete + templates + tests)~~ **COMPLETE**
+- 🟡 Complete missing templates for list management views
+- ❌ Implement minimal auth (sign-up/sign-in) so creator permissions work
+- ❌ Implement Ingredients views used by the UX
+- ❌ Prepare Heroku infra (requirements, Procfile, staticfiles, production settings)
+- ❌ Add CI (tests on PRs) and optional Heroku deploy workflow
 
 ---
 
 ## Milestones
 
-1. Cocktail CRUD (MVP)
-2. Auth & Permissions
-3. Lists & Ingredient management
-4. Heroku Deployment & Infra
-5. CI / CD & QA
-6. Polish: media, accessibility, monitoring
+1. ✅ Cocktail CRUD (MVP) — **COMPLETE**
+2. 🟡 Lists & Templates — **80% Complete (views done, templates missing)**
+3. ❌ Auth & Permissions — **Templates exist, views commented out**
+4. ❌ Ingredient Management — **Stubbed but not implemented**
+5. ❌ Heroku Deployment & Infra — **Not started**
+6. ❌ CI / CD & QA — **Basic tests exist**
+7. ❌ Polish: media, accessibility, monitoring — **Future work**
 
 ---
 
-## Milestone 1 — Cocktail CRUD (Top priority)
+## 🚨 CRITICAL BLOCKERS (Must fix before deployment)
 
-Copy each block below into a new GitHub issue. Set labels and estimates as suggested.
+### Issue: Missing Templates for List Views
+- **Priority:** HIGH — Views will crash with TemplateDoesNotExist
+- **Missing templates:**
+  - `stir_craft/list_update.html`
+  - `stir_craft/user_lists.html` 
+  - `stir_craft/list_confirm_delete.html`
+  - `stir_craft/quick_add_modal.html`
+  - `stir_craft/list_feed.html`
+  - `403.html` (error page)
+- **Estimate:** 3-4 hours
+- **Status:** Views implemented, forms created, just need templates
 
-### Issue: Cocktail — Update view (cocktail_update)
-- Summary: Implement an edit flow for cocktails using the existing `CocktailForm` and `RecipeComponentFormSet`.
-- Acceptance criteria:
-  - GET displays pre-populated `CocktailForm` and inline `RecipeComponentFormSet`.
-  - POST atomically updates cocktail fields and components (create/update/delete rows).
-  - Only the cocktail creator can access the view (permission enforced).
-  - Unit tests: happy path, invalid form, permission denied.
-- Labels: `feature`, `backend`, `high`
-- Estimate: 4–6h
-- Dependencies: `stir_craft/forms/cocktail_forms.py`, reuse `cocktail_create.html` templates.
-
-### Issue: Cocktail — Delete view (cocktail_delete)
-- Summary: Implement deletion with a confirmation and proper permission checks.
-- Acceptance criteria:
-  - Confirmation page or modal before deletion.
-  - Only the creator can delete; others receive 403 or redirect.
-  - Redirect to `cocktail_index` with success message and test verifying cascade behavior.
-- Labels: `feature`, `backend`, `medium`
-- Estimate: 1–2h
-
-### Issue: Cocktail — Reuse create template for update
-- Summary: Make `cocktail_create.html` support update mode (title/button change).
-- Acceptance criteria:
-  - Page shows "Create" vs "Save changes" appropriately.
-  - Works with update view and preserves formset behaviour.
-- Labels: `frontend`, `medium`
-- Estimate: 1–2h
-
-### Issue: Cocktail — Detail page edit/delete affordances
-- Summary: Show Edit/Delete buttons on `cocktail_detail.html` only for creator.
-- Acceptance criteria: Buttons appear only to creator and link to update/delete views.
-- Labels: `frontend`, `low`
-- Estimate: 30–60m
-
-### Issue: Cocktail — Validation & edge cases
-- Summary: Add tests and guard rails for min/max components, missing ingredient rows, and measurement parsing under update.
-- Acceptance criteria: Tests for min (1) and max (15) ingredients and behavior on invalid components.
-- Labels: `tests`, `backend`, `medium`
-- Estimate: 2–4h
+### Issue: Auth Views Activation
+- **Priority:** HIGH — Users cannot sign up or log in
+- **Problem:** Sign-up/sign-in views are commented out in `stir_craft/urls.py`
+- **Templates exist:** `registration/login.html`, `registration/signup.html`
+- **Estimate:** 2-3 hours to implement views and test
+- **Status:** Need to uncomment and implement the auth view functions
 
 ---
 
-## Milestone 2 — Auth & Permissions
+## ✅ Milestone 1 — Cocktail CRUD (COMPLETE)
 
-### Issue: Auth — Sign-up (registration)
-- Summary: Implement user registration (create `User` + `Profile`) and auto-login.
-- Acceptance criteria: New users can register, are logged in automatically, and redirected to dashboard. Tests for duplicate username/email.
-- Labels: `feature`, `backend`, `high`
-- Estimate: 3–4h
+**Status: COMPLETE** — All cocktail CRUD operations implemented and working.
 
-### Issue: Auth — Sign-in (login)
-- Summary: Implement login view or wire Django auth views to `registration/login.html` template.
-- Acceptance criteria: Login works and redirects to requested page or dashboard. Tests for invalid credentials.
-- Labels: `feature`, `backend`, `medium`
+### Completed Features:
+- ✅ **Cocktail Update View** — Implemented in `stir_craft/views.py:377`
+- ✅ **Cocktail Delete View** — Implemented in `stir_craft/views.py:435`
+- ✅ **Template Reuse** — Update view reuses `cocktail_create.html`
+- ✅ **Permission Checks** — Creator-only edit/delete enforced
+- ✅ **Forms & Validation** — `CocktailForm` and `RecipeComponentFormSet` working
+- ✅ **URL Routing** — All cocktail routes registered and named
 
-### Issue: Auth — Password reset
-- Summary: Wire Django's password-reset views with console backend in dev.
-- Acceptance criteria: Password reset emails are created (console) and allow password change locally.
-- Labels: `feature`, `low`
+### Remaining Work:
+- 🟡 **Verify edit/delete buttons** appear on cocktail detail page for creators
+- 🟡 **Add comprehensive tests** for edge cases and validation
 
 ---
 
-## Milestone 3 — Lists & Ingredients
+## 🟡 Milestone 2 — Lists & Templates (80% Complete)
 
-### Issue: Lists — Add to list endpoint
-- Summary: Add a view to add/remove cocktails to user lists; return JSON for AJAX.
-- Acceptance criteria: Works for AJAX and standard POST. Tests for permissions.
-- Labels: `feature`, `backend`, `medium`
+**Status: Backend complete, frontend templates missing**
 
-### Issue: Lists — Create & detail views
-- Summary: Create list creation and list detail pages (templates exist).
-- Acceptance criteria: Users can create lists and see cocktails inside lists.
-- Labels: `feature`, `medium`
+### Completed Features:
+- ✅ **All List Views** — CRUD operations implemented (`list_detail`, `list_create`, `list_update`, `list_delete`)
+- ✅ **AJAX Endpoints** — Add/remove from lists, toggle favorites with JSON responses
+- ✅ **List Forms** — Complete form suite in `stir_craft/forms/list_forms.py`
+- ✅ **URL Routing** — All list routes registered
+- ✅ **User Lists Management** — View user's lists, create/manage lists
+- ✅ **List Feed** — Browse public lists
+
+### Missing Templates (BLOCKERS):
+- ❌ `stir_craft/list_update.html`
+- ❌ `stir_craft/user_lists.html`
+- ❌ `stir_craft/list_confirm_delete.html`
+- ❌ `stir_craft/quick_add_modal.html`
+- ❌ `stir_craft/list_feed.html`
+
+### Working Templates:
+- ✅ `stir_craft/list_detail.html` — Exists
+- ✅ `stir_craft/list_form.html` — Exists
+
+---
+
+## ❌ Milestone 3 — Auth & Permissions (Templates exist, views missing)
+
+**Status: Blocked** — Templates exist but auth views are commented out
+
+### Issue: Auth — Sign-up & Sign-in Views
+- **Problem:** Views are commented out in `stir_craft/urls.py` lines 10-11
+- **Templates:** Already exist at `registration/login.html`, `registration/signup.html`
+- **Required:** Implement `sign_up` and `sign_in` views in `stir_craft/views.py`
+- **Acceptance criteria:** New users can register, are logged in automatically, and redirected to dashboard
+- **Estimate:** 3-4h
+
+### Issue: Auth — Password reset (Low priority)
+- **Status:** Not implemented
+- **Estimate:** 2-3h
+
+---
+
+## ❌ Milestone 4 — Ingredient Management (Stubbed)
+
+**Status: Not implemented** — Views exist but are commented out
 
 ### Issue: Ingredients — Index & detail views
-- Summary: Implement ingredient index and detail pages using existing templates.
-- Acceptance criteria: Pagination and search by name; detail shows recipes that use the ingredient.
-- Labels: `feature`, `medium`
+- **Problem:** Views are commented out in `stir_craft/views.py` lines 98, 106, 114
+- **Templates:** `ingredient_index.html`, `ingredient_detail.html` exist
+- **Required:** Implement ingredient views and URL routing
+- **Estimate:** 4-5h
 
 ---
 
-## Milestone 4 — Heroku Deployment & Infra
+## ❌ Milestone 5 — Heroku Deployment & Infra (Not started)
 
-These are the minimum infra files and code changes needed to deploy to Heroku.
+**Status: Critical for deployment** — No deployment files exist
 
-### Issue: Infra — `requirements.txt` (from Pipfile.lock)
-- Summary: Generate `requirements.txt` for Heroku using `pipenv lock -r` and commit it.
-- Acceptance criteria: `pip install -r requirements.txt` works in a fresh venv.
-- Labels: `infra`, `high`
-- Estimate: 30–60m
+### Missing Files (HIGH PRIORITY):
+- ❌ `requirements.txt` — Generate from Pipfile.lock
+- ❌ `Procfile` — Add gunicorn web process
+- ❌ `runtime.txt` — Specify Python version
+- ❌ Static files config — Add STATIC_ROOT, install whitenoise
+- ❌ Production settings — Environment-based config
 
-### Issue: Infra — `Procfile` + `runtime.txt`
-- Summary: Add `Procfile` (`web: gunicorn stircraft.wsgi --log-file -`) and `runtime.txt` (e.g. `python-3.11.4`).
-- Acceptance criteria: Heroku recognizes Python runtime and runs gunicorn.
-- Labels: `infra`, `high`
-- Estimate: 15m
+### Infrastructure Tasks:
+1. **Generate requirements.txt** (15min): `pipenv lock -r > requirements.txt`
+2. **Create Procfile** (5min): `web: gunicorn stircraft.wsgi --log-file -`
+3. **Add runtime.txt** (5min): `python-3.11.4`
+4. **Configure static files** (1-2h): Install whitenoise, set STATIC_ROOT
+5. **Production settings** (2-3h): Environment variables, security settings
 
-### Issue: Infra — Static files + whitenoise
-- Summary: Add `STATIC_ROOT`, install and configure `whitenoise` in production settings, ensure `collectstatic` works.
-- Acceptance criteria: `python manage.py collectstatic --noinput` succeeds; static served via whitenoise on Heroku.
-- Labels: `infra`, `high`
-- Estimate: 1–2h
-
-### Issue: Infra — Production settings
-- Summary: Add a production settings toggle or `settings_prod.py` enabling secure defaults (HSTS, SECURE_SSL_REDIRECT) and read env vars.
-- Acceptance criteria: Site runs with `DEBUG=False` and fails fast on missing `SECRET_KEY` (already present). Document required envs.
-- Labels: `infra`, `high`
-- Estimate: 2–3h
-
-### Issue: Infra — Heroku setup docs
-- Summary: Document `heroku create`, setting `SECRET_KEY` and `DATABASE_URL`, `heroku addons:create heroku-postgresql`, migrations and `collectstatic` steps.
-- Acceptance criteria: A dev can follow docs and deploy the app to a new Heroku app.
-- Labels: `docs`, `infra`, `low`
+**Total Estimate:** 4-5 hours
 
 ---
 
-## Milestone 5 — CI / CD & QA
+## ⏰ UPDATED TIME ESTIMATES
 
-### Issue: CI — GitHub Actions test workflow
-- Summary: Add a workflow to run tests on PRs and pushes (use `.env.example` values or secrets for CI).
-- Acceptance criteria: PRs must pass tests before merge.
-- Labels: `ci`, `high`
+### To Minimum Viable Deployment: **12-16 hours**
 
-### Issue: CI — Optional Heroku deployment workflow
-- Summary: Workflow that runs tests, and on `main` merge deploys to Heroku using repo `HEROKU_API_KEY` secret.
-- Acceptance criteria: Deploys only on successful tests and tagged merges.
-- Labels: `ci`, `medium`
+1. **Critical Templates** (3-4 hours) — Create 6 missing templates
+2. **Auth Implementation** (3-4 hours) — Uncomment and implement auth views  
+3. **Deployment Infrastructure** (4-6 hours) — Requirements, Procfile, static files, production settings
+4. **Testing & QA** (2-3 hours) — Smoke testing, fix critical bugs
+
+### To Full Feature Complete: **Additional 8-12 hours**
+- Ingredient views (4-5 hours)
+- Comprehensive test suite (4-6 hours)  
+- CI/CD pipeline (2-3 hours)
 
 ---
 
-## Milestone 6 — Polish
+## 🎯 RECOMMENDED NEXT STEPS
 
-- Media uploads (S3) — add `MEDIA_ROOT` dev & AWS S3 optional production storage
-- Accessibility audit & fixes
-- Monitoring (Sentry integration)
+**Phase 1 (Immediate - 1-2 days):**
+1. Create missing list templates
+2. Uncomment and implement auth views
+3. Add infrastructure files (requirements.txt, Procfile, etc.)
+
+**Phase 2 (Deployment ready - 3-5 days):**
+4. Configure production settings
+5. Test deployment to Heroku
+6. Smoke test all critical flows
+
+**Phase 3 (Polish - 1-2 weeks):**
+7. Implement ingredient views
+8. Add comprehensive tests
+9. Set up CI/CD
+
+---
+
+## 📊 PROGRESS TRACKING
+
+**Overall Progress: ~65% Complete**
+
+- ✅ **Backend Logic:** 90% (views, forms, models, URL routing)
+- 🟡 **Frontend Templates:** 70% (core templates done, list management missing)
+- ❌ **Authentication:** 30% (templates exist, views need implementation)
+- ❌ **Deployment Infrastructure:** 0% (not started)
+- 🟡 **Testing:** 40% (basic tests exist, need comprehensive coverage)
 
 ---
 

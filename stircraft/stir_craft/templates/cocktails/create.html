@@ -1,0 +1,197 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+{# Styles moved to: static/css/base.css — see "/static/css/base.css" (COCKTAIL FORM STYLES) #}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">🍸 {{ page_title }}</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="cocktail-form">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Cocktail Information -->
+                        <div class="form-section">
+                            <h4 class="section-title">📋 Basic Information</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label for="{{ cocktail_form.name.id_for_label }}" class="form-label">Cocktail Name *</label>
+                                        {{ cocktail_form.name }}
+                                        {% if cocktail_form.name.help_text %}
+                                            <div class="form-text">{{ cocktail_form.name.help_text }}</div>
+                                        {% endif %}
+                                        {% if cocktail_form.name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ cocktail_form.name.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ cocktail_form.vessel.id_for_label }}" class="form-label">Glassware</label>
+                                        {{ cocktail_form.vessel }}
+                                        {% if cocktail_form.vessel.help_text %}
+                                            <div class="form-text">{{ cocktail_form.vessel.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ cocktail_form.description.id_for_label }}" class="form-label">Description</label>
+                                {{ cocktail_form.description }}
+                                {% if cocktail_form.description.help_text %}
+                                    <div class="form-text">{{ cocktail_form.description.help_text }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ cocktail_form.instructions.id_for_label }}" class="form-label">Instructions *</label>
+                                {{ cocktail_form.instructions }}
+                                {% if cocktail_form.instructions.help_text %}
+                                    <div class="form-text">{{ cocktail_form.instructions.help_text }}</div>
+                                {% endif %}
+                                {% if cocktail_form.instructions.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ cocktail_form.instructions.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ cocktail_form.color.id_for_label }}" class="form-label">Color</label>
+                                        {{ cocktail_form.color }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            {{ cocktail_form.is_alcoholic }}
+                                            <label class="form-check-label" for="{{ cocktail_form.is_alcoholic.id_for_label }}">
+                                                Contains Alcohol
+                                            </label>
+                                            {% if cocktail_form.is_alcoholic.help_text %}
+                                                <div class="form-text">{{ cocktail_form.is_alcoholic.help_text }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ cocktail_form.vibe_tags.id_for_label }}" class="form-label">Vibe Tags</label>
+                                        {{ cocktail_form.vibe_tags }}
+                                        {% if cocktail_form.vibe_tags.help_text %}
+                                            <div class="form-text">{{ cocktail_form.vibe_tags.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Ingredients Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">🧂 Ingredients & Measurements</h4>
+                            
+                            <div class="ingredient-formset">
+                                {{ formset.management_form }}
+                                {% if formset.non_form_errors %}
+                                    <div class="alert alert-danger">
+                                        {{ formset.non_form_errors }}
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Column Headers -->
+                                <div class="row mb-2">
+                                    <div class="col-3"><strong>Ingredient</strong></div>
+                                    <div class="col-2"><strong>Amount</strong></div>
+                                    <div class="col-2"><strong>Unit</strong></div>
+                                    <div class="col-3"><strong>Notes</strong></div>
+                                    <div class="col-1"><strong>Order</strong></div>
+                                    <div class="col-1"><strong>Remove</strong></div>
+                                </div>
+                                
+                                <!-- Ingredient Forms -->
+                                <div id="ingredient-forms">
+                                    {% for form in formset %}
+                                        <div class="ingredient-row" id="ingredient-{{ forloop.counter0 }}">
+                                            {% for hidden in form.hidden_fields %}
+                                                {{ hidden }}
+                                            {% endfor %}
+                                            
+                                            <div>
+                                                {{ form.ingredient }}
+                                                {% if form.ingredient.errors %}
+                                                    <div class="text-danger small">{{ form.ingredient.errors.0 }}</div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div>
+                                                {{ form.amount }}
+                                                {% if form.amount.errors %}
+                                                    <div class="text-danger small">{{ form.amount.errors.0 }}</div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div>
+                                                {{ form.unit }}
+                                                {% if form.unit.errors %}
+                                                    <div class="text-danger small">{{ form.unit.errors.0 }}</div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div>
+                                                {{ form.preparation_note }}
+                                            </div>
+                                            
+                                            <div>
+                                                {{ form.order }}
+                                            </div>
+                                            
+                                            <div class="delete-checkbox">
+                                                {% if form.DELETE %}
+                                                    {{ form.DELETE }}
+                                                    <label for="{{ form.DELETE.id_for_label }}" class="visually-hidden">Delete</label>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <strong>💡 Tip:</strong> The form shows 3 ingredient slots by default. 
+                                    If you need more ingredients, just submit the form and Django will show additional slots.
+                                    Leave unused ingredient slots blank - they'll be ignored.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'cocktail_index' %}" class="btn btn-secondary">Cancel</a>
+                            {% if cocktail %}
+                                <button type="submit" class="btn btn-primary">💾 Save changes</button>
+                            {% else %}
+                                <button type="submit" class="btn btn-primary">🍸 Create Cocktail</button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

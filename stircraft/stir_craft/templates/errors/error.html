@@ -1,0 +1,140 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Error {{ status_code|default:'Unknown' }} - StirCraft{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center py-5">
+                <!-- Error Icon -->
+                <div class="mb-4">
+                    {% if status_code == 403 %}
+                        <i class="fas fa-ban text-warning" style="font-size: 4rem;"></i>
+                    {% elif status_code == 404 %}
+                        <i class="fas fa-search text-muted" style="font-size: 4rem;"></i>
+                    {% elif status_code == 500 %}
+                        <i class="fas fa-exclamation-triangle text-danger" style="font-size: 4rem;"></i>
+                    {% else %}
+                        <i class="fas fa-question-circle text-secondary" style="font-size: 4rem;"></i>
+                    {% endif %}
+                </div>
+
+                <!-- Error Code and Title -->
+                <h1 class="display-4 fw-bold text-primary mb-3">
+                    {% if status_code %}{{ status_code }}{% else %}Error{% endif %}
+                </h1>
+
+                <!-- Dynamic Error Messages -->
+                <h2 class="h4 mb-4">
+                    {% if status_code == 403 %}
+                        Access Denied
+                    {% elif status_code == 404 %}
+                        Page Not Found
+                    {% elif status_code == 500 %}
+                        Server Error
+                    {% else %}
+                        Something Went Wrong
+                    {% endif %}
+                </h2>
+
+                <!-- Error Description -->
+                <div class="mb-4">
+                    {% if error_message %}
+                        <p class="lead text-muted">{{ error_message }}</p>
+                    {% else %}
+                        <p class="lead text-muted">
+                            {% if status_code == 403 %}
+                                You don't have permission to access this resource. This might be because you're not logged in, or you're trying to edit something you didn't create.
+                            {% elif status_code == 404 %}
+                                The page you're looking for doesn't exist. It might have been moved, deleted, or you entered the wrong URL.
+                            {% elif status_code == 500 %}
+                                We're experiencing technical difficulties. Our team has been notified and is working to fix this issue.
+                            {% else %}
+                                An unexpected error occurred. Please try again or contact support if the problem persists.
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                    <!-- Primary Action -->
+                    {% if status_code == 403 %}
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                            </a>
+                        {% else %}
+                            <a href="{% url 'home' %}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'home' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-home me-2"></i>Go Home
+                        </a>
+                    {% endif %}
+
+                    <!-- Secondary Actions -->
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'cocktail_index' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-cocktail me-2"></i>Browse Cocktails
+                        </a>
+                    {% else %}
+                        <a href="{% url 'about' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-info-circle me-2"></i>About StirCraft
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Help Section for 403 Errors -->
+                {% if status_code == 403 %}
+                    <div class="mt-5 p-4 bg-light rounded">
+                        <h5 class="text-muted mb-3">Need Access?</h5>
+                        <div class="row text-start">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="fas fa-user-check text-success me-2"></i>
+                                        Make sure you're logged in
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-edit text-info me-2"></i>
+                                        Only creators can edit their content
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="fas fa-cocktail text-primary me-2"></i>
+                                        Create your own cocktails instead
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-heart text-danger me-2"></i>
+                                        Add cocktails to your favorites
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Technical Details (for development) -->
+                {% if debug and exception %}
+                    <div class="mt-5 p-4 bg-warning bg-opacity-10 rounded text-start">
+                        <h6 class="text-warning">
+                            <i class="fas fa-bug me-2"></i>Debug Information
+                        </h6>
+                        <small class="text-muted font-monospace">
+                            {{ exception }}
+                        </small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

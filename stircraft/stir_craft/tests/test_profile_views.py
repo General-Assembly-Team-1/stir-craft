@@ -152,7 +152,7 @@ class GeneralViewTest(TestCase):
         """Test that the home view renders the correct template."""
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'stir_craft/home.html')
+        self.assertTemplateUsed(response, 'base/home.html')
 
 
 class DashboardViewTest(TestCase):
@@ -184,7 +184,7 @@ class DashboardViewTest(TestCase):
         self.client.login(username='dashboard_user', password='test_password_123')
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'stir_craft/dashboard.html')
+        self.assertTemplateUsed(response, 'users/dashboard.html')
         self.assertContains(response, self.user.username)
 
     def test_dashboard_context_data(self):
