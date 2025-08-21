@@ -8,6 +8,7 @@ django = "*"
 django-taggit = "*"
 psycopg2-binary = "*"
 requests = "*"
+django-environ = "*"
 
 [dev-packages]
 

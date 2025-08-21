@@ -190,3 +190,128 @@ class CocktailViewTest(TestCase):
         response = self.client.get(reverse('cocktail_index'), {'ingredient': self.vodka.id})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Vodka Cocktail')
+
+    def test_cocktail_update_happy_path(self):
+        """Creator can update cocktail and components."""
+        self.client.login(username='cocktail_user', password='test_password_123')
+        cocktail = Cocktail.objects.create(
+            name='Update Me',
+            instructions='Old instructions',
+            creator=self.user,
+            vessel=self.vessel
+        )
+
+        RecipeComponent.objects.create(
+            cocktail=cocktail,
+            ingredient=self.juice,
+            amount=30.0,
+            unit='ml'
+        )
+
+        post_data = {
+            'name': 'Updated Cocktail',
+            'instructions': 'New instructions',
+            'vessel': self.vessel.id,
+
+            # Management form - crucial for formsets
+            'components-TOTAL_FORMS': '1',
+            'components-INITIAL_FORMS': '1', 
+            'components-MIN_NUM_FORMS': '1',
+            'components-MAX_NUM_FORMS': '15',
+
+            # Update existing component
+            'components-0-id': str(cocktail.components.first().id),
+            'components-0-ingredient': self.juice.id,
+            'components-0-amount': '45',
+            'components-0-unit': 'ml',
+            'components-0-order': '1',
+            'components-0-DELETE': '',  # Required for can_delete=True formsets
+        }
+
+        response = self.client.post(reverse('cocktail_update', args=[cocktail.id]), data=post_data)
+        self.assertEqual(response.status_code, 302)
+        cocktail.refresh_from_db()
+        self.assertEqual(cocktail.name, 'Updated Cocktail')
+        self.assertEqual(cocktail.components.first().amount, 45)
+
+    def test_cocktail_update_invalid_form_shows_errors(self):
+        """Invalid update (e.g., remove all components) should show errors."""
+        self.client.login(username='cocktail_user', password='test_password_123')
+        cocktail = Cocktail.objects.create(
+            name='Bad Update',
+            instructions='Keep me',
+            creator=self.user,
+            vessel=self.vessel
+        )
+
+        RecipeComponent.objects.create(
+            cocktail=cocktail,
+            ingredient=self.vodka,
+            amount=10.0,
+            unit='ml'
+        )
+
+        post_data = {
+            'name': '',  # remove required name
+            'instructions': '',
+            'vessel': self.vessel.id,
+
+            'components-TOTAL_FORMS': '0',
+            'components-INITIAL_FORMS': '1',
+            'components-MIN_NUM_FORMS': '1',
+            'components-MAX_NUM_FORMS': '15',
+        }
+
+        response = self.client.post(reverse('cocktail_update', args=[cocktail.id]), data=post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Please correct the errors below')
+
+    def test_cocktail_update_permission_denied_for_non_creator(self):
+        """Only creator may edit a cocktail."""
+        other = User.objects.create_user(username='other', password='pass')
+        cocktail = Cocktail.objects.create(
+            name='Locked',
+            instructions='None',
+            creator=self.user,
+        )
+
+        self.client.login(username='other', password='pass')
+        response = self.client.get(reverse('cocktail_update', args=[cocktail.id]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_cocktail_delete_restricted_to_staff(self):
+        """Creators are anonymized on delete; staff may fully delete."""
+        cocktail = Cocktail.objects.create(
+            name='ToDelete',
+            instructions='Delete me',
+            creator=self.user,
+        )
+
+        # Non-staff creator should anonymize the cocktail instead of full deletion
+        self.client.login(username='cocktail_user', password='test_password_123')
+        response = self.client.post(reverse('cocktail_delete', args=[cocktail.id]))
+        # After anonymize, redirect to detail page
+        self.assertEqual(response.status_code, 302)
+        cocktail.refresh_from_db()
+        self.assertNotEqual(cocktail.creator, self.user)
+        self.assertEqual(cocktail.creator.username, 'anonymous')
+
+        # Ensure the original user's creations list no longer includes the cocktail
+        creations_list = cocktail.creator.created_lists.filter(list_type='creations').first()
+        # The creations list belongs to the anonymous user now; check original user's creations
+        orig_creations = self.user.created_lists.filter(list_type='creations').first()
+        if orig_creations:
+            self.assertFalse(orig_creations.cocktails.filter(id=cocktail.id).exists())
+
+        # Create another cocktail to test staff full-delete
+        cocktail2 = Cocktail.objects.create(
+            name='StaffDelete',
+            instructions='Delete me fully',
+            creator=self.user,
+        )
+        # Make staff user and try full deletion
+        self.user.is_staff = True
+        self.user.save()
+        response = self.client.post(reverse('cocktail_delete', args=[cocktail2.id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Cocktail.objects.filter(name='StaffDelete').exists())

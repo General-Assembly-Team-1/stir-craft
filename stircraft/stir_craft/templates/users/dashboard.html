@@ -1,0 +1,49 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Dashboard - StirCraft{% endblock %}
+
+{% block extra_css %}
+{% load static %}
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid dashboard-container">
+    <!-- Dashboard Header -->
+    {% include 'partials/shared/_dashboard_header.html' %}
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Profile Summary Card -->
+        <div class="col-lg-4 mb-4">
+            {% include 'partials/shared/_profile_summary_card.html' %}
+        </div>
+
+        <!-- Your Creations Card -->
+        <div class="col-lg-8 mb-4">
+            {% include 'partials/shared/_creations_card.html' %}
+        </div>
+    </div>
+
+    <!-- Secondary Content Row -->
+    <div class="row">
+        <!-- Favorites Card -->
+        <div class="col-lg-6 mb-4">
+            {% include 'partials/shared/_favorites_card.html' %}
+        </div>
+
+        <!-- Your Lists Card -->
+        <div class="col-lg-6 mb-4">
+            {% include 'partials/shared/_lists_overview_card.html' %}
+        </div>
+    </div>
+
+    <!-- Quick Actions Row -->
+    <div class="row dashboard-quick-actions">
+        <div class="col-12">
+            {% include 'partials/shared/_quick_actions_card.html' %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

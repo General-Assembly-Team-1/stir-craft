@@ -1,0 +1,56 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}About{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/about.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <header class="mb-4">
+        <h1 class="display-6">About Stir Craft</h1>
+        <p class="lead">A community-driven cocktail catalog for recipes, collections, and inspiration.</p>
+    </header>
+
+    <section class="mb-4">
+        <h2>What is Stir Craft?</h2>
+        <p>
+            Stir Craft is a lightweight recipe sharing app focused on cocktails. Users can create,
+            edit, and share cocktail recipes, build curated lists, and discover drinks by
+            ingredient, vessel, or vibe.
+        </p>
+    </section>
+
+    <section class="mb-4">
+        <h2>Features</h2>
+        <ul>
+            <li>Create and manage cocktail recipes with ingredient formsets</li>
+            <li>Build lists and favorite recipes</li>
+            <li>Search and filter by ingredient, vessel, and color</li>
+            <li>Quick-add and AJAX-powered list management for smooth UX</li>
+        </ul>
+    </section>
+
+    <section class="mb-4">
+        <h2>Documentation</h2>
+        <p>
+            See the <a href="/docs/">project docs</a> for setup and contribution guidelines,
+            or browse the technical guides in the docs folder.
+        </p>
+    </section>
+
+    <section class="mb-4">
+        <h2>The Team</h2>
+        <p>
+            Built by the Stir Craft team — passionate about cocktails, UX, and clean code.
+            Contributions welcome via pull requests.
+        </p>
+    </section>
+
+    <footer class="mt-5 text-muted small">
+        <p>Version: development — not for production use. Please follow local laws regarding alcohol.</p>
+    </footer>
+</div>
+{% endblock %}

@@ -2,6 +2,188 @@
 
 **Prerequisites:** Make sure you've completed the setup in `docs/QUICK_SETUP.md` and `docs/POSTGRES_SETUP.md` first.
 
+## 🔐 Environment Variables & Secrets Management (NEW!)
+
+### Overview
+StirCraft now uses secure environment variable management to protect sensitive information like database passwords, secret keys, and API credentials. This approach follows Django best practices and prepares the application for production deployment.
+
+### What Changed
+- **django-environ**: Added for robust environment variable handling
+- **Secure defaults**: Development settings that fail safely in production
+- **Environment files**: `.env` for local development, ignored by git
+- **Production ready**: Environment variables work with any deployment platform
+
+### Local Development Setup
+
+#### 1. Create Your Environment File
+```bash
+# Copy the example file (contains all required variables)
+cp .env.example .env
+
+# Generate a new secret key for your environment
+pipenv run python -c "from django.core.management.utils import get_random_secret_key; print('SECRET_KEY=' + get_random_secret_key())"
+
+# Edit .env and paste your new secret key
+```
+
+#### 2. Configure Your Database
+```bash
+# Edit .env and update the database password
+DATABASE_URL=postgres://macfarley:your-actual-password@localhost:5432/stircraft
+
+# Alternative: Use individual variables
+DB_PASSWORD=your-actual-password
+```
+
+#### 3. Test Your Configuration
+```bash
+# Django should now load settings from .env automatically
+python manage.py check
+# Should show: Loading .env environment variables...
+
+# Test database connection
+python manage.py migrate
+```
+
+### Environment Variables Reference
+
+#### Required Variables
+- `SECRET_KEY`: Django secret key (generate unique for each environment)
+- `DEBUG`: `True` for development, `False` for production
+- `ALLOWED_HOSTS`: Comma-separated list of allowed domains
+
+#### Database Configuration
+**Option 1 (Recommended)**: Use `DATABASE_URL`
+```bash
+DATABASE_URL=postgres://username:password@host:port/database
+```
+
+**Option 2**: Use individual variables
+```bash
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=stircraft
+DB_USER=macfarley
+DB_PASSWORD=your-password
+DB_HOST=localhost
+DB_PORT=5432
+```
+
+#### Optional Variables
+- `EMAIL_*`: Email configuration for password reset
+- `SENTRY_DSN`: Error tracking service
+- `AWS_*`: Media storage configuration
+- `MEDIA_ROOT`: Local media file storage
+- `STATIC_ROOT`: Production static file location
+
+### Production Deployment
+
+#### GitHub Actions / CI
+```yaml
+# In .github/workflows/test.yml
+env:
+  SECRET_KEY: ${{ secrets.SECRET_KEY }}
+  DEBUG: False
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+```
+
+#### Platform-Specific Instructions
+
+**Heroku:**
+```bash
+heroku config:set SECRET_KEY=your-secret-key
+heroku config:set DEBUG=False
+heroku config:set DATABASE_URL=postgres://...
+```
+
+**AWS/Docker:**
+```dockerfile
+ENV SECRET_KEY=${SECRET_KEY}
+ENV DEBUG=${DEBUG}
+ENV DATABASE_URL=${DATABASE_URL}
+```
+
+**DigitalOcean App Platform:**
+```yaml
+# In .do/app.yaml
+envs:
+- key: SECRET_KEY
+  value: your-secret-key
+- key: DEBUG
+  value: "False"
+```
+
+### Security Best Practices
+
+#### What NOT to do:
+```python
+# ❌ Never hardcode secrets in settings.py
+SECRET_KEY = 'django-insecure-hardcoded-key'
+DATABASE_PASSWORD = 'hardcoded-password'
+
+# ❌ Never commit .env files
+git add .env  # This is blocked by .gitignore
+```
+
+#### What TO do:
+```python
+# ✅ Use environment variables
+SECRET_KEY = env('SECRET_KEY')
+DATABASES = {'default': env.db()}
+
+# ✅ Set production-safe defaults
+DEBUG = env('DEBUG', default=False)
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
+```
+
+#### Team Workflow:
+1. **Never share actual secrets**: Each developer generates their own
+2. **Update .env.example**: Document new variables for the team
+3. **Use secure passwords**: Don't use the example passwords in production
+4. **Rotate secrets**: Change them if they're accidentally exposed
+
+### Troubleshooting
+
+#### Common Issues:
+
+**"ImproperlyConfigured: Missing SECRET_KEY"**
+```bash
+# Check if .env exists and has SECRET_KEY
+cat .env | grep SECRET_KEY
+
+# Generate a new one if missing
+pipenv run python -c "from django.core.management.utils import get_random_secret_key; print('SECRET_KEY=' + get_random_secret_key())"
+```
+
+**"Database connection failed"**
+```bash
+# Check if your database password is correct
+psql -U macfarley -d stircraft
+# If this fails, your .env DATABASE_URL might be wrong
+
+# Verify your .env database settings
+cat .env | grep -E "(DATABASE_URL|DB_)"
+```
+
+**"Loading .env environment variables..." not showing**
+```bash
+# Check if .env file exists in project root
+ls -la /path/to/stir-craft/.env
+
+# Check if django-environ is installed
+pipenv run pip list | grep django-environ
+```
+
+#### File Structure:
+```
+stir-craft/
+├── .env                 # Your local secrets (ignored by git)
+├── .env.example         # Template for new environments (committed)
+├── .gitignore           # Ensures .env is never committed
+└── stircraft/
+    └── stircraft/
+        └── settings.py  # Loads from .env automatically
+```
+
 ## 🛠 Available Scripts
 
 **Essential scripts for daily development:**

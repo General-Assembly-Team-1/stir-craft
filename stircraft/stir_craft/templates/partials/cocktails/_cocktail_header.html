@@ -1,0 +1,10 @@
+<!-- Cocktail Header Partial -->
+<div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <h1 class="mb-0">🍸 {{ cocktail.name }}</h1>
+    {% if can_edit %}
+        <div>
+            <a href="{% url 'cocktail_update' cocktail.id %}" class="btn btn-outline-light btn-sm">✏️ Edit</a>
+            <a href="{% url 'cocktail_delete' cocktail.id %}" class="btn btn-outline-danger btn-sm">🗑️ Delete</a>
+        </div>
+    {% endif %}
+</div>
