@@ -370,21 +370,144 @@ def cocktail_create(request):
         'page_title': 'Create New Cocktail',
     })
 
-# TODO: Cocktail update view
-# def cocktail_update(request, cocktail_id):
-#     """
-#     Edit existing cocktail (only by creator).
-#     Update recipe components and metadata.
-#     """
-#     pass
 
-# TODO: Cocktail delete view
-# def cocktail_delete(request, cocktail_id):
-#     """
-#     Delete cocktail (only by creator).
-#     Confirmation and cascade handling.
-#     """
-#     pass
+
+
+@login_required
+def cocktail_update(request, cocktail_id):
+    """
+    Edit an existing cocktail. Only the creator may edit.
+
+    - GET: show pre-populated CocktailForm and RecipeComponentFormSet
+    - POST: atomically update cocktail and components (create/update/delete)
+    """
+    from .forms.cocktail_forms import CocktailForm, RecipeComponentFormSet
+    from .models import Cocktail
+    from django.db import transaction
+
+    cocktail = get_object_or_404(Cocktail, id=cocktail_id)
+
+    # Only creator can edit
+    if request.user != cocktail.creator:
+        return render(request, '403.html', status=403)
+
+    if request.method == 'POST':
+        cocktail_form = CocktailForm(request.POST, instance=cocktail, user=request.user)
+        formset = RecipeComponentFormSet(request.POST, instance=cocktail)
+
+        if cocktail_form.is_valid() and formset.is_valid():
+            try:
+                with transaction.atomic():
+                    cocktail = cocktail_form.save()
+                    cocktail_form.save_m2m()
+
+                    # Save formset (handles create/update/delete)
+                    formset.instance = cocktail
+                    components = formset.save()
+
+                    # Recompute alcoholic flag
+                    has_alcohol = any(c.ingredient.alcohol_content > 0 for c in cocktail.components.all())
+                    if has_alcohol != cocktail.is_alcoholic:
+                        cocktail.is_alcoholic = has_alcohol
+                        cocktail.save()
+
+                messages.success(request, f'🍸 "{cocktail.name}" has been updated successfully!')
+                return redirect('cocktail_detail', cocktail_id=cocktail.id)
+            except Exception:
+                messages.error(request, 'An error occurred saving your cocktail. Please try again.')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        cocktail_form = CocktailForm(instance=cocktail, user=request.user)
+        formset = RecipeComponentFormSet(instance=cocktail)
+
+    return render(request, 'stir_craft/cocktail_create.html', {
+        'cocktail_form': cocktail_form,
+        'formset': formset,
+        'page_title': f'Edit: {cocktail.name}',
+        'cocktail': cocktail,
+    })
+
+
+
+
+@login_required
+def cocktail_delete(request, cocktail_id):
+    """
+    Delete a cocktail. Only admin users are allowed to delete (per request).
+
+    - GET: show confirmation page
+    - POST: perform deletion and redirect to index
+    """
+    from .models import Cocktail
+
+    cocktail = get_object_or_404(Cocktail, id=cocktail_id)
+
+    # If the user is staff/admin they may fully delete the cocktail
+    if request.user.is_staff:
+        if request.method == 'POST':
+            name = cocktail.name
+            cocktail.delete()
+            messages.success(request, f'🍸 "{name}" has been deleted.')
+            return redirect('cocktail_index')
+
+        return render(request, 'stir_craft/cocktail_confirm_delete.html', {
+            'cocktail': cocktail,
+        })
+
+    # If the user is the creator but not staff, anonymize the cocktail instead of deleting
+    if request.user == cocktail.creator:
+        if request.method == 'POST':
+            from django.db import IntegrityError
+
+            original_creator = request.user
+            # Ensure an anonymous system user exists
+            anonymous, created = User.objects.get_or_create(
+                username='anonymous',
+                defaults={'email': 'anonymous@localhost'}
+            )
+            if created:
+                anonymous.set_unusable_password()
+                anonymous.is_active = False
+                anonymous.save()
+
+            # Reassign ownership. Handle unique_together collisions by renaming if needed.
+            original_name = cocktail.name
+            try:
+                cocktail.creator = anonymous
+                cocktail.save()
+            except IntegrityError:
+                # Name conflict for anonymous owner; append suffix until unique
+                suffix = 1
+                while True:
+                    new_name = f"{original_name} (anonymous{'' if suffix==1 else ' '+str(suffix)})"
+                    cocktail.name = new_name
+                    cocktail.creator = anonymous
+                    try:
+                        cocktail.save()
+                        break
+                    except IntegrityError:
+                        suffix += 1
+
+            # Ensure the original creator's creations list no longer contains this cocktail
+            from .models import List
+            try:
+                creations_list = List.objects.get(creator=original_creator, list_type='creations')
+                creations_list.sync_creations_list()
+            except List.DoesNotExist:
+                pass
+
+            messages.success(request, f'Your association with "{original_name}" has been removed — it is now anonymous.')
+            return redirect('cocktail_detail', cocktail_id=cocktail.id)
+
+        # Show a specialized confirmation for anonymization
+        return render(request, 'stir_craft/cocktail_confirm_delete.html', {
+            'cocktail': cocktail,
+            'anonymize': True,
+        })
+
+    # Other non-staff users cannot delete or anonymize cocktails they don't own
+    return render(request, '403.html', status=403)
 
 
 # =============================================================================
