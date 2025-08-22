@@ -1,56 +1,44 @@
-{% extends 'base/base.html' %}
-{% load static %}
-
-{% block title %}About{% endblock %}
-
-{% block extra_css %}
-<link href="{% static 'css/about.css' %}" rel="stylesheet">
-{% endblock %}
+{% extends 'base.html' %}
 
 {% block content %}
-<div class="container py-5">
-    <header class="mb-4">
-        <h1 class="display-6">About Stir Craft</h1>
-        <p class="lead">A community-driven cocktail catalog for recipes, collections, and inspiration.</p>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{% url 'home' %}">Recipe Catalog</a></li>
+                <li><a href="{% url 'about' %}">About</a></li>
+                <li><a href="{% url 'cocktails' %}">Sign Up</a></li>
+            </ul>
+        </nav>
+        <h1>StirCraft</h1>
     </header>
 
-    <section class="mb-4">
-        <h2>What is Stir Craft?</h2>
-        <p>
-            Stir Craft is a lightweight recipe sharing app focused on cocktails. Users can create,
-            edit, and share cocktail recipes, build curated lists, and discover drinks by
-            ingredient, vessel, or vibe.
-        </p>
-    </section>
+    <main>
+        <!-- About Section -->
+        <section id="about">
+            <h2>About StirCraft</h2>
+            <p>StirCraft makes cocktail creation easy and fun. Build complex recipes with multiple ingredients, measurements, and notes—all in one intuitive form. Perfect for home bartenders and pros alike, StirCraft helps you mix, manage, and share your favorite drinks effortlessly.</p>
+        </section>
 
-    <section class="mb-4">
-        <h2>Features</h2>
-        <ul>
-            <li>Create and manage cocktail recipes with ingredient formsets</li>
-            <li>Build lists and favorite recipes</li>
-            <li>Search and filter by ingredient, vessel, and color</li>
-            <li>Quick-add and AJAX-powered list management for smooth UX</li>
-        </ul>
-    </section>
+        <!-- Who We Are Section -->
+        <section id="who-we-are">
+            <h2>Who We Are</h2>
+            <p>At StirCraft, we are passionate about the art of mixology and the joy of creating unique cocktails. Our team combines expertise in technology and a love for drinks to build a platform that makes cocktail creation simple, intuitive, and enjoyable.</p>
+        </section>
 
-    <section class="mb-4">
-        <h2>Documentation</h2>
-        <p>
-            See the <a href="/docs/">project docs</a> for setup and contribution guidelines,
-            or browse the technical guides in the docs folder.
-        </p>
-    </section>
+        <!-- Tech Stack Section -->
+        <section id="tech-stack">
+            <h2>Tech Stack & Implementation</h2>
+            <ul>
+                <li><strong>Backend:</strong> Django – powers our cocktail management system.</li>
+                <li><strong>Frontend:</strong> HTML, CSS, JavaScript – for an interactive UI.</li>
+                <li><strong>Database:</strong> PostgreSQL – stores recipes and user data securely.</li>
+                <li><strong>Forms:</strong> Django inline formsets – for multiple ingredients in a single form.</li>
+                <li><strong>Deployment:</strong> Heroku/AWS – reliable hosting and performance.</li>
+            </ul>
+        </section>
+    </main>
 
-    <section class="mb-4">
-        <h2>The Team</h2>
-        <p>
-            Built by the Stir Craft team — passionate about cocktails, UX, and clean code.
-            Contributions welcome via pull requests.
-        </p>
-    </section>
-
-    <footer class="mt-5 text-muted small">
-        <p>Version: development — not for production use. Please follow local laws regarding alcohol.</p>
+    <footer>
+        <p>&copy; 2025 StirCraft. All rights reserved.</p>
     </footer>
-</div>
 {% endblock %}
