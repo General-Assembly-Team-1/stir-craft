@@ -1,255 +1,193 @@
-# StirCraft — Deployment Roadmap (Heroku-focused)
+# Deployment Roadmap 🚀
 
-**Last Updated: August 21, 2025**
+**Last Updated**: August 22, 2025  
+**Current Status**: Feature-complete, production configuration needed, test fixes required
 
-This roadmap tracks the progress toward deploying StirCraft to Heroku. Major backend functionality is now complete, with remaining work focused on templates, auth implementation, and deployment infrastructure.
+## 📊 Overall Progress: ~85% Complete
 
----
-
-## Current Status Summary
-
-✅ **Completed:** Cocktail CRUD views, List management views, Forms, URL routing, Navigation, Basic templates  
-🟡 **In Progress:** Missing templates for list management  
-❌ **Blocked:** Auth views (commented out), Deployment infrastructure  
+All core application features are implemented and working. The remaining work focuses on production configuration, test fixes, and deployment setup.
 
 ---
 
-## Quick plan
+## ✅ COMPLETED FEATURES (100%)
 
-- ✅ ~~Finish Cocktail CRUD (update/delete + templates + tests)~~ **COMPLETE**
-- 🟡 Complete missing templates for list management views
-- ❌ Implement minimal auth (sign-up/sign-in) so creator permissions work
-- ❌ Implement Ingredients views used by the UX
-- ❌ Prepare Heroku infra (requirements, Procfile, staticfiles, production settings)
-- ❌ Add CI (tests on PRs) and optional Heroku deploy workflow
+### Core Application Features
+- ✅ **Authentication System**: Complete login/logout/signup functionality
+- ✅ **Cocktail CRUD**: Full create, read, update, delete operations
+- ✅ **Recipe Management**: Ingredients, vessels, measurements, instructions
+- ✅ **List System**: Favorites, custom lists, "Your Creations" auto-management
+- ✅ **User Profiles**: Dashboard, profile management, settings
+- ✅ **Search & Filtering**: Browse cocktails with various filters
+- ✅ **Responsive UI**: Bootstrap-based responsive design
 
----
+### Template System
+- ✅ **Complete Template Suite**: All 40+ templates implemented
+- ✅ **Partial Components**: Reusable template partials for consistency
+- ✅ **Error Handling**: 404/500 error pages
+- ✅ **Navigation**: Context-aware navigation system
 
-## Milestones
+### Backend Infrastructure  
+- ✅ **Models**: Complete data model with relationships
+- ✅ **Views**: All view functions implemented 
+- ✅ **URLs**: Complete URL routing
+- ✅ **Forms**: Django forms with validation
+- ✅ **Admin Interface**: Django admin configuration
 
-1. ✅ Cocktail CRUD (MVP) — **COMPLETE**
-2. 🟡 Lists & Templates — **80% Complete (views done, templates missing)**
-3. ❌ Auth & Permissions — **Templates exist, views commented out**
-4. ❌ Ingredient Management — **Stubbed but not implemented**
-5. ❌ Heroku Deployment & Infra — **Not started**
-6. ❌ CI / CD & QA — **Basic tests exist**
-7. ❌ Polish: media, accessibility, monitoring — **Future work**
-
----
-
-## 🚨 CRITICAL BLOCKERS (Must fix before deployment)
-
-### Issue: Missing Templates for List Views
-- **Priority:** HIGH — Views will crash with TemplateDoesNotExist
-- **Missing templates:**
-  - `stir_craft/list_update.html`
-  - `stir_craft/user_lists.html` 
-  - `stir_craft/list_confirm_delete.html`
-  - `stir_craft/quick_add_modal.html`
-  - `stir_craft/list_feed.html`
-  - `403.html` (error page)
-- **Estimate:** 3-4 hours
-- **Status:** Views implemented, forms created, just need templates
-
-### Issue: Auth Views Activation
-- **Priority:** HIGH — Users cannot sign up or log in
-- **Problem:** Sign-up/sign-in views are commented out in `stir_craft/urls.py`
-- **Templates exist:** `registration/login.html`, `registration/signup.html`
-- **Estimate:** 2-3 hours to implement views and test
-- **Status:** Need to uncomment and implement the auth view functions
+### Deployment Infrastructure
+- ✅ **Requirements File**: Complete requirements.txt with 23 pinned dependencies
+- ✅ **Procfile**: Gunicorn configuration for Heroku
+- ✅ **Runtime**: Python 3.12.4 specified
+- ✅ **Environment Setup**: django-environ configured
 
 ---
 
-## ✅ Milestone 1 — Cocktail CRUD (COMPLETE)
+## ⚠️ CRITICAL ISSUES TO FIX
 
-**Status: COMPLETE** — All cocktail CRUD operations implemented and working.
+### Test Suite Issues (Priority 1)
+**Status**: 86 tests exist, 7 failing (6 failures + 1 error)
 
-### Completed Features:
-- ✅ **Cocktail Update View** — Implemented in `stir_craft/views.py:377`
-- ✅ **Cocktail Delete View** — Implemented in `stir_craft/views.py:435`
-- ✅ **Template Reuse** — Update view reuses `cocktail_create.html`
-- ✅ **Permission Checks** — Creator-only edit/delete enforced
-- ✅ **Forms & Validation** — `CocktailForm` and `RecipeComponentFormSet` working
-- ✅ **URL Routing** — All cocktail routes registered and named
+**Test Failures Identified**:
+1. **Database Integrity Error**: `test_system_list_cannot_be_renamed` - UniqueViolation for "Your Creations" list
+   - **Cause**: Signal auto-creates "Your Creations" list on user creation, test tries to create duplicate
+   - **Fix**: Update test to use existing list or proper cleanup
 
-### Remaining Work:
-- 🟡 **Verify edit/delete buttons** appear on cocktail detail page for creators
-- 🟡 **Add comprehensive tests** for edge cases and validation
+2. **Authentication Redirects**: Multiple tests expecting 200 status getting 302 redirects
+   - **Tests affected**: `test_detail_context_for_unauthenticated_and_non_creator`, `test_list_detail_shows_cocktails`
+   - **Fix**: Update authentication requirements or test expectations
 
----
+3. **Template Content Changes**: Tests expecting specific text that's changed
+   - **Tests affected**: `test_index_filter_by_is_alcoholic`, `test_list_create_requires_login_and_creates`, `test_list_feed_shows_public_lists`
+   - **Fix**: Update test assertions to match current template content
 
-## 🟡 Milestone 2 — Lists & Templates (80% Complete)
+4. **Form Validation**: `test_quick_add_form_creates_new_list_when_no_existing` failing validation
+   - **Fix**: Check form data and validation logic
 
-**Status: Backend complete, frontend templates missing**
-
-### Completed Features:
-- ✅ **All List Views** — CRUD operations implemented (`list_detail`, `list_create`, `list_update`, `list_delete`)
-- ✅ **AJAX Endpoints** — Add/remove from lists, toggle favorites with JSON responses
-- ✅ **List Forms** — Complete form suite in `stir_craft/forms/list_forms.py`
-- ✅ **URL Routing** — All list routes registered
-- ✅ **User Lists Management** — View user's lists, create/manage lists
-- ✅ **List Feed** — Browse public lists
-
-### Missing Templates (BLOCKERS):
-- ❌ `stir_craft/list_update.html`
-- ❌ `stir_craft/user_lists.html`
-- ❌ `stir_craft/list_confirm_delete.html`
-- ❌ `stir_craft/quick_add_modal.html`
-- ❌ `stir_craft/list_feed.html`
-
-### Working Templates:
-- ✅ `stir_craft/list_detail.html` — Exists
-- ✅ `stir_craft/list_form.html` — Exists
+### Production Configuration (Priority 2)
+- ⚠️ **Static Files**: Missing STATIC_ROOT and whitenoise configuration
+- ⚠️ **Security Settings**: Production security headers needed
+- ✅ **Database**: PostgreSQL configured via environment variables
 
 ---
 
-## ❌ Milestone 3 — Auth & Permissions (Templates exist, views missing)
+## 🛑 REMAINING TASKS
 
-**Status: Blocked** — Templates exist but auth views are commented out
+### Critical for Heroku Deployment
 
-### Issue: Auth — Sign-up & Sign-in Views
-- **Problem:** Views are commented out in `stir_craft/urls.py` lines 10-11
-- **Templates:** Already exist at `registration/login.html`, `registration/signup.html`
-- **Required:** Implement `sign_up` and `sign_in` views in `stir_craft/views.py`
-- **Acceptance criteria:** New users can register, are logged in automatically, and redirected to dashboard
-- **Estimate:** 3-4h
-
-### Issue: Auth — Password reset (Low priority)
-- **Status:** Not implemented
-- **Estimate:** 2-3h
-
----
-
-## ❌ Milestone 4 — Ingredient Management (Stubbed)
-
-**Status: Not implemented** — Views exist but are commented out
-
-### Issue: Ingredients — Index & detail views
-- **Problem:** Views are commented out in `stir_craft/views.py` lines 98, 106, 114
-- **Templates:** `ingredient_index.html`, `ingredient_detail.html` exist
-- **Required:** Implement ingredient views and URL routing
-- **Estimate:** 4-5h
-
----
-
-## ❌ Milestone 5 — Heroku Deployment & Infra (Not started)
-
-**Status: Critical for deployment** — No deployment files exist
-
-### Missing Files (HIGH PRIORITY):
-- ❌ `requirements.txt` — Generate from Pipfile.lock
-- ❌ `Procfile` — Add gunicorn web process
-- ❌ `runtime.txt` — Specify Python version
-- ❌ Static files config — Add STATIC_ROOT, install whitenoise
-- ❌ Production settings — Environment-based config
-
-### Infrastructure Tasks:
-1. **Generate requirements.txt** (15min): `pipenv lock -r > requirements.txt`
-2. **Create Procfile** (5min): `web: gunicorn stircraft.wsgi --log-file -`
-3. **Add runtime.txt** (5min): `python-3.11.4`
-4. **Configure static files** (1-2h): Install whitenoise, set STATIC_ROOT
-5. **Production settings** (2-3h): Environment variables, security settings
-
-**Total Estimate:** 4-5 hours
-
----
-
-## ⏰ UPDATED TIME ESTIMATES
-
-### To Minimum Viable Deployment: **12-16 hours**
-
-1. **Critical Templates** (3-4 hours) — Create 6 missing templates
-2. **Auth Implementation** (3-4 hours) — Uncomment and implement auth views  
-3. **Deployment Infrastructure** (4-6 hours) — Requirements, Procfile, static files, production settings
-4. **Testing & QA** (2-3 hours) — Smoke testing, fix critical bugs
-
-### To Full Feature Complete: **Additional 8-12 hours**
-- Ingredient views (4-5 hours)
-- Comprehensive test suite (4-6 hours)  
-- CI/CD pipeline (2-3 hours)
-
----
-
-## 🎯 RECOMMENDED NEXT STEPS
-
-**Phase 1 (Immediate - 1-2 days):**
-1. Create missing list templates
-2. Uncomment and implement auth views
-3. Add infrastructure files (requirements.txt, Procfile, etc.)
-
-**Phase 2 (Deployment ready - 3-5 days):**
-4. Configure production settings
-5. Test deployment to Heroku
-6. Smoke test all critical flows
-
-**Phase 3 (Polish - 1-2 weeks):**
-7. Implement ingredient views
-8. Add comprehensive tests
-9. Set up CI/CD
-
----
-
-## 📊 PROGRESS TRACKING
-
-**Overall Progress: ~65% Complete**
-
-- ✅ **Backend Logic:** 90% (views, forms, models, URL routing)
-- 🟡 **Frontend Templates:** 70% (core templates done, list management missing)
-- ❌ **Authentication:** 30% (templates exist, views need implementation)
-- ❌ **Deployment Infrastructure:** 0% (not started)
-- 🟡 **Testing:** 40% (basic tests exist, need comprehensive coverage)
-
----
-
-## PR checklist (copy into PR template)
-
-- [ ] Tests added (unit/integration) for new behavior
-- [ ] Lint/format passes (black/ruff)
-- [ ] No secrets committed (`.env` absent)
-- [ ] README/docs updated with any new envs
-- [ ] Manual smoke test steps in PR description
-
----
-
-## Quick commands
-
-Generate `requirements.txt`:
+#### 1. Fix Test Suite (~3 hours)
 ```bash
-pipenv lock -r > requirements.txt
+# Current test status
+pipenv run python stircraft/manage.py test stir_craft.tests
+# Found 86 test(s) - 7 failing
+
+# Priority fixes:
+# - Fix "Your Creations" list duplication in test_quick_add_and_list_forms.py
+# - Update authentication redirect expectations  
+# - Update template content assertions
+# - Fix form validation issues
 ```
 
-Create `Procfile` and `runtime.txt` (example):
-Procfile:
-```
-web: gunicorn stircraft.wsgi --log-file -
-```
-runtime.txt:
-```
-python-3.11.4
+#### 2. Django Production Settings (~1 hour)
+```python
+# Add to settings.py
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Add whitenoise to MIDDLEWARE (after SecurityMiddleware)
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add this
+    # ... rest of middleware
+]
 ```
 
-Collect static (Heroku slug build will also run this):
-```bash
-python manage.py collectstatic --noinput
+#### 3. Security Configuration (~30 minutes)
+```python
+# Production security settings
+SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 ```
 
-Heroku quick deploy (after creating app and setting secrets):
-```bash
-heroku create my-stircraft
-git push heroku Testing:main
-heroku config:set DEBUG=False
-heroku config:set SECRET_KEY=<prod-secret>
-heroku addons:create heroku-postgresql:hobby-dev
-heroku run python manage.py migrate
-heroku run python manage.py collectstatic --noinput
-```
+#### 4. Environment Variables Setup (~15 minutes)
+Create production `.env` with:
+- `SECRET_KEY` (generate new)
+- `DEBUG=False`
+- `DATABASE_URL` (Heroku will provide)
+- `ALLOWED_HOSTS` (your-app.herokuapp.com)
+
+### Nice-to-Have Improvements
+- 📊 **Monitoring**: Add error tracking (Sentry)
+- 🔍 **Analytics**: Usage tracking
+- 📧 **Email**: Production email backend
+- 🏗️ **CI/CD**: Automated testing and deployment
 
 ---
 
-## Next steps I can do for you
+## 🎯 Next Steps (Priority Order)
 
-- Scaffold the GitHub issues automatically (I can create markdown files for each ticket to paste into the board)
-- Add `requirements.txt`, `Procfile`, and `runtime.txt` now and commit them
-- Implement `cocktail_update` and `cocktail_delete` views + tests now
+1. **Fix Test Suite** (~3 hours) ⚠️ **BLOCKING**
+   - Fix database isolation issues in test setup
+   - Update authentication flow expectations  
+   - Update template content assertions
+   - Resolve form validation failures
 
-Pick one and I'll start it immediately.
+2. **Complete Production Settings** (~1 hour)
+   - Add static files configuration
+   - Add security headers
+   - Update middleware for whitenoise
+
+3. **Deploy to Heroku** (~30 minutes)
+   - Create Heroku app
+   - Set environment variables
+   - Deploy and test
+
+4. **Post-Deployment Validation** (~30 minutes)
+   - Test all major features in production
+   - Verify static files serve correctly
+   - Check error handling
+
+**Estimated Time to Deployment**: 5 hours (increased due to test fixes)
+
+---
+
+## 📋 Deployment Checklist
+
+### Pre-Deployment
+- [ ] **All tests passing** ⚠️ **CRITICAL - Currently 7 failing**
+- [ ] Static files configuration complete
+- [ ] Security settings configured
+- [ ] Environment variables documented
+
+### Heroku Setup
+- [ ] Heroku CLI installed
+- [ ] Heroku app created
+- [ ] PostgreSQL addon added
+- [ ] Environment variables set
+- [ ] Initial deployment successful
+
+### Post-Deployment  
+- [ ] Database migrated
+- [ ] Static files serving
+- [ ] All features working
+- [ ] Error pages functional
+- [ ] Performance acceptable
+
+---
+
+## 📝 Technical Notes
+
+- **Django Version**: 5.2.5 (latest stable)
+- **Database**: PostgreSQL (Heroku standard)
+- **Python Version**: 3.12.4 (as specified in runtime.txt)
+- **Dependencies**: 23 packages in requirements.txt with pinned versions
+- **Test Coverage**: 86 tests across 26 test files
+- **Virtual Environment**: `.venv` at project root, managed by pipenv
+
+## ⚠️ Current Blockers
+
+1. **Test Suite Must Pass**: Cannot deploy with failing tests - integrity and authentication issues need resolution
+2. **Static Files**: Heroku requires STATIC_ROOT configuration for asset serving
+
+The application is feature-complete but requires test fixes before production deployment.

@@ -65,6 +65,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static files serving for production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -152,6 +153,21 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Production static files configuration
+# Heroku and most production deployments require STATIC_ROOT to collect static files
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Use whitenoise for static file compression and efficient serving
+# Only applies when whitenoise is enabled via middleware (see MIDDLEWARE setting)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Static files directories - Django will search these directories for static files
+# Currently using app-level static directories (stir_craft/static/)
+STATICFILES_DIRS = [
+    # Add any project-level static directories here if needed
+    # os.path.join(BASE_DIR, 'static'),
+]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -169,3 +185,27 @@ LOGOUT_REDIRECT_URL = '/'
 
 # URL for login page (when @login_required decorator is triggered)
 LOGIN_URL = '/admin/login/'  # Using Django admin login for now
+
+
+# =============================================================================
+# 🔒 PRODUCTION SECURITY SETTINGS
+# =============================================================================
+
+# Production security settings (only apply when DEBUG=False)
+if not DEBUG:
+    # Force HTTPS redirect
+    SECURE_SSL_REDIRECT = True
+    
+    # Trust the 'X-Forwarded-Proto' header from the proxy (Heroku, nginx)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
+    # HTTP Strict Transport Security (HSTS) settings
+    # Tells browsers to only access this site via HTTPS for the next year
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Additional security headers
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
