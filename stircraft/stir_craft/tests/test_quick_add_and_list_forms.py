@@ -19,7 +19,9 @@ class QuickAddAndListFormTests(TestCase):
         RecipeComponent.objects.create(cocktail=self.cocktail, ingredient=self.ingredient, amount=30.0, unit='ml', order=1)
 
     def test_quick_add_form_creates_new_list_when_no_existing(self):
-        # User has no editable lists yet
+        # Delete the auto-created editable lists so we test the "no existing lists" scenario
+        List.objects.filter(creator=self.user, is_editable=True).delete()
+        
         form = QuickAddToListForm(data={'new_list_name': 'My New List'}, user=self.user, cocktail=self.cocktail)
         self.assertTrue(form.is_valid())
         lst = form.save()
@@ -72,8 +74,8 @@ class QuickAddAndListFormTests(TestCase):
         self.assertEqual(lst.name, 'Edited Name')
 
     def test_system_list_cannot_be_renamed(self):
-        # Create a system (creations) list which is not editable
-        sys_list = List.objects.create(name='Your Creations', creator=self.user, list_type='creations', is_editable=False)
+        # Get the existing system (creations) list that was auto-created by the signal
+        sys_list = List.objects.get(creator=self.user, list_type='creations', name='Your Creations')
         form = ListForm(instance=sys_list, data={'name': 'NewName', 'description': 'x'}, user=self.user)
         # Clean should raise validation error about renaming system lists
         self.assertFalse(form.is_valid())

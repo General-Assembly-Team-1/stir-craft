@@ -12,6 +12,7 @@ django-environ = "*"
 gunicorn = "*"
 redis = "*"
 django-redis = "*"
+whitenoise = "==6.4.0"
 
 [dev-packages]
 

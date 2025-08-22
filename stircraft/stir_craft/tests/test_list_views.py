@@ -36,7 +36,7 @@ class ListViewsTest(TestCase):
         self.client.login(username='list_user', password='pass123')
         response = self.client.get(reverse('list_create'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Create New List')
+        self.assertContains(response, 'Create / Edit List')
 
         # POST valid data creates list and redirects to detail
         post_data = {'name': 'My Favorites', 'description': 'Tasty drinks'}
@@ -52,6 +52,8 @@ class ListViewsTest(TestCase):
         lst = List.objects.create(name='Show List', creator=self.user)
         lst.cocktails.add(self.cocktail)
 
+        # Login as the list owner to view the list details
+        self.client.login(username='list_user', password='pass123')
         response = self.client.get(reverse('list_detail', args=[lst.id]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, lst.name)

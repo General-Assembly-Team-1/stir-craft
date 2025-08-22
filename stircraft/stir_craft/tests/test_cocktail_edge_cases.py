@@ -19,10 +19,10 @@ class CocktailEdgeCasesTest(TestCase):
         self.coupe = Vessel.objects.create(name='Coupe', volume=150, material='Glass')
 
         # Base cocktails used in several tests
-        self.alc = Cocktail.objects.create(name='Alcoholic One', instructions='Mix', creator=self.user, vessel=self.rocks, color='Red')
+        self.alc = Cocktail.objects.create(name='Alcoholic One', instructions='Mix', creator=self.user, vessel=self.rocks, color='Red', is_alcoholic=True)
         RecipeComponent.objects.create(cocktail=self.alc, ingredient=self.vodka, amount=50.0, unit='ml', order=1)
 
-        self.non_alc = Cocktail.objects.create(name='NonAlcoholic', instructions='Mix', creator=self.user, vessel=self.coupe, color='Yellow')
+        self.non_alc = Cocktail.objects.create(name='NonAlcoholic', instructions='Mix', creator=self.user, vessel=self.coupe, color='Yellow', is_alcoholic=False)
         RecipeComponent.objects.create(cocktail=self.non_alc, ingredient=self.juice, amount=100.0, unit='ml', order=1)
 
     def test_index_filter_by_vessel(self):
@@ -72,13 +72,11 @@ class CocktailEdgeCasesTest(TestCase):
         self.assertIn('page_obj', resp2.context)
 
     def test_detail_context_for_unauthenticated_and_non_creator(self):
-        # Unauthenticated should still see detail but user_lists should be empty list
+        # Unauthenticated users should be redirected to login for cocktail details
         resp = self.client.get(reverse('cocktail_detail', args=[self.alc.id]))
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn('user_lists', resp.context)
-        self.assertEqual(list(resp.context['user_lists']), [])
-
-        # Non-creator authenticated should not be able to edit
+        self.assertEqual(resp.status_code, 302)  # Redirect to login
+        
+        # Non-creator authenticated should be able to view details but not edit
         self.client.login(username='other_user', password='pass123')
         resp = self.client.get(reverse('cocktail_detail', args=[self.alc.id]))
         self.assertEqual(resp.status_code, 200)

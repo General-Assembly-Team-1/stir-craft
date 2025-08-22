@@ -1098,8 +1098,9 @@ def list_detail(request, list_id):
     """
     cocktail_list = get_object_or_404(List, id=list_id)
     
-    # Check if user can view this list (privacy settings)
-    if not cocktail_list.is_public and request.user != cocktail_list.creator:
+    # For now, only the list creator can view the list
+    # TODO: Implement privacy settings with is_public field
+    if request.user != cocktail_list.creator:
         messages.error(request, 'You do not have permission to view this list.')
         return redirect('user_lists')  # Redirect to lists index or appropriate page
     
@@ -1267,4 +1268,21 @@ def about(request):
         'page_title': 'About Stir Craft',
     })
 
-# Create your views here.
+# =============================================================================
+# Error handlers for production
+# These wrappers call the centralized render_error helper so the same
+# `errors/error.html` layout is used for 403/404/500 pages.
+# =============================================================================
+def handler_403(request, exception=None):
+    """Return a 403 error page using the centralized error template."""
+    return render_error(request, 403, exception=exception)
+
+
+def handler_404(request, exception=None):
+    """Return a 404 error page using the centralized error template."""
+    return render_error(request, 404, exception=exception)
+
+
+def handler_500(request):
+    """Return a 500 error page using the centralized error template."""
+    return render_error(request, 500, error_message='An internal server error occurred.')
