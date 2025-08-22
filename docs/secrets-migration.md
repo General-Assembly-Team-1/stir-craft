@@ -94,5 +94,5 @@ cat .env | grep DATABASE_URL
 ## Questions?
 Check the updated documentation:
 - `README.md` - Updated setup instructions
-- `docs/DEVELOPMENT_GUIDE.md` - Complete secrets management guide
-- `docs/POSTGRES_SETUP.md` - Database setup with .env files
+- `docs/development-guide.md` - Complete secrets management guide
+- `docs/postgres-setup.md` - Database setup with .env files
