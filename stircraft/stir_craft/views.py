@@ -1,11 +1,17 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.auth import login, logout  # Add login and logout imports
 from django.contrib import messages
 from django.db import models
 from django.core.paginator import Paginator
-from .models import Profile
-from .forms.profile_forms import ProfileUpdateForm
+from .models import Profile, Vessel, List, Ingredient  # Fixed: List not CocktailList
+from .forms.profile_forms import ProfileUpdateForm, SignUpForm
+from .forms.list_forms import ListForm  # Fixed: ListForm not CocktailListForm
+from .forms.cocktail_forms import QuickIngredientForm  # Fixed: QuickIngredientForm not IngredientForm
+from collections import defaultdict  # Import defaultdict for ingredient grouping
+from django.views.generic import DetailView
+from django.contrib.auth.forms import AuthenticationForm  # Fixed: Use Django's built-in form
 
 # =============================================================================
 # �️ UTILITY FUNCTIONS
@@ -56,6 +62,48 @@ def render_error(request, status_code, error_message=None, exception=None):
 #     Handles authentication and redirects to home or profile.
 #     """
 #     pass
+
+def sign_up(request):
+    if request.method == "POST":
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)  # log in immediately after signup
+            messages.success(request, "Account created successfully!")
+            return redirect("home")  # change to your home URL
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = SignUpForm()
+    return render(request, "auth/auth.html", {
+        "signup_form": form,
+        "login_form": AuthenticationForm(),
+    })
+
+
+def sign_in(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, f"Welcome back, {user.username}!")
+            return redirect("home")
+        else:
+            messages.error(request, "Invalid username or password.")
+    else:
+        form = AuthenticationForm()
+    return render(request, "auth/auth.html", {
+        "login_form": form,
+        "signup_form": SignUpForm(),
+    })
+
+
+def sign_out(request):
+    logout(request)
+    messages.info(request, "You have been logged out.")
+    return redirect("login")
+
 
 # =============================================================================
 # 👤 USER & PROFILE VIEWS
@@ -148,6 +196,78 @@ def profile_update(request):
 #     """
 #     pass
 
+# -----------------------------------------------------------------------------
+# Ingredient Index View
+# -----------------------------------------------------------------------------
+def ingredient_index(request):
+    """
+    Display all available ingredients.
+    Includes filter by type, search by name, and grouping by category.
+    """
+
+    search_query = request.GET.get("q", "")
+    filter_type = request.GET.get("type", "")
+
+    ingredients = Ingredient.objects.all()
+
+    if search_query:
+        ingredients = ingredients.filter(name__icontains=search_query)
+
+    if filter_type:
+        ingredients = ingredients.filter(ingredient_type=filter_type)
+
+    # Group by category for accordion display
+    ingredients_by_category = defaultdict(list)
+    for ingredient in ingredients:
+        ingredients_by_category[ingredient.ingredient_type].append(ingredient)
+
+    context = {
+        "ingredients_by_category": ingredients_by_category,
+        "categories": Ingredient.INGREDIENT_TYPES,  # [('spirit','Spirit'),...]
+        "form": QuickIngredientForm(),  # quick add form
+    }
+    return render(request, "ingredients/index.html", context)
+
+
+# -----------------------------------------------------------------------------
+# Ingredient Detail View
+# -----------------------------------------------------------------------------
+def ingredient_detail(request, ingredient_id):
+    """
+    Show ingredient details and cocktails that use it.
+    Display flavor tags, alcohol content, etc.
+    """
+    from .models import Ingredient, Cocktail
+    ingredient = get_object_or_404(Ingredient, id=ingredient_id)
+
+    # If cocktails reference Ingredient through a "Component" model
+    cocktails = Cocktail.objects.filter(components__ingredient=ingredient).distinct()
+
+    context = {
+        "ingredient": ingredient,
+        "cocktails": cocktails,
+    }
+    return render(request, "ingredients/detail.html", context)
+
+
+# -----------------------------------------------------------------------------
+# Ingredient Create View
+# -----------------------------------------------------------------------------
+def ingredient_create(request):
+    """
+    Create new ingredients.
+    Handles GET (show form) and POST (save new ingredient).
+    """
+    if request.method == "POST":
+        form = QuickIngredientForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("ingredient_index")
+    else:
+        form = QuickIngredientForm()
+
+    return render(request, "ingredients/ingredient_form.html", {"form": form})
+
 
 # =============================================================================
 # 🍸 VESSEL VIEWS
@@ -168,6 +288,28 @@ def profile_update(request):
 #     Display capacity, image, description.
 #     """
 #     pass
+
+
+def vessel_index(request):
+    """
+    Display all available vessels/glassware.
+    Show capacity, descriptions, images.
+    """
+    vessels = Vessel.objects.all().order_by('name')  # order alphabetically
+    context = {'vessels': vessels}
+    return render(request, 'vessels/vessel_index.html', context)
+
+
+class VesselDetailView(DetailView):
+    model = Vessel
+    template_name = 'vessels/vessel_detail.html'
+    context_object_name = 'vessel'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Adjust depending on your Cocktail model ForeignKey related_name
+        context['cocktails'] = self.object.cocktail_set.all()
+        return context
 
 
 # =============================================================================
@@ -948,6 +1090,61 @@ def list_feed(request):
         'total_count': paginator.count,
     })
 
+@login_required
+def list_detail(request, list_id):
+    """
+    Display cocktails in a specific list.
+    Handle privacy settings, show list metadata.
+    """
+    cocktail_list = get_object_or_404(List, id=list_id)
+    
+    # For now, only the list creator can view the list
+    # TODO: Implement privacy settings with is_public field
+    if request.user != cocktail_list.creator:
+        messages.error(request, 'You do not have permission to view this list.')
+        return redirect('user_lists')  # Redirect to lists index or appropriate page
+    
+    return render(request, 'lists/detail.html', {
+        'list': cocktail_list,
+        'cocktails': cocktail_list.cocktails.all(),
+    })
+
+# Class-based view for list detail (alternative implementation)
+class ListDetailView(DetailView):
+    model = List
+    template_name = 'lists/detail.html'  # Fixed template path
+    context_object_name = 'list'
+    
+    def get_object(self, queryset=None):
+        """Override to handle privacy checks"""
+        obj = super().get_object(queryset)
+        if not obj.is_public and self.request.user != obj.creator:
+            messages.error(self.request, 'You do not have permission to view this list.')
+            # You might want to raise Http404 or redirect instead
+            return None
+        return obj
+
+# Function-based view for list creation
+@login_required
+def list_create(request):
+    """
+    Create new cocktail collection.
+    Set visibility, name, description.
+    """
+    if request.method == 'POST':
+        form = ListForm(request.POST, user=request.user)
+        if form.is_valid():
+            cocktail_list = form.save(commit=False)
+            cocktail_list.creator = request.user
+            cocktail_list.save()
+            return redirect('list_detail', list_id=cocktail_list.id)  # Fixed redirect
+    else:
+        form = ListForm(user=request.user)
+    
+    return render(request, 'lists/list_form.html', {'form': form})
+
+
+
 
 # =============================================================================
 # 🔍 SEARCH & FILTER VIEWS
@@ -1071,4 +1268,21 @@ def about(request):
         'page_title': 'About Stir Craft',
     })
 
-# Create your views here.
+# =============================================================================
+# Error handlers for production
+# These wrappers call the centralized render_error helper so the same
+# `errors/error.html` layout is used for 403/404/500 pages.
+# =============================================================================
+def handler_403(request, exception=None):
+    """Return a 403 error page using the centralized error template."""
+    return render_error(request, 403, exception=exception)
+
+
+def handler_404(request, exception=None):
+    """Return a 404 error page using the centralized error template."""
+    return render_error(request, 404, exception=exception)
+
+
+def handler_500(request):
+    """Return a 500 error page using the centralized error template."""
+    return render_error(request, 500, error_message='An internal server error occurred.')

@@ -1,0 +1,207 @@
+# ==============================================================================
+# Docker Compose Configuration for StirCraft Development Environment
+# ==============================================================================
+# This docker-compose.yml file sets up a complete development environment with:
+# - PostgreSQL database
+# - Redis for caching/sessions (optional)
+# - Django web application
+# - Nginx reverse proxy (optional)
+#
+# Usage:
+#   Development: docker-compose up
+#   Production:  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+# ==============================================================================
+
+version: '3.8'
+
+# ------------------------------------------------------------------------------
+# Shared network for all services to communicate
+# ------------------------------------------------------------------------------
+networks:
+  stircraft-network:
+    driver: bridge
+
+# ------------------------------------------------------------------------------
+# Persistent volumes for data storage
+# ------------------------------------------------------------------------------
+volumes:
+  # PostgreSQL data persistence
+  postgres_data:
+    driver: local
+  # Redis data persistence (optional)
+  redis_data:
+    driver: local
+  # Static files served by nginx
+  static_files:
+    driver: local
+  # Media uploads (user-generated content)
+  media_files:
+    driver: local
+
+# ------------------------------------------------------------------------------
+# Service definitions
+# ------------------------------------------------------------------------------
+services:
+  
+  # ----------------------------------------------------------------------------
+  # PostgreSQL Database Service
+  # ----------------------------------------------------------------------------
+  # Primary database for storing all application data
+  db:
+    image: postgres:15-alpine
+    container_name: stircraft-db
+    restart: unless-stopped
+    
+    # Environment variables for PostgreSQL configuration
+    environment:
+      POSTGRES_DB: stircraft
+      POSTGRES_USER: stircraft
+      POSTGRES_PASSWORD: stircraft_dev_password
+      # Performance tuning for development
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    
+    # Persist database data between container restarts
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Optional: Custom PostgreSQL configuration
+      # - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+    
+    # Expose PostgreSQL port for external connections (development only)
+    ports:
+      - "5432:5432"
+    
+    # Health check to ensure database is ready
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stircraft"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
+    networks:
+      - stircraft-network
+
+  # ----------------------------------------------------------------------------
+  # Redis Cache Service (Optional)
+  # ----------------------------------------------------------------------------
+  # Used for caching, session storage, and background task queues
+  redis:
+    image: redis:7-alpine
+    container_name: stircraft-redis
+    restart: unless-stopped
+    
+    # Redis configuration
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    
+    # Persist Redis data
+    volumes:
+      - redis_data:/data
+    
+    # Expose Redis port (development only)
+    ports:
+      - "6379:6379"
+    
+    # Health check for Redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    
+    networks:
+      - stircraft-network
+
+  # ----------------------------------------------------------------------------
+  # Django Web Application Service
+  # ----------------------------------------------------------------------------
+  # Main application server running the StirCraft Django app
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: stircraft-web
+    restart: unless-stopped
+    
+    # Environment variables for Django
+    environment:
+      # Database connection
+      DATABASE_URL: postgres://stircraft:stircraft_dev_password@db:5432/stircraft
+      
+      # Redis connection (optional)
+      REDIS_URL: redis://redis:6379/0
+      
+      # Django settings
+      DEBUG: "True"
+      SECRET_KEY: "dev-secret-key-change-in-production"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,web"
+      
+      # Email settings (development)
+      EMAIL_BACKEND: "django.core.mail.backends.console.EmailBackend"
+    
+    # Mount source code for development hot-reloading
+    volumes:
+      - .:/app
+      - static_files:/app/stircraft/stir_craft/staticfiles
+      - media_files:/app/stircraft/stir_craft/media
+    
+    # Expose Django development server port
+    ports:
+      - "8000:8000"
+    
+    # Wait for database to be ready before starting
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+    # Health check for Django application
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/admin/login/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    
+    networks:
+      - stircraft-network
+    
+    # Override default command for development
+    # This runs Django's development server with auto-reload
+    command: python stircraft/manage.py runserver 0.0.0.0:8000
+
+  # ----------------------------------------------------------------------------
+  # Nginx Reverse Proxy (Optional - for production-like setup)
+  # ----------------------------------------------------------------------------
+  # Serves static files and proxies requests to Django
+  nginx:
+    image: nginx:alpine
+    container_name: stircraft-nginx
+    restart: unless-stopped
+    
+    # Nginx configuration
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_files:/var/www/static:ro
+      - media_files:/var/www/media:ro
+    
+    # Expose HTTP and HTTPS ports
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    # Wait for web service to be ready
+    depends_on:
+      - web
+    
+    networks:
+      - stircraft-network
+    
+    # Only start nginx in production mode
+    profiles:
+      - production
+
+# ------------------------------------------------------------------------------
+# Development-specific overrides
+# ------------------------------------------------------------------------------
+# This section can be extended with docker-compose.override.yml for local dev

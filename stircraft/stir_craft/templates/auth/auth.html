@@ -1,0 +1,77 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{# Template contributed by Mileiny - authentication (sign-up/sign-in) forms #}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/form.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Authentication</h1>
+  <img src="{% static 'images/auth-icon.svg' %}" alt="Authentication" />
+</div>
+
+{% if error_message %}
+  <p class="red-text">{{ error_message }}</p>
+{% endif %}
+
+<div class="auth-forms">
+  <!-- Sign In -->
+  <div class="form-box">
+    <h2>Sign In</h2>
+    <form action="{% url 'login' %}" method="post" autocomplete="off">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="id_username">Username</label>
+        {{ login_form.username }}
+      </div>
+
+      <div class="form-group">
+        <label for="id_password">Password</label>
+        {{ login_form.password }}
+      </div>
+
+      <button type="submit" class="btn btn-primary">Sign In</button>
+    </form>
+  </div>
+
+  <!-- Sign Up -->
+  <div class="form-box">
+    <h2>Sign Up</h2>
+    <form action="{% url 'signup' %}" method="post" autocomplete="off">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="id_username">Username</label>
+        {{ signup_form.username }}
+      </div>
+
+      <div class="form-group">
+        <label for="id_email">Email address</label>
+        {{ signup_form.email }}
+        <small class="form-text text-muted">We'll never share your email with anyone else.</small>
+      </div>
+
+      <div class="form-group">
+        <label for="id_password1">Password</label>
+        {{ signup_form.password1 }}
+      </div>
+
+      <div class="form-group">
+        <label for="id_password2">Confirm Password</label>
+        {{ signup_form.password2 }}
+      </div>
+
+      <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="termsCheck">
+        <label class="form-check-label" for="termsCheck">Agree to terms</label>
+      </div>
+
+      <button type="submit" class="btn btn-success">Sign Up</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -96,7 +96,7 @@
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'admin:login' %}">
+                            <a class="nav-link" href="{% url 'login' %}">
                                 <i class="bi bi-box-arrow-in-right"></i> Login
                             </a>
                         </li>
@@ -127,6 +127,12 @@
     <footer class="bg-light py-3 mt-4">
         <div class="container text-center small text-muted">
             &copy; {% now "Y" %} StirCraft — Built with Django
+            <div class="mt-2">
+                <small>
+                    Please drink responsibly. If you or someone you know is struggling with alcohol, 
+                    <a href="https://www.samhsa.gov/find-help/national-helpline" target="_blank" rel="noopener noreferrer">seek help</a>.
+                </small>
+            </div>
         </div>
     </footer>
 

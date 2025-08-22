@@ -6,9 +6,10 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('dashboard/', views.dashboard, name='dashboard'),
     
-    # 🔑 AUTHENTICATION URLS (placeholders)
-    # path('sign-up/', views.sign_up, name='sign_up'),
-    # path('sign-in/', views.sign_in, name='sign_in'),
+    # 🔑 AUTHENTICATION URLS 
+    path('sign-up/', views.sign_up, name='signup'),
+    path('sign-in/', views.sign_in, name='login'),
+    path('sign-out/', views.sign_out, name='logout'),
 
     # 👤 USER & PROFILE URLS
     path('profile/', views.profile_detail, name='profile_detail'),
@@ -36,6 +37,16 @@ urlpatterns = [
     path('cocktails/<int:cocktail_id>/remove-from-list/<int:list_id>/', views.remove_from_list, name='remove_from_list'),
     path('cocktails/<int:cocktail_id>/favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('cocktails/<int:cocktail_id>/quick-add/', views.quick_add_modal, name='quick_add_modal'),
+    
+    # 🥃 INGREDIENT URLS (updated to follow naming conventions)
+    path('ingredients/', views.ingredient_index, name='ingredient_index'),
+    path('ingredients/<int:ingredient_id>/', views.ingredient_detail, name='ingredient_detail'),
+    path('ingredients/create/', views.ingredient_create, name='ingredient_add'),
+    
+    # 🍸 VESSEL URLS (updated to follow naming conventions)
+    path('vessels/', views.vessel_index, name='vessel_index'),
+    path('vessels/<int:pk>/', views.VesselDetailView.as_view(), name='vessel_detail'),
+    
     # General
     path('about/', views.about, name='about'),
 ]

@@ -1,0 +1,10 @@
+# runtime.txt — specifies Python runtime for Heroku
+# ---------------------------------------------------------------------------
+# This file tells Heroku which Python runtime to use when building the app.
+# Format: <implementation>-<major>.<minor>.<patch>
+# Example: python-3.12.4
+#
+# Choose a Python version compatible with your local/dev environment and CI.
+# Update this value when you intentionally bump Python versions in the project.
+
+python-3.12.4

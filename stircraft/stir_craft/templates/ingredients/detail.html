@@ -1,20 +1,111 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Ingredient{% endblock %}
-
-{% block extra_css %}
-<link href="{% static 'css/ingredients.css' %}" rel="stylesheet">
-{% endblock %}
+{% block title %}{{ ingredient.name }} - Ingredient Details{% endblock %}
 
 {% block content %}
-<!-- INGREDIENT DETAIL SCAFFOLD
-     Purpose: Show ingredient metadata and related cocktails. Use partials like _ingredient_details_card.
--->
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-lg-8">
+      <!-- Ingredient Header -->
+      <div class="card">
+        <div class="card-header">
+          <h2>
+            <i class="fas fa-bottle"></i> {{ ingredient.name }}
+          </h2>
+          <div>
+            {% if ingredient.is_alcoholic %}
+              <span class="badge badge-warning"><i class="fas fa-wine-glass"></i> Alcoholic</span>
+            {% else %}
+              <span class="badge badge-success"><i class="fas fa-leaf"></i> Non-alcoholic</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card-body">
+          {% if ingredient.description %}
+            <p class="card-text">{{ ingredient.description|linebreaks }}</p>
+          {% endif %}
+          
+          <div class="row small text-muted">
+            <div class="col-6">
+              <i class="fas fa-tag"></i> Type: {{ ingredient.get_ingredient_type_display }}
+            </div>
+            {% if ingredient.alcohol_content %}
+            <div class="col-6">
+              <i class="fas fa-percentage"></i> Alcohol: {{ ingredient.alcohol_content }}%
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
 
-<div class="container">
-    <h1>{{ ingredient.name }}</h1>
-    <p class="text-muted">(Placeholder - ingredient detail content)</p>
+      <!-- Cocktails using this ingredient -->
+      <div class="card">
+        <div class="card-header">
+          <h4>
+            <i class="fas fa-cocktail"></i> 
+            Cocktails with {{ ingredient.name }} ({{ cocktails.count }})
+          </h4>
+        </div>
+        <div class="card-body">
+          {% if cocktails %}
+            <div class="row">
+              {% for cocktail in cocktails %}
+                <div class="col-lg-4 cocktail-col">
+                  <div class="card cocktail-card">
+                    {% if cocktail.image %}
+                      <img src="{{ cocktail.image.url }}" class="cocktail-image" alt="{{ cocktail.name }}">
+                    {% else %}
+                      <div class="cocktail-placeholder">
+                        <i class="fas fa-cocktail"></i>
+                      </div>
+                    {% endif %}
+                    <div class="card-body">
+                      <h6 class="card-title">{{ cocktail.name }}</h6>
+                      <p class="card-text small text-muted">{{ cocktail.description|truncatewords:15 }}</p>
+                    </div>
+                    <div class="card-footer">
+                      <a href="{% url 'cocktail_detail' cocktail.id %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-eye"></i> View Recipe
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty-state">
+              <i class="fas fa-cocktail"></i>
+              <h5 class="text-muted">No cocktails use this ingredient yet</h5>
+              <p class="text-muted">Be the first to create a cocktail with {{ ingredient.name }}!</p>
+              <a href="{% url 'cocktail_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Cocktail
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Quick Actions -->
+      <div class="card">
+        <div class="card-header">
+          <h5><i class="fas fa-tools"></i> Quick Actions</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid">
+            <a href="{% url 'ingredient_list' %}" class="btn btn-outline-primary">
+              <i class="fas fa-list"></i> All Ingredients
+            </a>
+            <a href="{% url 'cocktail_create' %}" class="btn btn-outline-success">
+              <i class="fas fa-plus"></i> Create Cocktail
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-
 {% endblock %}
