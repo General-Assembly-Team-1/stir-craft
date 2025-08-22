@@ -50,8 +50,8 @@
 
 ### 📚 Documentation
 - ✅ `README.md` - Updated view and template references
-- ✅ `docs/COCKTAIL_FORMS_TECHNICAL_GUIDE.md` - Updated view references
-- ✅ `docs/PROJECT_CHANGELOG.md` - Updated changelog entries
+- ✅ `docs/cocktail-forms-technical-guide.md` - Updated view references
+- ✅ `docs/project-changelog.md` - Updated changelog entries
 
 ---
 
