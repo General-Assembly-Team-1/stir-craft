@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{% url 'home' %}">Recipe Catalog</a></li>
+                <li><a href="{% url 'about' %}">About</a></li>
+                <li><a href="{% url 'cocktails' %}">Sign Up</a></li>
+            </ul>
+        </nav>
+        <h1>StirCraft</h1>
+    </header>
+
+    <main>
+        <!-- About Section -->
+        <section id="about">
+            <h2>About StirCraft</h2>
+            <p>StirCraft makes cocktail creation easy and fun. Build complex recipes with multiple ingredients, measurements, and notes—all in one intuitive form. Perfect for home bartenders and pros alike, StirCraft helps you mix, manage, and share your favorite drinks effortlessly.</p>
+        </section>
+
+        <!-- Who We Are Section -->
+        <section id="who-we-are">
+            <h2>Who We Are</h2>
+            <p>At StirCraft, we are passionate about the art of mixology and the joy of creating unique cocktails. Our team combines expertise in technology and a love for drinks to build a platform that makes cocktail creation simple, intuitive, and enjoyable.</p>
+        </section>
+
+        <!-- Tech Stack Section -->
+        <section id="tech-stack">
+            <h2>Tech Stack & Implementation</h2>
+            <ul>
+                <li><strong>Backend:</strong> Django – powers our cocktail management system.</li>
+                <li><strong>Frontend:</strong> HTML, CSS, JavaScript – for an interactive UI.</li>
+                <li><strong>Database:</strong> PostgreSQL – stores recipes and user data securely.</li>
+                <li><strong>Forms:</strong> Django inline formsets – for multiple ingredients in a single form.</li>
+                <li><strong>Deployment:</strong> Heroku/AWS – reliable hosting and performance.</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 StirCraft. All rights reserved.</p>
+    </footer>
+{% endblock %}
