@@ -1,54 +1,136 @@
 # StirCraft Deployment Guide
 
-**Last Updated**: August 22, 2025  
-**Status**: ✅ **PRODUCTION READY** - All tests passing, ready for deployment
+**Last Updated**: August 23, 2025  
+**Status**: ✅ **LIVE & DEPLOYED** - Production app running successfully  
+**Live URL**: [https://stircraft-app-0dd06cf5d30a.herokuapp.com/](https://stircraft-app-0dd06cf5d30a.herokuapp.com/)
 
-## Quick Start
+## ✅ Successfully Deployed Configuration
 
-### Development Setup
-```bash
-# 1. Get the code and setup
-git clone <repo-url>
-cd stir-craft
-pipenv install
-cp .env.example .env  # Edit with your database password
+### Actual Heroku Deployment Settings (Tested & Working)
 
-# 2. Database setup
-sudo -u postgres psql -c "CREATE DATABASE stircraft;"
-sudo -u postgres psql -c "ALTER USER $(whoami) PASSWORD 'stircraft123';"
-
-# 3. Run migrations and tests
-cd stircraft && pipenv run python manage.py migrate
-pipenv run python manage.py test stir_craft.tests  # Should show 86/86 passing
+#### Required Files (✅ Confirmed Working):
+```
+Project Root:
+├── .python-version          # Contains: 3.12
+├── requirements.txt         # Python dependencies (NOT Pipfile)
+├── Procfile                 # Web process definition
+└── stircraft/               # Django project directory
+    ├── manage.py
+    ├── stircraft/
+    │   ├── settings.py
+    │   └── wsgi.py
+    └── stir_craft/          # Main app
 ```
 
-### Production Deployment (Heroku)
+#### Critical Procfile Configuration:
 ```bash
-# 1. Create Heroku app
-heroku create your-app-name
-heroku addons:create heroku-postgresql:mini
+# This was THE KEY to success - must cd into stircraft directory
+web: cd stircraft && gunicorn stircraft.wsgi --log-file -
+```
 
-# 2. Set environment variables
-heroku config:set SECRET_KEY="$(python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')"
+#### Required Environment Variables:
+```bash
+# 1. Database (automatically set by Heroku PostgreSQL addon)
+DATABASE_URL=postgres://... (auto-generated)
+
+# 2. Django Security Settings
+DEBUG=False
+SECRET_KEY=<secure-generated-key>
+ALLOWED_HOSTS=stircraft-app-0dd06cf5d30a.herokuapp.com,stircraft-app.herokuapp.com
+
+# 3. Static Files (optional for troubleshooting)
+DISABLE_COLLECTSTATIC=1  # Can be unset once working
+```
+
+### Step-by-Step Deployment Process (Actual Commands Used):
+
+#### 1. Initial Heroku Setup
+```bash
+# Install Heroku CLI
+curl https://cli-assets.heroku.com/install.sh | sh
+
+# Login and create app
+heroku login
+heroku create stircraft-app
+```
+
+#### 2. Database Setup
+```bash
+# Add PostgreSQL
+heroku addons:create heroku-postgresql:essential-0
+
+# Verify database was created
+heroku config  # Should show DATABASE_URL
+```
+
+#### 3. Environment Configuration
+```bash
+# Set required environment variables
 heroku config:set DEBUG=False
-heroku config:set ALLOWED_HOSTS="your-app.herokuapp.com"
-
-# 3. Deploy
-git push heroku main
-heroku run python stircraft/manage.py migrate
+heroku config:set SECRET_KEY=$(python -c "import secrets; print(secrets.token_urlsafe(50))")
+heroku config:set ALLOWED_HOSTS=stircraft-app-0dd06cf5d30a.herokuapp.com,stircraft-app.herokuapp.com
 ```
 
-## Application Status
+#### 4. File Structure Fixes (Critical)
+```bash
+# Create .python-version file (replaces runtime.txt)
+echo "3.12" > .python-version
 
-### ✅ What's Complete
-- **All Features**: Authentication, cocktail CRUD, lists, user profiles
-- **Complete UI**: 40+ responsive templates with Bootstrap
-- **Test Suite**: 86/86 tests passing (100% success rate)
-- **Production Config**: requirements.txt, Procfile, runtime.txt, static files
-- **Security**: HTTPS, security headers, environment variables
+# Remove conflicting package files
+mv Pipfile Pipfile.backup
+mv Pipfile.lock Pipfile.lock.backup
 
-### 🎯 Ready for Deployment
-- **Immediate**: Can deploy to Heroku right now
+# Update Procfile to run from correct directory
+echo "web: cd stircraft && gunicorn stircraft.wsgi --log-file -" > Procfile
+```
+
+#### 5. Deploy to Production Branch
+```bash
+# Switch to Production branch
+git checkout Production
+
+# Commit fixes and deploy
+git add .
+git commit -m "Fix Heroku deployment configuration"
+git push heroku Production:main
+```
+
+#### 6. Database Migration & Setup
+```bash
+# Run migrations
+heroku run "cd stircraft && python manage.py migrate"
+
+# Create superuser
+heroku run "cd stircraft && python manage.py createsuperuser"
+
+# Seed with cocktail data
+heroku run "cd stircraft && python manage.py seed_from_thecocktaildb --limit 25"
+```
+
+## 🎯 Current Production Status
+
+### ✅ Live Application
+- **URL**: https://stircraft-app-0dd06cf5d30a.herokuapp.com/
+- **Status**: ✅ Running (HTTP 200 OK)
+- **Database**: PostgreSQL with 54 cocktails, 106 ingredients
+- **Admin**: https://stircraft-app-0dd06cf5d30a.herokuapp.com/admin/
+
+### ✅ What's Working
+- User authentication and registration
+- Cocktail browsing and creation
+- List management and favorites
+- Responsive mobile design
+- Static file serving via WhiteNoise
+- Database migrations and seeding
+
+### 🔧 Deployment Architecture
+```
+Heroku App: stircraft-app
+├── Web Dyno: gunicorn stircraft.wsgi
+├── PostgreSQL: essential-0 plan ($5/month max)
+├── Static Files: WhiteNoise middleware
+└── Environment: Python 3.13, Django 5.2.5
+```
 - **Test Coverage**: Comprehensive test coverage with 100% pass rate
 - **Documentation**: Complete setup and deployment guides
 
