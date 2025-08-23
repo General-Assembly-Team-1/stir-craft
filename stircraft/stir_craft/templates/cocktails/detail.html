@@ -34,87 +34,95 @@
                         </div>
                     </div>
                     
-                    <!-- Quick Actions (Favorite & Add to List) -->
+                    <!-- Primary Actions Section -->
                     {% if user.is_authenticated %}
-                        <div class="mb-4 p-3 bg-light rounded border">
-                            <div class="row align-items-center">
-                                <div class="col-md-6">
-                                    <h5 class="mb-3">
-                                        <i class="bi bi-heart"></i> Quick Actions
-                                    </h5>
-                                    
-                                    <!-- Favorite Button -->
-                                    <button type="button" class="btn {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %}" 
+                        <div class="mb-4 p-4 bg-gradient rounded border shadow-sm">
+                            <h4 class="mb-3 text-center">
+                                <i class="bi bi-star-fill text-warning"></i> Take Action
+                            </h4>
+                            
+                            <div class="row g-3">
+                                <!-- Primary Action: Favorite -->
+                                <div class="col-md-4">
+                                    <button type="button" class="btn {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %} w-100" 
                                             id="favorite-btn" 
                                             data-cocktail-id="{{ cocktail.id }}"
                                             data-favorite-url="{% url 'toggle_favorite' cocktail.id %}">
                                         <i class="bi {% if is_favorited %}bi-heart-fill{% else %}bi-heart{% endif %}" id="favorite-icon"></i>
-                                        <span id="favorite-text">
+                                        <div class="small mt-1" id="favorite-text">
                                             {% if is_favorited %}Remove from Favorites{% else %}Add to Favorites{% endif %}
-                                        </span>
+                                        </div>
                                     </button>
                                 </div>
-                                <div class="col-md-6">
-                                    <!-- Add to List -->
-                                    <form method="post" action="{% url 'quick_add_to_list' cocktail.id %}" id="add-to-list-form">
-                                        {% csrf_token %}
-                                        <div class="input-group">
-                                            <select name="list_id" class="form-select" required>
-                                                <option value="">Select a list...</option>
-                                                {% for list in user_custom_lists %}
-                                                    <option value="{{ list.id }}">{{ list.name }}</option>
-                                                {% endfor %}
-                                            </select>
-                                            <button type="submit" class="btn btn-outline-primary">
-                                                <i class="bi bi-plus-circle"></i> Add to List
-                                            </button>
+                                
+                                <!-- Secondary Action: Add to List OR Make Your Own -->
+                                <div class="col-md-4">
+                                    {% if user != cocktail.creator %}
+                                        <a href="{% url 'cocktail_fork' cocktail.id %}" class="btn btn-outline-primary w-100">
+                                            <i class="bi bi-plus-square"></i>
+                                            <div class="small mt-1">Make Your Own</div>
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'cocktail_update' cocktail.id %}" class="btn btn-outline-warning w-100">
+                                            <i class="bi bi-pencil"></i>
+                                            <div class="small mt-1">Edit Recipe</div>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Tertiary Action: Add to List -->
+                                <div class="col-md-4">
+                                    <div class="dropdown w-100">
+                                        <button class="btn btn-outline-success w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-collection"></i>
+                                            <div class="small mt-1">Add to List</div>
+                                        </button>
+                                        <div class="dropdown-menu w-100">
+                                            {% for list in user_custom_lists %}
+                                                <form method="post" action="{% url 'quick_add_to_list' cocktail.id %}" class="d-inline w-100">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="list_id" value="{{ list.id }}">
+                                                    <button type="submit" class="dropdown-item">
+                                                        <i class="bi bi-plus-circle me-2"></i>{{ list.name }}
+                                                    </button>
+                                                </form>
+                                            {% empty %}
+                                                <div class="dropdown-item-text text-muted">
+                                                    <small>No lists yet</small>
+                                                </div>
+                                                <div class="dropdown-divider"></div>
+                                            {% endfor %}
+                                            <a class="dropdown-item" href="{% url 'list_create' %}">
+                                                <i class="bi bi-plus me-2"></i>Create New List
+                                            </a>
                                         </div>
-                                    </form>
-                                    <small class="text-muted mt-1 d-block">
-                                        <a href="{% url 'list_create' %}">Create a new list</a> if you don't have any yet.
-                                    </small>
+                                    </div>
                                 </div>
                             </div>
+                            
+                            {% if user != cocktail.creator %}
+                                <div class="text-center mt-3">
+                                    <small class="text-muted">
+                                        💡 <strong>Make Your Own</strong> creates a customizable copy with full credit to {{ cocktail.creator.username }}
+                                    </small>
+                                </div>
+                            {% endif %}
                         </div>
                     {% else %}
                         <!-- For non-authenticated users -->
-                        <div class="mb-4 p-3 bg-light rounded border">
-                            <div class="text-center">
-                                <h5 class="mb-3">❤️ Love this cocktail?</h5>
-                                <p class="mb-3">
-                                    <a href="{% url 'login' %}" class="btn btn-primary">Sign in</a> 
-                                    to add it to your favorites and personal lists!
-                                </p>
-                                <small class="text-muted">
-                                    Don't have an account? <a href="{% url 'signup' %}">Sign up</a> - it's free!
-                                </small>
+                        <div class="mb-4 p-4 bg-primary bg-opacity-10 rounded border text-center">
+                            <h5 class="mb-3">❤️ Love this cocktail?</h5>
+                            <div class="d-grid gap-2 d-md-block">
+                                <a href="{% url 'login' %}" class="btn btn-primary me-2">
+                                    <i class="bi bi-box-arrow-in-right"></i> Sign In
+                                </a>
+                                <a href="{% url 'signup' %}" class="btn btn-outline-primary">
+                                    <i class="bi bi-person-plus"></i> Sign Up
+                                </a>
                             </div>
-                        </div>
-                    {% endif %}
-                    
-                    <!-- Make Your Own Section (if not the creator) -->
-                    {% if user.is_authenticated and user != cocktail.creator %}
-                        <div class="mb-4 p-4 bg-primary bg-opacity-10 rounded border-start border-primary border-4">
-                            <div class="row align-items-center">
-                                <div class="col-md-8">
-                                    <h4 class="text-primary mb-2">
-                                        <i class="bi bi-lightbulb"></i> Want to make it your own?
-                                    </h4>
-                                    <p class="mb-2">
-                                        Love this recipe but have ideas to make it even better? Create your own version 
-                                        with pre-filled ingredients and instructions that you can customize!
-                                    </p>
-                                    <small class="text-muted">
-                                        ✨ This will create a new cocktail recipe in your name with full credit to the original creator.
-                                    </small>
-                                </div>
-                                <div class="col-md-4 text-md-end">
-                                    <a href="{% url 'cocktail_fork' cocktail.id %}" class="btn btn-primary btn-lg">
-                                        <i class="bi bi-plus-square"></i>
-                                        Make it Your Own!
-                                    </a>
-                                </div>
-                            </div>
+                            <small class="text-muted d-block mt-2">
+                                Join to save favorites, create lists, and make your own recipes!
+                            </small>
                         </div>
                     {% endif %}
                 </div>
@@ -125,7 +133,6 @@
         <div class="col-lg-4">
             {% include 'partials/shared/_user_lists_card.html' %}
             {% include 'partials/shared/_ingredient_details_card.html' %}
-            {% include 'partials/shared/_quick_actions_card.html' %}
         </div>
     </div>
     
