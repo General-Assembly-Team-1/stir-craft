@@ -46,7 +46,7 @@ class RenderErrorAndFavoriteTests(TestCase):
         # Anonymous POST should redirect to login (login_required)
         resp = self.client.post(reverse('toggle_favorite', args=[self.cocktail.id]))
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/admin/login/', resp.url)
+        self.assertIn('/sign-in/', resp.url)
 
         # Logged in user toggles favorite
         self.client.login(username='fav_user', password='pass123')

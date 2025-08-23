@@ -72,9 +72,10 @@ class CocktailEdgeCasesTest(TestCase):
         self.assertIn('page_obj', resp2.context)
 
     def test_detail_context_for_unauthenticated_and_non_creator(self):
-        # Unauthenticated users should be redirected to login for cocktail details
+        # Unauthenticated users should be able to view cocktail details (public viewing)
         resp = self.client.get(reverse('cocktail_detail', args=[self.alc.id]))
-        self.assertEqual(resp.status_code, 302)  # Redirect to login
+        self.assertEqual(resp.status_code, 200)  # Can view publicly
+        self.assertFalse(resp.context.get('can_edit', False))  # But cannot edit
         
         # Non-creator authenticated should be able to view details but not edit
         self.client.login(username='other_user', password='pass123')

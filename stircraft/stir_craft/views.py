@@ -68,7 +68,12 @@ def sign_up(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)  # log in immediately after signup
+            # Authenticate user to ensure the backend attribute is set
+            from django.contrib.auth import authenticate
+            password = form.cleaned_data.get('password1')
+            user = authenticate(request, username=user.username, password=password)
+            if user is not None:
+                login(request, user)  # log in immediately after signup
             messages.success(request, "Account created successfully!")
             return redirect("home")  # change to your home URL
         else:
@@ -257,12 +262,38 @@ def ingredient_create(request):
     """
     Create new ingredients.
     Handles GET (show form) and POST (save new ingredient).
+    Supports AJAX requests for on-the-fly ingredient creation during cocktail creation.
     """
+    from django.http import JsonResponse
+    
     if request.method == "POST":
         form = QuickIngredientForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect("ingredient_index")
+            ingredient = form.save()
+            
+            # If it's an AJAX request, return JSON response
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'ingredient': {
+                        'id': ingredient.id,
+                        'name': ingredient.name,
+                        'type_display': ingredient.get_ingredient_type_display(),
+                        'alcohol_content': ingredient.alcohol_content,
+                    }
+                })
+            else:
+                # Regular form submission
+                messages.success(request, f'Ingredient "{ingredient.name}" created successfully!')
+                return redirect("ingredient_index")
+        else:
+            # Handle form errors
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Please correct the form errors.',
+                    'errors': form.errors
+                })
     else:
         form = QuickIngredientForm()
 
@@ -417,7 +448,6 @@ def cocktail_index(request):
         'total_count': paginator.count,
     })
 
-@login_required
 def cocktail_detail(request, cocktail_id):
     """
     Display full cocktail recipe with ingredients and instructions.
@@ -437,11 +467,24 @@ def cocktail_detail(request, cocktail_id):
     
     # Check if user has this in any of their lists (for authenticated users)
     user_lists = []
+    user_custom_lists = []
+    favorites_list = None
+    
     if request.user.is_authenticated:
         user_lists = List.objects.filter(
             creator=request.user,
             cocktails=cocktail
         ).values_list('name', flat=True)
+        
+        # Get user's custom lists for the "Add to List" dropdown
+        user_custom_lists = List.objects.filter(
+            creator=request.user,
+            list_type='custom',
+            is_editable=True
+        ).order_by('name')
+        
+        # Get user's favorites list
+        favorites_list = List.get_or_create_favorites_list(request.user)
     
     # Calculate some stats
     total_volume = cocktail.get_total_volume()
@@ -451,6 +494,8 @@ def cocktail_detail(request, cocktail_id):
         'cocktail': cocktail,
         'components': components,
         'user_lists': user_lists,
+        'user_custom_lists': user_custom_lists,
+        'favorites_list': favorites_list,
         'total_volume': total_volume,
         'alcohol_content': alcohol_content,
         'can_edit': request.user == cocktail.creator,
@@ -459,7 +504,7 @@ def cocktail_detail(request, cocktail_id):
     return render(request, 'cocktails/detail.html', context)
 
 @login_required
-def cocktail_create(request):
+def cocktail_create(request, fork_from_id=None):
     """
     Create new cocktail recipes using inline formsets.
     
@@ -474,9 +519,13 @@ def cocktail_create(request):
     - Calculates alcohol content based on ingredients
     - Provides user feedback via Django messages
     - Redirects to detail view on successful creation
+    - Supports forking (creating variations) of existing cocktails
+    
+    Args:
+        fork_from_id (int, optional): ID of cocktail to fork/create variation from
     
     Process Flow:
-    1. User loads page → Show empty forms
+    1. User loads page → Show empty forms (or pre-filled if forking)
     2. User fills out cocktail info and ingredients
     3. Form submission → Validate both forms
     4. If valid → Save cocktail, then ingredients
@@ -488,6 +537,7 @@ def cocktail_create(request):
     - cocktail_form: Main cocktail information form
     - formset: Dynamic ingredient formset (1-15 ingredients)
     - page_title: For consistent page headings
+    - fork_from: Original cocktail if forking
     
     Security:
     - @login_required decorator ensures only authenticated users can create
@@ -500,10 +550,20 @@ def cocktail_create(request):
     - Success/error messages via Django messages framework
     """
     from .forms.cocktail_forms import CocktailForm, RecipeComponentFormSet
+    from .models import Cocktail
+    
+    # Handle forking - get the original cocktail if specified
+    fork_from = None
+    if fork_from_id:
+        try:
+            fork_from = get_object_or_404(Cocktail, id=fork_from_id)
+        except Cocktail.DoesNotExist:
+            messages.error(request, "The cocktail you're trying to fork doesn't exist.")
+            return redirect('cocktail_index')
     
     if request.method == 'POST':
         # Create forms with POST data
-        cocktail_form = CocktailForm(request.POST, user=request.user)
+        cocktail_form = CocktailForm(request.POST, user=request.user, fork_from=fork_from)
         formset = RecipeComponentFormSet(request.POST)
         
         # Check if both forms are valid
@@ -511,6 +571,11 @@ def cocktail_create(request):
             # Save the cocktail first (without committing to DB yet)
             cocktail = cocktail_form.save(commit=False)
             cocktail.creator = request.user  # Set the creator
+            
+            # Set forked_from relationship if this is a fork
+            if fork_from:
+                cocktail.forked_from = fork_from
+                
             cocktail.save()  # Now save to get an ID
             
             # Save tags (many-to-many field needs the object to exist first)
@@ -526,20 +591,46 @@ def cocktail_create(request):
                 cocktail.is_alcoholic = has_alcohol
                 cocktail.save()
             
-            messages.success(request, f'🍸 "{cocktail.name}" has been created successfully!')
+            # Add success message mentioning if it's a fork
+            if fork_from:
+                messages.success(request, f'🍸 "{cocktail.name}" has been created as a variation of "{fork_from.name}"!')
+            else:
+                messages.success(request, f'🍸 "{cocktail.name}" has been created successfully!')
             return redirect('cocktail_detail', cocktail_id=cocktail.id)
         else:
             # Form validation failed
             messages.error(request, 'Please correct the errors below.')
     else:
-        # GET request - show empty forms
-        cocktail_form = CocktailForm(user=request.user)
-        formset = RecipeComponentFormSet()
+        # GET request - show forms (empty or pre-filled if forking)
+        cocktail_form = CocktailForm(user=request.user, fork_from=fork_from)
+        
+        # If forking, pre-populate the formset with original ingredients
+        if fork_from:
+            # Create initial data for the formset from original cocktail's components
+            initial_data = []
+            for component in fork_from.components.all().order_by('order'):
+                initial_data.append({
+                    'ingredient': component.ingredient,
+                    'amount': component.amount,
+                    'unit': component.unit,
+                    'preparation_note': component.preparation_note,
+                    'order': component.order,
+                })
+            formset = RecipeComponentFormSet(initial=initial_data)
+        else:
+            formset = RecipeComponentFormSet()
+    
+    # Set page title based on whether we're forking
+    if fork_from:
+        page_title = f'Create Variation of "{fork_from.name}"'
+    else:
+        page_title = 'Create New Cocktail'
     
     return render(request, 'cocktails/create.html', {
         'cocktail_form': cocktail_form,
         'formset': formset,
-        'page_title': 'Create New Cocktail',
+        'page_title': page_title,
+        'fork_from': fork_from,
     })
 
 
@@ -878,6 +969,51 @@ def add_to_list(request, cocktail_id, list_id):
         'message': f'"{cocktail.name}" added to "{list_obj.name}"',
         'cocktail_count': list_obj.cocktail_count()
     })
+
+@login_required
+def quick_add_to_list(request, cocktail_id):
+    """
+    Add cocktail to a user's selected list via form submission.
+    Used by the detail page quick actions form.
+    """
+    from .models import List, Cocktail
+    
+    if request.method != 'POST':
+        messages.error(request, 'Invalid request method.')
+        return redirect('cocktail_detail', cocktail_id=cocktail_id)
+    
+    # Get the cocktail
+    cocktail = get_object_or_404(Cocktail, id=cocktail_id)
+    
+    # Get the selected list from form data
+    list_id = request.POST.get('list_id')
+    if not list_id:
+        messages.error(request, 'Please select a list.')
+        return redirect('cocktail_detail', cocktail_id=cocktail_id)
+    
+    try:
+        list_obj = get_object_or_404(List, id=list_id)
+    except:
+        messages.error(request, 'Selected list not found.')
+        return redirect('cocktail_detail', cocktail_id=cocktail_id)
+    
+    # Check permissions
+    if request.user != list_obj.creator:
+        messages.error(request, 'You can only add cocktails to your own lists.')
+        return redirect('cocktail_detail', cocktail_id=cocktail_id)
+    
+    if not list_obj.is_editable:
+        messages.error(request, 'This list cannot be edited.')
+        return redirect('cocktail_detail', cocktail_id=cocktail_id)
+    
+    # Add cocktail to list if not already there
+    if cocktail in list_obj.cocktails.all():
+        messages.warning(request, f'"{cocktail.name}" is already in "{list_obj.name}".')
+    else:
+        list_obj.cocktails.add(cocktail)
+        messages.success(request, f'"{cocktail.name}" added to "{list_obj.name}"!')
+    
+    return redirect('cocktail_detail', cocktail_id=cocktail_id)
 
 @login_required
 def remove_from_list(request, cocktail_id, list_id):

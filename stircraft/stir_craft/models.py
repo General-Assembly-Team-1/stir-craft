@@ -259,6 +259,14 @@ class Cocktail(models.Model):
         through='RecipeComponent',  # Specifies the join table
         help_text="Ingredients used in the cocktail"
     )
+    forked_from = models.ForeignKey(
+        'self',  # Self-referential to Cocktail model
+        on_delete=models.SET_NULL,  # Keep the cocktail if original is deleted
+        null=True,  # Most cocktails are not forks
+        blank=True,  # Optional field
+        related_name='forks',  # Allows reverse lookup of forks from original
+        help_text="Original cocktail this recipe is based on (if it's a variation)"
+    )
     
     # Metadata
     is_alcoholic = models.BooleanField(

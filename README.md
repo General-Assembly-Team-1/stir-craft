@@ -1,56 +1,128 @@
-# StirCraft: Cocktail Recipe Manager
+# 🍸 StirCraft: Cocktail Recipe Manager
 
-## 🥂 Overview
-**StirCraft** is a cocktail recipe manager and builder designed for flavor-forward exploration. Users can browse, create, and organize recipes, ingredients, and vessels — with dynamic filtering by vibe, flavor profile, and color. The app emphasizes modularity, user ownership, and playful branding.
+![StirCraft Logo](https://via.placeholder.com/800x400/2c3e50/ecf0f1?text=StirCraft+🍹+Cocktail+Recipe+Manager)
+
+## About StirCraft
+
+**StirCraft** is a comprehensive cocktail recipe management application that empowers mixology enthusiasts to discover, create, and organize their favorite cocktail recipes. Whether you're a professional bartender or a home cocktail enthusiast, StirCraft provides the tools you need to build your personal cocktail library.
+
+### Why We Built StirCraft
+
+As cocktail enthusiasts ourselves, we recognized the need for a centralized platform where users could:
+- Discover new cocktail recipes from a vast database
+- Create and customize their own unique recipes
+- Organize favorites and create custom collections
+- Share recipes with a community of fellow mixologists
+- Track ingredients and learn about different spirits and mixers
+
+StirCraft bridges the gap between inspiration and creation, making it easy to explore the world of cocktails while building your personal mixology knowledge.
+
+## ✨ Key Features
+
+### 🔐 User Authentication & Profiles
+- Secure user registration and login
+- Personalized user profiles with location and preferences
+- Age verification (21+) for responsible service
+
+### 🍹 Comprehensive Cocktail Management
+- **Discover**: Browse over 500+ cocktails from TheCocktailDB API
+- **Create**: Build custom cocktail recipes with detailed ingredients
+- **Edit**: Modify and perfect your recipes
+- **Organize**: Add cocktails to custom lists and favorites
+
+### 📋 Smart List Management
+- **Favorites**: One-click favoriting system
+- **Your Creations**: Automatic collection of user-created recipes
+- **Custom Lists**: Create themed collections (e.g., "Summer Cocktails", "Party Drinks")
+- **Quick Actions**: Easy add/remove functionality
+
+### 🥃 Ingredient & Vessel Database
+- Extensive ingredient catalog with categorization
+- Alcohol content tracking and calculations
+- Glassware and vessel recommendations
+- Smart measurement conversion
+
+### 🎨 Modern, Responsive Design
+- Clean, professional interface built with Bootstrap
+- Mobile-responsive design for on-the-go access
+- Intuitive navigation and user experience
+- Accessibility-compliant design
+
+## 🚀 Getting Started
+
+### Try StirCraft
+👉 **[Visit StirCraft Live Application](#)** *(Coming Soon)*
+
+### Explore the Code
+- 📋 **[View Planning Materials](docs/project-status.md)** - Project roadmap and current status
+- 💻 **[GitHub Repository](https://github.com/General-Assembly-Team-1/stir-craft)** - Full source code
+- 📚 **[Technical Documentation](docs/README.md)** - Developer setup guide
+
+## 🛠️ Technologies Used
+
+### Backend
+- **Python 3.12** - Core programming language
+- **Django 5.2.5** - Web framework for rapid development
+- **PostgreSQL** - Robust database for data persistence
+- **Django REST Framework** - API development (future enhancement)
+
+### Frontend
+- **HTML5 & CSS3** - Modern web standards
+- **Bootstrap 5** - Responsive design framework
+- **Django Templates** - Server-side rendering
+- **JavaScript** - Interactive user experiences
+
+### External Integrations
+- **TheCocktailDB API** - Cocktail recipe data source
+- **django-taggit** - Flexible tagging system
+- **Redis** - Caching and session management
+
+### Deployment & DevOps
+- **Heroku** - Cloud application hosting
+- **Gunicorn** - Production WSGI server
+- **WhiteNoise** - Static file serving
+- **PostgreSQL** - Production database
+
+## 🎯 Next Steps: Planned Enhancements
+
+### User Experience
+- **Recipe Ratings & Reviews** - Community-driven quality feedback
+- **Advanced Search** - Filter by ingredients, difficulty, time to make
+- **Recipe Recommendations** - AI-powered suggestions based on preferences
+- **Social Features** - Follow other users and share recipe collections
+
+### Technical Enhancements
+- **Mobile App** - Native iOS and Android applications
+- **Recipe Import/Export** - Import from popular cocktail apps and websites
+- **Inventory Tracking** - Track your home bar ingredients
+- **Shopping Lists** - Generate ingredient shopping lists for recipes
+
+### Community Features
+- **Recipe Comments** - Discussion and tips on recipes
+- **Photo Uploads** - Share photos of your cocktail creations
+- **Recipe Contests** - Monthly themed cocktail competitions
+- **Expert Profiles** - Verified bartender and mixologist accounts
+
+## 🏆 Project Attributions
+
+### External Resources
+- **[TheCocktailDB](https://www.thecocktaildb.com/)** - Comprehensive cocktail recipe database
+- **[Bootstrap](https://getbootstrap.com/)** - CSS framework for responsive design
+- **[Django](https://www.djangoproject.com/)** - High-level Python web framework
+- **Icons from [Font Awesome](https://fontawesome.com/)** - Professional iconography
+
+### Team
+**General Assembly Team 1** - Full-stack development team specializing in Django web applications
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🚀 Current Implementation (Updated August 21, 2025)
+### 🍸 Ready to mix things up? Start exploring StirCraft today!
 
-### ✅ Cocktail Management System (COMPLETE)
-- **Full CRUD Operations**: Create, Read, Update, Delete cocktails with permission controls
-- **Advanced Form System**: Complete cocktail creation with inline formsets for multiple ingredients
-- **Dynamic Ingredient Management**: Add/remove ingredients with proper Django formset validation
-- **Comprehensive Views**: Create, list, detail, update, and delete functionality for cocktails
-- **Professional Templates**: Bootstrap-styled forms with proper error handling and user feedback
-- **Search & Filter**: Advanced cocktail filtering by ingredients, vessel type, alcohol content, and more
-
-### ✅ List Management System (NEW!)
-- **List CRUD Operations**: Create, view, update, and delete user lists
-- **List Membership**: Add/remove cocktails from lists with AJAX endpoints
-- **User Lists**: View all user-created lists and list feeds
-- **Quick Actions**: Favorite cocktails and quick-add to lists functionality
-- **Permission Controls**: Only list creators can edit/delete their lists
-
-### ✅ Forms & UI System
-- **Complete Form Suite**: Cocktail forms, list forms, profile forms with validation
-- **Template Partials**: Modular, reusable template components for improved maintainability
-- **Navigation System**: Permission-based navbar rendering for anonymous/authenticated/staff users
-- **Bootstrap Integration**: Responsive, mobile-first design with Bootstrap CSS
-
-### ✅ API Integration & Data Seeding
-- **TheCocktailDB API Integration**: Custom Django management command to seed database with real cocktail data
-- **PostgreSQL Database**: Configured with user authentication and optimized for cocktail recipe storage
-- **Intelligent Data Processing**: Automated ingredient categorization, measurement parsing, and vessel matching
-- **Management Commands**: `seed_from_thecocktaildb` command for importing cocktail data with comprehensive error handling
-
-### ✅ Testing Infrastructure
-- **Model Tests**: Comprehensive testing for models, forms, and views
-- **Navigation Tests**: User permission-based navbar rendering validation
-- **Django Test Framework**: Using TestCase with proper test database setup
-- **Automated Test Reports**: Test failure tracking and documentation
-
-### 🟡 Auth System (Templates Ready, Views Commented Out)
-- **Registration Templates**: Sign up and login templates exist and styled
-- **Auth Views**: Sign-up/sign-in views exist but are commented out in URLs
-- **Permission Integration**: Views check user permissions for edit/delete operations
-
-### ❌ Missing Components (For Deployment)
-- **List Templates**: 5 missing templates for list management views
-- **Ingredient Views**: Commented out ingredient index/detail views
-- **Deployment Infrastructure**: No requirements.txt, Procfile, or production settings
-
----
+*Built with ❤️ by cocktail enthusiasts, for cocktail enthusiasts*
 
 ## 🎨 Frontend Styling: Bootstrap
 

@@ -66,7 +66,7 @@ class SignUpForm(UserCreationForm):
             'type': 'date',
             'placeholder': 'YYYY-MM-DD'
         }),
-        help_text="You must be 21 or older to join StirCraft"
+        help_text="You must be 21+ (US drinking age). StirCraft does not support underage drinking."
     )
     
     location = forms.CharField(
@@ -151,8 +151,15 @@ class SignUpForm(UserCreationForm):
         Customize form initialization.
         Add CSS classes and placeholders to password fields.
         Customize password validation help text.
+        Set default birthdate to 21 years ago for user convenience.
         """
         super().__init__(*args, **kwargs)
+        
+        # Set default birthdate to 21 years ago from today
+        from datetime import date
+        today = date.today()
+        default_birthdate = date(today.year - 21, today.month, today.day)
+        self.fields['birthdate'].initial = default_birthdate
         
         # Add CSS classes to password fields (inherited from UserCreationForm)
         self.fields['password1'].widget.attrs.update({
@@ -198,7 +205,10 @@ class SignUpForm(UserCreationForm):
             today = date.today()
             age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
             if age < 21:
-                raise ValidationError("You must be at least 21 years old to join StirCraft.")
+                raise ValidationError(
+                    "You must be at least 21 years old to join StirCraft. "
+                    "We comply with US drinking age laws and do not support underage drinking."
+                )
         return birthdate
     
     def save(self, commit=True):
@@ -211,7 +221,12 @@ class SignUpForm(UserCreationForm):
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
         user.email = self.cleaned_data['email']
-        
+        # Ensure the password is set explicitly in case the parent
+        # implementation didn't persist it when using commit=False.
+        password = self.cleaned_data.get('password1')
+        if password:
+            user.set_password(password)
+
         if commit:
             user.save()
             
