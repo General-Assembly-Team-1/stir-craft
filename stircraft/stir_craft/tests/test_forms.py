@@ -311,3 +311,29 @@ class CocktailSearchFormTest(TestCase):
             form_data = {'sort_by': sort_option}
             form = CocktailSearchForm(data=form_data)
             self.assertTrue(form.is_valid(), f"Sort option '{sort_option}' should be valid")
+
+    def test_search_form_spirit_filter(self):
+        """Test spirit filter functionality."""
+        # Create a spirit ingredient
+        spirit = Ingredient.objects.create(
+            name='Test Rum',
+            ingredient_type='spirit',
+            alcohol_content=40.0
+        )
+        
+        form_data = {
+            'spirit': spirit.id
+        }
+        form = CocktailSearchForm(data=form_data)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['spirit'], spirit)
+
+    def test_search_form_spirit_and_ingredient_combined(self):
+        """Test using both spirit and general ingredient filters."""
+        form_data = {
+            'spirit': self.ingredient.id,  # This should work even if ingredient isn't a spirit
+            'ingredient': self.ingredient.id,
+            'query': 'test cocktail'
+        }
+        form = CocktailSearchForm(data=form_data)
+        self.assertTrue(form.is_valid())
