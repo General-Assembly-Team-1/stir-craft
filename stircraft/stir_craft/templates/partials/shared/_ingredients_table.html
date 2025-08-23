@@ -1,4 +1,5 @@
 <!-- Ingredients Table Partial -->
+{% load math_filters %}
 <div class="mb-4">
     <h3>🧂 Ingredients</h3>
     <div class="table-responsive">
@@ -20,7 +21,7 @@
                                 <small class="text-muted">({{ component.ingredient.alcohol_content }}% ABV)</small>
                             {% endif %}
                         </td>
-                        <td>{{ component.amount }} {{ component.unit }}</td>
+                        <td>{{ component.amount|smart_round:component.unit }} {{ component.unit }}</td>
                         <td>
                             <span class="badge bg-light text-dark">
                                 {{ component.ingredient.get_ingredient_type_display }}

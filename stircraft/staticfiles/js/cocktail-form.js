@@ -17,8 +17,23 @@
 
 class CocktailForm {
     constructor() {
-        this.formCount = parseInt(document.getElementById('id_recipecomponent_set-TOTAL_FORMS').value);
-        this.maxForms = parseInt(document.getElementById('id_recipecomponent_set-MAX_NUM_FORMS').value);
+        console.log('CocktailForm constructor called');
+        
+        const totalFormsElement = document.getElementById('id_components-TOTAL_FORMS');
+        const maxFormsElement = document.getElementById('id_components-MAX_NUM_FORMS');
+        
+        console.log('Total forms element:', totalFormsElement);
+        console.log('Max forms element:', maxFormsElement);
+        
+        if (!totalFormsElement || !maxFormsElement) {
+            console.error('Required formset management elements not found!');
+            return;
+        }
+        
+        this.formCount = parseInt(totalFormsElement.value);
+        this.maxForms = parseInt(maxFormsElement.value);
+        
+        console.log('Form count:', this.formCount, 'Max forms:', this.maxForms);
         
         this.init();
     }
@@ -33,9 +48,16 @@ class CocktailForm {
         this.bindNewIngredientEvents();
         
         // Handle dynamic ingredient form addition
-        document.getElementById('add-ingredient-btn').addEventListener('click', () => {
-            this.addIngredientForm();
-        });
+        const addBtn = document.getElementById('add-ingredient-btn');
+        if (addBtn) {
+            console.log('Add ingredient button found, binding click event');
+            addBtn.addEventListener('click', () => {
+                console.log('Add ingredient button clicked');
+                this.addIngredientForm();
+            });
+        } else {
+            console.log('Add ingredient button NOT found');
+        }
         
         // Handle ingredient deletion tracking
         document.addEventListener('change', (e) => {
@@ -180,7 +202,7 @@ class CocktailForm {
         this.formCount++;
         document.getElementById('ingredient-forms').appendChild(newForm);
         this.updateFormIndices();
-        document.getElementById('id_recipecomponent_set-TOTAL_FORMS').value = this.formCount;
+        document.getElementById('id_components-TOTAL_FORMS').value = this.formCount;
         
         // Set up the new form
         this.setupNewForm(newForm);
@@ -238,10 +260,10 @@ class CocktailForm {
             const inputs = form.querySelectorAll('input, select, textarea');
             inputs.forEach(input => {
                 if (input.name) {
-                    input.name = input.name.replace(/recipecomponent_set-\d+/, `recipecomponent_set-${index}`);
+                    input.name = input.name.replace(/components-\d+/, `components-${index}`);
                 }
                 if (input.id) {
-                    input.id = input.id.replace(/id_recipecomponent_set-\d+/, `id_recipecomponent_set-${index}`);
+                    input.id = input.id.replace(/id_components-\d+/, `id_components-${index}`);
                 }
             });
             
@@ -249,7 +271,7 @@ class CocktailForm {
             const labels = form.querySelectorAll('label');
             labels.forEach(label => {
                 if (label.getAttribute('for')) {
-                    label.setAttribute('for', label.getAttribute('for').replace(/id_recipecomponent_set-\d+/, `id_recipecomponent_set-${index}`));
+                    label.setAttribute('for', label.getAttribute('for').replace(/id_components-\d+/, `id_components-${index}`));
                 }
             });
             
@@ -281,9 +303,13 @@ class CocktailForm {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Cocktail form JavaScript loaded');
     // Only initialize if we're on a page with the cocktail form
     if (document.getElementById('cocktail-form')) {
+        console.log('Cocktail form found, initializing CocktailForm');
         new CocktailForm();
+    } else {
+        console.log('No cocktail form found on this page');
     }
 });
 
