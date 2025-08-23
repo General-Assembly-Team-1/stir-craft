@@ -17,9 +17,9 @@
 #  - Daphne / Uvicorn for async ASGI applications
 #
 # This project's minimal web process uses gunicorn and points to the Django
-# WSGI application in `stircraft.stircraft.wsgi`.
+# WSGI application in `stircraft.wsgi`. We need to cd into stircraft directory first.
 
-web: gunicorn stircraft.stircraft.wsgi --log-file -
+web: cd stircraft && gunicorn stircraft.wsgi --log-file -
 
 # Optional: you can add a worker process for background jobs, for example:
 # worker: celery -A stircraft worker --loglevel=info

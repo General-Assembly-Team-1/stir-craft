@@ -6,11 +6,7 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    # Use the correct settings module path for Heroku deployment
-    if 'DYNO' in os.environ:
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stircraft.stircraft.settings')
-    else:
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stircraft.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stircraft.settings')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

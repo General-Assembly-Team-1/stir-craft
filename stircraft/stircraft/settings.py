@@ -53,7 +53,7 @@ ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 # Application definition
 
 INSTALLED_APPS = [
-    'stircraft.stir_craft' if 'DYNO' in os.environ else 'stir_craft',  # Heroku deployment fix
+    'stir_craft',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

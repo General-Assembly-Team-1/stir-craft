@@ -11,10 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-# Use the correct settings module path for Heroku deployment
-if 'DYNO' in os.environ:
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stircraft.stircraft.settings')
-else:
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stircraft.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stircraft.settings')
 
 application = get_wsgi_application()
