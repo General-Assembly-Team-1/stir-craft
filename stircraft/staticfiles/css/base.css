@@ -257,6 +257,31 @@
     margin-top: 1rem;
 }
 
+#add-ingredient-btn {
+    transition: all 0.2s ease;
+    border: 2px dashed #007bff;
+    background-color: transparent;
+    color: #007bff;
+}
+
+#add-ingredient-btn:hover {
+    background-color: #007bff;
+    color: white;
+    border-style: solid;
+}
+
+#add-ingredient-btn:disabled {
+    border-color: #6c757d;
+    color: #6c757d;
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+
+#add-ingredient-btn:disabled:hover {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
 .form-section {
     margin-bottom: 2rem;
     padding: 1.5rem;

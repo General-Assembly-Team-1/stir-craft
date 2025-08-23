@@ -144,75 +144,17 @@
     </div>
 </div>
 
+<!-- Configuration for JavaScript -->
 <script>
-// Handle favorite button clicks
-document.addEventListener('DOMContentLoaded', function() {
-    const favoriteBtn = document.getElementById('favorite-btn');
-    const favoriteIcon = document.getElementById('favorite-icon');
-    const favoriteText = document.getElementById('favorite-text');
-    
-    if (favoriteBtn) {
-        favoriteBtn.addEventListener('click', function() {
-            const cocktailId = this.dataset.cocktailId;
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            
-            // Disable button during request
-            this.disabled = true;
-            
-            fetch(`/cocktails/${cocktailId}/favorite/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update button appearance based on new state
-                    if (data.favorited) {
-                        favoriteBtn.className = 'btn btn-danger';
-                        favoriteIcon.className = 'bi bi-heart-fill';
-                        favoriteText.textContent = 'Remove from Favorites';
-                    } else {
-                        favoriteBtn.className = 'btn btn-outline-danger';
-                        favoriteIcon.className = 'bi bi-heart';
-                        favoriteText.textContent = 'Add to Favorites';
-                    }
-                    
-                    // Show a brief success message
-                    const message = document.createElement('div');
-                    message.className = 'alert alert-success alert-dismissible fade show position-fixed';
-                    message.style.top = '20px';
-                    message.style.right = '20px';
-                    message.style.zIndex = '9999';
-                    message.innerHTML = `
-                        ${data.message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    `;
-                    document.body.appendChild(message);
-                    
-                    // Auto-dismiss after 3 seconds
-                    setTimeout(() => {
-                        if (message.parentNode) {
-                            message.remove();
-                        }
-                    }, 3000);
-                } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred. Please try again.');
-            })
-            .finally(() => {
-                // Re-enable button
-                this.disabled = false;
-            });
-        });
-    }
-});
+// Pass Django URLs and data to JavaScript
+window.stirCraftConfig = {
+    csrfToken: '{{ csrf_token }}',
+    favoriteUrl: '{% url "toggle_favorite" cocktail.id %}'
+};
 </script>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Favorites functionality -->
+<script src="{% static 'js/favorites.js' %}"></script>
 {% endblock %}

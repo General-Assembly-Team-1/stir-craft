@@ -7,6 +7,11 @@
 {# Styles moved to: static/css/base.css — see "/static/css/base.css" (COCKTAIL FORM STYLES) #}
 {% endblock %}
 
+{% block extra_js %}
+<!-- Cocktail form JavaScript -->
+<script src="{% static 'js/cocktail-form.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -194,10 +199,15 @@
                                     {% endfor %}
                                 </div>
                                 
-                                <div class="alert alert-info">
-                                    <strong>💡 Tip:</strong> The form shows 3 ingredient slots by default. 
-                                    If you need more ingredients, just submit the form and Django will show additional slots.
-                                    Leave unused ingredient slots blank - they'll be ignored.
+                                <!-- Add More Ingredients Button -->
+                                <div class="text-center mt-3">
+                                    <button type="button" id="add-ingredient-btn" class="btn btn-outline-primary">
+                                        <i class="bi bi-plus-circle me-2"></i>Add More Ingredients
+                                    </button>
+                                </div>
+                                
+                                <div class="alert alert-info mt-3">
+                                    <strong>💡 Tip:</strong> Leave unused ingredient slots blank - they'll be ignored when you save.
                                 </div>
                             </div>
                         </div>
@@ -273,89 +283,12 @@
     </div>
 </div>
 
+<!-- Configuration for JavaScript -->
 <script>
-// Handle the "Create New Ingredient" option in dropdowns
-document.addEventListener('DOMContentLoaded', function() {
-    // Listen for changes on ingredient select dropdowns
-    document.querySelectorAll('select[name$="ingredient"]').forEach(function(select) {
-        select.addEventListener('change', function() {
-            if (this.value === 'new_ingredient') {
-                // Show the modal
-                const modal = new bootstrap.Modal(document.getElementById('newIngredientModal'));
-                modal.show();
-                
-                // Store reference to the select that triggered this
-                document.getElementById('newIngredientModal').dataset.targetSelect = this.id;
-                
-                // Reset this select to empty for now
-                this.value = '';
-            }
-        });
-    });
-    
-    // Handle saving new ingredient
-    document.getElementById('save-new-ingredient').addEventListener('click', function() {
-        const form = document.getElementById('quick-ingredient-form');
-        const formData = new FormData(form);
-        
-        // Get CSRF token
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        
-        fetch('{% url "ingredient_add" %}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Add the new ingredient to all ingredient dropdowns
-                const newOption = new Option(data.ingredient.name, data.ingredient.id);
-                document.querySelectorAll('select[name$="ingredient"]').forEach(function(select) {
-                    // Find the right optgroup to add to
-                    const typeGroup = select.querySelector(`optgroup[label="${data.ingredient.type_display}"]`);
-                    if (typeGroup) {
-                        typeGroup.appendChild(newOption.cloneNode(true));
-                    }
-                });
-                
-                // Set the ingredient in the select that triggered this modal
-                const targetSelectId = document.getElementById('newIngredientModal').dataset.targetSelect;
-                if (targetSelectId) {
-                    const targetSelect = document.getElementById(targetSelectId);
-                    targetSelect.value = data.ingredient.id;
-                }
-                
-                // Hide modal and reset form
-                const modal = bootstrap.Modal.getInstance(document.getElementById('newIngredientModal'));
-                modal.hide();
-                form.reset();
-                
-                // Show success message
-                const alertDiv = document.createElement('div');
-                alertDiv.className = 'alert alert-success alert-dismissible fade show';
-                alertDiv.innerHTML = `
-                    <strong>Success!</strong> "${data.ingredient.name}" has been added to your ingredients.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                `;
-                form.parentElement.insertBefore(alertDiv, form);
-                
-                // Auto-dismiss after 3 seconds
-                setTimeout(() => {
-                    alertDiv.remove();
-                }, 3000);
-            } else {
-                alert('Error creating ingredient: ' + (data.error || 'Unknown error'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error creating ingredient. Please try again.');
-        });
-    });
-});
+// Pass Django URLs to JavaScript
+window.stirCraftConfig = {
+    ingredientAddUrl: '{% url "ingredient_add" %}',
+    csrfToken: '{{ csrf_token }}'
+};
 </script>
 {% endblock %}
