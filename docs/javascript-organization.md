@@ -1,4 +1,4 @@
-# JavaScript Organization Guidelines
+ JavaScript Organization Guidelines
 
 ## Overview
 
