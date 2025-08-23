@@ -1,0 +1,136 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{# Template contributed by Mileiny - authentication (sign-up/sign-in) forms #}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/form.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Authentication</h1>
+  <img src="{% static 'images/auth-icon.svg' %}" alt="Authentication" />
+</div>
+
+{# Global Django messages (success/error/info) #}
+{% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<div class="auth-forms">
+  <!-- Sign In -->
+  <div class="form-box">
+    <h2>Sign In</h2>
+    <form action="{% url 'login' %}" method="post" autocomplete="off">
+      {% csrf_token %}
+
+      {% if login_form.non_field_errors %}
+        <div class="form-errors">{{ login_form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-group">
+        <label for="id_username">Username</label>
+        {{ login_form.username }}
+      </div>
+
+      <div class="form-group">
+        <label for="id_password">Password</label>
+        {{ login_form.password }}
+        {% if login_form.password.errors %}
+          <div class="field-errors">{{ login_form.password.errors }}</div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-primary">Sign In</button>
+    </form>
+  </div>
+
+  <!-- Sign Up -->
+  <div class="form-box">
+    <h2>Sign Up</h2>
+    <form action="{% url 'signup' %}" method="post" autocomplete="off">
+      {% csrf_token %}
+
+      {% if signup_form.non_field_errors %}
+        <div class="form-errors">{{ signup_form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-group">
+        <label for="id_username">Username</label>
+        {{ signup_form.username }}
+      </div>
+
+      <div class="form-group">
+        <label for="id_first_name">First name</label>
+        {{ signup_form.first_name }}
+        {% if signup_form.first_name.errors %}
+          <div class="field-errors">{{ signup_form.first_name.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="id_last_name">Last name</label>
+        {{ signup_form.last_name }}
+        {% if signup_form.last_name.errors %}
+          <div class="field-errors">{{ signup_form.last_name.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="id_email">Email address</label>
+        {{ signup_form.email }}
+        {% if signup_form.email.errors %}
+          <div class="field-errors">{{ signup_form.email.errors }}</div>
+        {% endif %}
+        <small class="form-text text-muted">We'll never share your email with anyone else.</small>
+      </div>
+
+      <div class="form-group">
+        <label for="id_birthdate">Birthdate</label>
+        {{ signup_form.birthdate }}
+        {% if signup_form.birthdate.errors %}
+          <div class="field-errors">{{ signup_form.birthdate.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="id_location">Zip code (optional)</label>
+        {{ signup_form.location }}
+        {% if signup_form.location.errors %}
+          <div class="field-errors">{{ signup_form.location.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="id_password1">Password</label>
+        {{ signup_form.password1 }}
+        {% if signup_form.password1.errors %}
+          <div class="field-errors">{{ signup_form.password1.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="id_password2">Confirm Password</label>
+        {{ signup_form.password2 }}
+        {% if signup_form.password2.errors %}
+          <div class="field-errors">{{ signup_form.password2.errors }}</div>
+        {% endif %}
+      </div>
+
+      <!-- TODO: Add terms and conditions checkbox when terms are ready
+      <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="termsCheck" required>
+        <label class="form-check-label" for="termsCheck">Agree to terms and conditions (required)</label>
+      </div>
+      -->
+
+      <button type="submit" class="btn btn-success">Sign Up</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

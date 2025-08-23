@@ -19,7 +19,7 @@
 						<a href="{% url 'cocktail_create' %}" class="btn btn-primary">Add a cocktail</a>
 						<a href="{% url 'cocktail_index' %}" class="btn btn-outline-secondary ms-2">Browse classics</a>
 					{% else %}
-						<a href="{% url 'admin:login' %}" class="btn btn-primary">Join / Log in</a>
+						<a href="{% url 'login' %}" class="btn btn-primary">Join / Log in</a>
 						<a href="{% url 'cocktail_index' %}" class="btn btn-outline-secondary ms-2">Browse classics</a>
 					{% endif %}
 				</p>

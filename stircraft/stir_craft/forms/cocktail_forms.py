@@ -104,7 +104,22 @@ class CocktailForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         # Remove 'user' from kwargs if it exists (we'll set creator in the view)
         self.user = kwargs.pop('user', None)
+        # Handle forking - if we're creating a variation of an existing cocktail
+        self.fork_from = kwargs.pop('fork_from', None)
         super().__init__(*args, **kwargs)
+        
+        # If we're forking, pre-populate with original cocktail data but modify the name
+        if self.fork_from and not self.instance.pk:
+            self.initial['name'] = f"{self.fork_from.name} (Variation)"
+            self.initial['description'] = f"My variation of {self.fork_from.name}"
+            self.initial['instructions'] = self.fork_from.instructions
+            self.initial['vessel'] = self.fork_from.vessel
+            self.initial['is_alcoholic'] = self.fork_from.is_alcoholic
+            self.initial['color'] = self.fork_from.color
+            # Copy tags but don't override if user already has some
+            if self.fork_from.vibe_tags.exists():
+                tag_names = [tag.name for tag in self.fork_from.vibe_tags.all()]
+                self.initial['vibe_tags'] = ', '.join(tag_names)
         
         # Filter vessels to only show active ones (if you add an 'active' field later)
         self.fields['vessel'].queryset = Vessel.objects.all().order_by('name')
@@ -114,7 +129,11 @@ class CocktailForm(forms.ModelForm):
         
         # Set dynamic help text
         if self.user:
-            self.fields['name'].help_text = f"This will be saved as '{self.user.username}'s [Your Cocktail Name]'"
+            if self.fork_from:
+                self.fields['name'].help_text = f"Creating your own version of '{self.fork_from.name}' by {self.fork_from.creator.username}"
+                self.fields['description'].help_text = f"Tell us what makes your version special compared to the original!"
+            else:
+                self.fields['name'].help_text = f"This will be saved as '{self.user.username}'s [Your Cocktail Name]'"
 
 
 class RecipeComponentForm(forms.ModelForm):
@@ -178,9 +197,31 @@ class RecipeComponentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Order ingredients alphabetically and group by type for better UX
+        # Create grouped choices for ingredients by category
         ingredients = Ingredient.objects.select_related().order_by('ingredient_type', 'name')
-        self.fields['ingredient'].queryset = ingredients
+        
+        # Group ingredients by type for better organization
+        grouped_choices = [('', 'Select an ingredient...')]
+        current_type = None
+        type_choices = []
+        
+        for ingredient in ingredients:
+            if ingredient.ingredient_type != current_type:
+                if type_choices:
+                    # Add the previous group
+                    grouped_choices.append((current_type.title(), type_choices))
+                current_type = ingredient.ingredient_type
+                type_choices = []
+            type_choices.append((ingredient.id, ingredient.name))
+        
+        # Add the last group
+        if type_choices:
+            grouped_choices.append((current_type.title(), type_choices))
+        
+        # Add "Create New" option at the end
+        grouped_choices.append(('Actions', [('new_ingredient', '+ Create New Ingredient')]))
+        
+        self.fields['ingredient'].choices = grouped_choices
         
         # Make preparation_note optional
         self.fields['preparation_note'].required = False
@@ -264,17 +305,20 @@ class QuickIngredientForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'e.g., London Dry Gin'
+                'placeholder': 'e.g., London Dry Gin',
+                'required': True
             }),
             'ingredient_type': forms.Select(attrs={
-                'class': 'form-select'
+                'class': 'form-select',
+                'required': True
             }),
             'alcohol_content': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': '0',
                 'max': '100',
                 'step': '0.1',
-                'placeholder': '40.0'
+                'placeholder': '40.0',
+                'value': '0'
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -286,6 +330,9 @@ class QuickIngredientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['description'].required = False
+        self.fields['name'].help_text = "Enter the full name of the ingredient"
+        self.fields['ingredient_type'].help_text = "What category does this ingredient belong to?"
+        self.fields['alcohol_content'].help_text = "ABV percentage (0 for non-alcoholic)"
         
 
 # =============================================================================

@@ -1,0 +1,31 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Browse Lists{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Browse Lists</h1>
+    <p class="lead">Discover cocktail collections from the community</p>
+    
+    <div class="row">
+        {% for list in page_obj %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ list.name }}</h5>
+                        <p class="card-text">by {{ list.creator.username }}</p>
+                        {% if list.description %}
+                            <p class="card-text text-muted">{{ list.description }}</p>
+                        {% endif %}
+                        <small class="text-muted">{{ list.cocktail_count }} cocktails</small>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <p class="text-muted">No public lists found.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -21,3 +21,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('stir_craft.urls')),
 ]
+
+# Custom error handlers
+handler403 = 'stir_craft.views.handler_403'
+handler404 = 'stir_craft.views.handler_404'
+handler500 = 'stir_craft.views.handler_500'
