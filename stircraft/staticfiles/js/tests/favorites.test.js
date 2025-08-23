@@ -12,7 +12,10 @@ describe('FavoritesManager', () => {
             <div>
                 <input type="hidden" name="csrfmiddlewaretoken" value="test-token">
                 
-                <button id="favorite-btn" data-cocktail-id="123" class="btn btn-outline-danger">
+                <button id="favorite-btn" 
+                        data-cocktail-id="123" 
+                        data-favorite-url="/cocktails/123/favorite/"
+                        class="btn btn-outline-danger">
                     <i id="favorite-icon" class="bi bi-heart"></i>
                     <span id="favorite-text">Add to Favorites</span>
                 </button>
@@ -64,11 +67,11 @@ describe('FavoritesManager', () => {
             
             // Check API call
             expect(fetch).toHaveBeenCalledWith(
-                '/test/cocktails/1/favorite/',
+                '/cocktails/123/favorite/',
                 expect.objectContaining({
                     method: 'POST',
                     headers: expect.objectContaining({
-                        'X-CSRFToken': 'test-csrf-token',
+                        'X-CSRFToken': 'test-token',
                         'X-Requested-With': 'XMLHttpRequest'
                     })
                 })
@@ -180,9 +183,10 @@ describe('FavoritesManager', () => {
             expect(notification.textContent).toContain('An error occurred. Please try again.');
         });
         
-        test('should handle missing cocktail ID', () => {
+        test('should handle missing cocktail ID or URL', () => {
             const favoriteBtn = document.getElementById('favorite-btn');
             favoriteBtn.removeAttribute('data-cocktail-id');
+            favoriteBtn.removeAttribute('data-favorite-url');
             
             // Mock console.error
             global.console.error = jest.fn();
@@ -190,12 +194,37 @@ describe('FavoritesManager', () => {
             simulateEvent(favoriteBtn, 'click');
             
             expect(global.console.error).toHaveBeenCalledWith(
-                'Missing cocktail ID or CSRF token'
+                'Missing cocktail ID, URL, or CSRF token'
             );
             
             // Should show error notification
             const notification = document.querySelector('.alert-danger');
             expect(notification).toBeTruthy();
+        });
+        
+        test('should use URL from data-favorite-url attribute', async () => {
+            const favoriteBtn = document.getElementById('favorite-btn');
+            favoriteBtn.setAttribute('data-favorite-url', '/cocktails/999/favorite/');
+            
+            fetch.mockResolvedValueOnce({
+                json: () => Promise.resolve({
+                    success: true,
+                    favorited: true,
+                    message: 'Added to favorites!'
+                })
+            });
+            
+            simulateEvent(favoriteBtn, 'click');
+            
+            await waitFor(() => fetch.mock.calls.length > 0);
+            
+            // Should use the URL from data-favorite-url
+            expect(fetch).toHaveBeenCalledWith(
+                '/cocktails/999/favorite/',
+                expect.objectContaining({
+                    method: 'POST'
+                })
+            );
         });
     });
     
@@ -249,8 +278,65 @@ describe('FavoritesManager', () => {
         });
     });
     
-    describe('Configuration Handling', () => {
-        test('should use configuration URLs when available', async () => {
+    describe('Bug Fix: URL Construction', () => {
+        test('should prevent URL construction errors by using data-favorite-url', async () => {
+            // This test ensures we don't have the bug where cocktail ID "40" became "440"
+            const favoriteBtn = document.getElementById('favorite-btn');
+            favoriteBtn.setAttribute('data-cocktail-id', '40');
+            favoriteBtn.setAttribute('data-favorite-url', '/cocktails/40/favorite/');
+            
+            fetch.mockResolvedValueOnce({
+                json: () => Promise.resolve({
+                    success: true,
+                    favorited: true,
+                    message: 'Success'
+                })
+            });
+            
+            simulateEvent(favoriteBtn, 'click');
+            
+            await waitFor(() => fetch.mock.calls.length > 0);
+            
+            // Should use exact URL from data attribute, not construct it
+            expect(fetch).toHaveBeenCalledWith(
+                '/cocktails/40/favorite/',
+                expect.any(Object)
+            );
+            
+            // Should NOT have been called with malformed URL
+            expect(fetch).not.toHaveBeenCalledWith(
+                '/cocktails/440/favorite/',
+                expect.any(Object)
+            );
+        });
+        
+        test('should handle edge case cocktail IDs correctly', async () => {
+            const favoriteBtn = document.getElementById('favorite-btn');
+            favoriteBtn.setAttribute('data-cocktail-id', '123456');
+            favoriteBtn.setAttribute('data-favorite-url', '/cocktails/123456/favorite/');
+            
+            fetch.mockResolvedValueOnce({
+                json: () => Promise.resolve({
+                    success: true,
+                    favorited: true,
+                    message: 'Success'
+                })
+            });
+            
+            simulateEvent(favoriteBtn, 'click');
+            
+            await waitFor(() => fetch.mock.calls.length > 0);
+            
+            // Should use exact URL regardless of cocktail ID complexity
+            expect(fetch).toHaveBeenCalledWith(
+                '/cocktails/123456/favorite/',
+                expect.any(Object)
+            );
+        });
+    });
+
+    describe('URL Handling', () => {
+        test('should use URL from data-favorite-url attribute', async () => {
             const favoriteBtn = document.getElementById('favorite-btn');
             
             fetch.mockResolvedValueOnce({
@@ -266,7 +352,7 @@ describe('FavoritesManager', () => {
             await waitFor(() => fetch.mock.calls.length > 0);
             
             expect(fetch).toHaveBeenCalledWith(
-                '/test/cocktails/1/favorite/',
+                '/cocktails/123/favorite/',
                 expect.any(Object)
             );
         });

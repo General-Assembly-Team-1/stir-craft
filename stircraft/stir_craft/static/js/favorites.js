@@ -36,11 +36,11 @@ class FavoritesManager {
     
     async handleFavoriteClick(button) {
         const cocktailId = button.dataset.cocktailId;
+        const favoriteUrl = button.dataset.favoriteUrl;
         const csrfToken = this.getCSRFToken();
-        const favoriteUrl = this.getFavoriteUrl(cocktailId);
         
-        if (!cocktailId || !csrfToken) {
-            console.error('Missing cocktail ID or CSRF token');
+        if (!cocktailId || !favoriteUrl || !csrfToken) {
+            console.error('Missing cocktail ID, URL, or CSRF token');
             this.showError('Unable to process request. Please refresh the page.');
             return;
         }

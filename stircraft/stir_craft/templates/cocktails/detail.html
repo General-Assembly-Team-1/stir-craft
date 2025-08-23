@@ -45,7 +45,9 @@
                                     
                                     <!-- Favorite Button -->
                                     <button type="button" class="btn {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %}" 
-                                            id="favorite-btn" data-cocktail-id="{{ cocktail.id }}">
+                                            id="favorite-btn" 
+                                            data-cocktail-id="{{ cocktail.id }}"
+                                            data-favorite-url="{% url 'toggle_favorite' cocktail.id %}">
                                         <i class="bi {% if is_favorited %}bi-heart-fill{% else %}bi-heart{% endif %}" id="favorite-icon"></i>
                                         <span id="favorite-text">
                                             {% if is_favorited %}Remove from Favorites{% else %}Add to Favorites{% endif %}
