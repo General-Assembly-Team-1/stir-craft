@@ -25,6 +25,10 @@
 -->
 
     {% include 'partials/shared/_cocktail_index_header.html' %}
+    
+    <!-- Search and Filter Form -->
+    {% include 'partials/shared/_search_filter_form.html' %}
+    
     <div class="row">
         <!-- List of cocktails rendered via _cocktail_card partial -->
         <div class="col-12">
@@ -43,4 +47,8 @@
     {% include 'partials/shared/_pagination.html' with page_obj=page_obj %}
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/cocktail-search.js' %}"></script>
 {% endblock %}

@@ -191,6 +191,31 @@ class CocktailViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Vodka Cocktail')
 
+    def test_cocktail_index_filter_by_spirit(self):
+        """Test filtering cocktails by spirit."""
+        # Create a spirit ingredient
+        rum = Ingredient.objects.create(
+            name='Dark Rum',
+            ingredient_type='spirit',
+            alcohol_content=40.0
+        )
+        
+        cocktail = Cocktail.objects.create(
+            name='Rum Cocktail',
+            instructions='Mix with rum',
+            creator=self.user
+        )
+        RecipeComponent.objects.create(
+            cocktail=cocktail,
+            ingredient=rum,
+            amount=50.0,
+            unit='ml'
+        )
+        
+        response = self.client.get(reverse('cocktail_index'), {'spirit': rum.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Rum Cocktail')
+
     def test_cocktail_update_happy_path(self):
         """Creator can update cocktail and components."""
         self.client.login(username='cocktail_user', password='test_password_123')

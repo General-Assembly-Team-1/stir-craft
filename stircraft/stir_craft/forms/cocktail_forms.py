@@ -395,6 +395,17 @@ class CocktailSearchForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     
+    spirit = forms.ModelChoiceField(
+        queryset=Ingredient.objects.filter(ingredient_type='spirit').order_by('name'),
+        required=False,
+        empty_label="Any spirit",
+        widget=forms.Select(attrs={
+            'class': 'form-select',
+            'title': 'Filter by base spirit (rum, vodka, gin, etc.)'
+        }),
+        help_text="Find cocktails that use a specific spirit as a base"
+    )
+    
     vessel = forms.ModelChoiceField(
         queryset=Vessel.objects.all().order_by('name'),
         required=False,

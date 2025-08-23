@@ -1,0 +1,266 @@
+<!-- Tag Management Section -->
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">
+            <i class="bi bi-tags"></i> Vibe Tags
+        </h5>
+        {% if user.is_authenticated %}
+            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addTagModal">
+                <i class="bi bi-plus"></i> Add Tag
+            </button>
+        {% endif %}
+    </div>
+    
+    <!-- Existing Tags -->
+    <div id="vibe-tags-container">
+        {% if cocktail.vibe_tags.all %}
+            {% for tag in cocktail.vibe_tags.all %}
+                <span class="badge bg-secondary me-2 mb-2 tag-badge" data-tag="{{ tag.name }}">
+                    {{ tag.name }}
+                    {% if can_remove_tags %}
+                        <button type="button" class="btn-close btn-close-white ms-1" 
+                                aria-label="Remove tag" 
+                                onclick="removeTag('{{ tag.name }}')"
+                                style="font-size: 0.6em;">
+                        </button>
+                    {% endif %}
+                </span>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted mb-0" id="no-tags-message">
+                No vibe tags yet. 
+                {% if user.is_authenticated %}
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#addTagModal">Add one</a> to help others discover this cocktail!
+                {% else %}
+                    <a href="{% url 'login' %}">Sign in</a> to add tags!
+                {% endif %}
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Popularity Stats -->
+<div class="mb-4">
+    <div class="card bg-light">
+        <div class="card-body">
+            <h6 class="card-title mb-3">
+                <i class="bi bi-graph-up"></i> Popularity
+            </h6>
+            <div class="row text-center">
+                <div class="col-4">
+                    <div class="h4 text-danger mb-1">{{ popularity_stats.favorites_count }}</div>
+                    <small class="text-muted">
+                        <i class="bi bi-heart-fill"></i> Favorites
+                    </small>
+                </div>
+                <div class="col-4">
+                    <div class="h4 text-primary mb-1">{{ popularity_stats.custom_lists_count }}</div>
+                    <small class="text-muted">
+                        <i class="bi bi-list-ul"></i> Custom Lists
+                    </small>
+                </div>
+                <div class="col-4">
+                    <div class="h4 text-success mb-1">{{ popularity_stats.total_lists_count }}</div>
+                    <small class="text-muted">
+                        <i class="bi bi-collection"></i> Total Lists
+                    </small>
+                </div>
+            </div>
+            
+            {% if popularity_stats.custom_list_names %}
+                <hr class="my-3">
+                <div class="text-center">
+                    <small class="text-muted">
+                        <strong>Featured in:</strong>
+                        {% for list_name in popularity_stats.custom_list_names %}
+                            "{{ list_name }}"{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                        {% if popularity_stats.has_more_lists %}
+                            and {{ popularity_stats.custom_lists_count|add:"-5" }} more...
+                        {% endif %}
+                    </small>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Tag Modal -->
+{% if user.is_authenticated %}
+<div class="modal fade" id="addTagModal" tabindex="-1" aria-labelledby="addTagModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTagModalLabel">Add Vibe Tag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-tag-form">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="tag-name" class="form-label">Tag Name</label>
+                        <input type="text" class="form-control" id="tag-name" name="tag_name" 
+                               placeholder="e.g., tropical, cozy, party" maxlength="30" required>
+                        <div class="form-text">Describe the vibe or mood of this cocktail</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <strong>Popular tags:</strong>
+                            <span class="suggested-tags">
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-1 mb-1" onclick="fillTag('tropical')">tropical</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-1 mb-1" onclick="fillTag('cozy')">cozy</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-1 mb-1" onclick="fillTag('party')">party</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-1 mb-1" onclick="fillTag('summer')">summer</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-1 mb-1" onclick="fillTag('winter')">winter</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-1 mb-1" onclick="fillTag('romantic')">romantic</button>
+                            </span>
+                        </small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addTag()">
+                    <i class="bi bi-plus"></i> Add Tag
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+// Tag management JavaScript
+function fillTag(tagName) {
+    document.getElementById('tag-name').value = tagName;
+}
+
+function addTag() {
+    const tagName = document.getElementById('tag-name').value.trim();
+    if (!tagName) {
+        alert('Please enter a tag name');
+        return;
+    }
+    
+    fetch(`{% url 'add_cocktail_tag' cocktail.id %}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `tag_name=${encodeURIComponent(tagName)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Hide the modal
+            bootstrap.Modal.getInstance(document.getElementById('addTagModal')).hide();
+            
+            // Add the new tag to the display
+            const container = document.getElementById('vibe-tags-container');
+            const noTagsMessage = document.getElementById('no-tags-message');
+            
+            if (noTagsMessage) {
+                noTagsMessage.style.display = 'none';
+            }
+            
+            const canRemoveTags = {{ can_remove_tags|yesno:"true,false" }};
+            const removeButton = canRemoveTags ? 
+                `<button type="button" class="btn-close btn-close-white ms-1" 
+                         aria-label="Remove tag" 
+                         onclick="removeTag('${data.tag_name}')"
+                         style="font-size: 0.6em;">
+                 </button>` : '';
+            
+            const tagHtml = `
+                <span class="badge bg-secondary me-2 mb-2 tag-badge" data-tag="${data.tag_name}">
+                    ${data.tag_name}
+                    ${removeButton}
+                </span>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', tagHtml);
+            
+            // Clear the form
+            document.getElementById('tag-name').value = '';
+            
+            // Show success message
+            showMessage(data.message, 'success');
+        } else {
+            showMessage(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('An error occurred while adding the tag', 'error');
+    });
+}
+
+function removeTag(tagName) {
+    if (!confirm(`Remove "${tagName}" tag?`)) {
+        return;
+    }
+    
+    fetch(`{% url 'remove_cocktail_tag' cocktail.id %}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `tag_name=${encodeURIComponent(tagName)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove the tag from the display
+            const tagElement = document.querySelector(`[data-tag="${tagName}"]`);
+            if (tagElement) {
+                tagElement.remove();
+            }
+            
+            // Check if no tags remain
+            const remainingTags = document.querySelectorAll('.tag-badge');
+            if (remainingTags.length === 0) {
+                const container = document.getElementById('vibe-tags-container');
+                container.innerHTML = `
+                    <p class="text-muted mb-0" id="no-tags-message">
+                        No vibe tags yet. 
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#addTagModal">Add one</a> to help others discover this cocktail!
+                    </p>
+                `;
+            }
+            
+            showMessage(data.message, 'success');
+        } else {
+            showMessage(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('An error occurred while removing the tag', 'error');
+    });
+}
+
+function showMessage(message, type) {
+    // Create a simple toast-like message
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    // Find a good place to show the message (top of content area)
+    const contentArea = document.querySelector('.container');
+    contentArea.insertAdjacentHTML('afterbegin', alertHtml);
+    
+    // Auto-dismiss after 3 seconds
+    setTimeout(() => {
+        const alert = contentArea.querySelector('.alert');
+        if (alert) {
+            alert.remove();
+        }
+    }, 3000);
+}
+</script>

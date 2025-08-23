@@ -20,15 +20,8 @@
                     <!-- Creator and Meta Info -->
                     {% include 'partials/cocktails/_cocktail_meta.html' %}
                     
-                    <!-- Tags -->
-                    {% if cocktail.vibe_tags.all %}
-                        <div class="mb-4">
-                            <strong>Vibes:</strong>
-                            {% for tag in cocktail.vibe_tags.all %}
-                                <span class="badge bg-secondary me-1">{{ tag.name }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+                    <!-- Tag Management and Popularity Stats -->
+                    {% include 'partials/cocktails/_tag_management.html' %}
                     
                     <!-- Ingredients -->
                     {% include 'partials/shared/_ingredients_table.html' %}
@@ -51,11 +44,11 @@
                                     </h5>
                                     
                                     <!-- Favorite Button -->
-                                    <button type="button" class="btn {% if cocktail in favorites_list.cocktails.all %}btn-danger{% else %}btn-outline-danger{% endif %}" 
+                                    <button type="button" class="btn {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %}" 
                                             id="favorite-btn" data-cocktail-id="{{ cocktail.id }}">
-                                        <i class="bi {% if cocktail in favorites_list.cocktails.all %}bi-heart-fill{% else %}bi-heart{% endif %}" id="favorite-icon"></i>
+                                        <i class="bi {% if is_favorited %}bi-heart-fill{% else %}bi-heart{% endif %}" id="favorite-icon"></i>
                                         <span id="favorite-text">
-                                            {% if cocktail in favorites_list.cocktails.all %}Remove from Favorites{% else %}Add to Favorites{% endif %}
+                                            {% if is_favorited %}Remove from Favorites{% else %}Add to Favorites{% endif %}
                                         </span>
                                     </button>
                                 </div>

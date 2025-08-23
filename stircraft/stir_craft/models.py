@@ -5,6 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from taggit.managers import TaggableManager
 from django.core.exceptions import ValidationError
 from datetime import date
+from decimal import Decimal
 
 # =============================================================================
 # 👤 USER & PROFILE MODELS
@@ -315,18 +316,64 @@ class Cocktail(models.Model):
     
     def get_alcohol_content(self):
         """
-        Calculate estimated ABV (Alcohol By Volume) of the cocktail.
-        Uses a weighted average based on ingredient alcohol content and amounts.
+        Calculate the approximate alcohol content (ABV) of the cocktail.
+        This is a weighted average based on the alcohol content and volume of each ingredient.
         """
-        components = self.components.all()
-        total_volume = sum(float(rc.amount) for rc in components if rc.amount)
-        if total_volume == 0:
-            return 0  # Avoid division by zero
-        total_alcohol = sum(
-            (float(rc.amount) * (rc.ingredient.alcohol_content or 0) / 100)
-            for rc in components if rc.amount and rc.ingredient.alcohol_content
-        )
-        return round((total_alcohol / total_volume) * 100, 2)  # Returns ABV as a percentage
+        total_alcohol_volume = 0
+        total_volume = 0
+        
+        for component in self.components.all():
+            if component.ingredient.alcohol_content > 0:
+                # Convert amount to consistent units (assume ml)
+                volume = component.amount
+                alcohol_volume = volume * (Decimal(str(component.ingredient.alcohol_content)) / Decimal('100'))
+                total_alcohol_volume += alcohol_volume
+                total_volume += volume
+            else:
+                total_volume += component.amount
+        
+        if total_volume > 0:
+            percentage = (total_alcohol_volume / total_volume) * Decimal('100')
+            return float(round(percentage, 2))
+        return 0.0
+    
+    def get_popularity_stats(self):
+        """
+        Get popularity statistics for this cocktail.
+        Returns a dictionary with various popularity metrics.
+        """
+        from django.db.models import Count
+        
+        # Count how many users have this in their favorites
+        favorites_count = List.objects.filter(
+            list_type='favorites',
+            cocktails=self
+        ).count()
+        
+        # Count how many custom lists contain this cocktail
+        custom_lists_count = List.objects.filter(
+            list_type='custom',
+            cocktails=self
+        ).count()
+        
+        # Count total appearances across all lists
+        total_lists_count = List.objects.filter(
+            cocktails=self
+        ).count()
+        
+        # Get list of custom list names (for display)
+        custom_list_names = List.objects.filter(
+            list_type='custom',
+            cocktails=self
+        ).values_list('name', flat=True)[:5]  # Limit to first 5 for display
+        
+        return {
+            'favorites_count': favorites_count,
+            'custom_lists_count': custom_lists_count,
+            'total_lists_count': total_lists_count,
+            'custom_list_names': list(custom_list_names),
+            'has_more_lists': custom_lists_count > 5,
+        }
     
     class Meta:
         ordering = ['-created_at']  # Orders cocktails by creation date (newest first)
