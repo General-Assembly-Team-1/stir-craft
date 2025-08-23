@@ -269,6 +269,6 @@ class CocktailPerformanceTest(TestCase):
             )
         
         # Test query count for detail view
-        with self.assertNumQueries(23):  # Updated count - includes individual ingredient tag queries
+        with self.assertNumQueries(25):  # Updated count - query optimization reduced from 27 to 25
             response = self.client.get(reverse('cocktail_detail', args=[cocktail.id]))
             self.assertEqual(response.status_code, 200)

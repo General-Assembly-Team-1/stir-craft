@@ -5,7 +5,9 @@ from django.contrib.auth import login, logout  # Add login and logout imports
 from django.contrib import messages
 from django.db import models
 from django.core.paginator import Paginator
-from .models import Profile, Vessel, List, Ingredient  # Fixed: List not CocktailList
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from .models import Profile, Vessel, List, Ingredient, Cocktail  # Fixed: List not CocktailList
 from .forms.profile_forms import ProfileUpdateForm, SignUpForm
 from .forms.list_forms import ListForm  # Fixed: ListForm not CocktailListForm
 from .forms.cocktail_forms import QuickIngredientForm  # Fixed: QuickIngredientForm not IngredientForm
@@ -473,6 +475,7 @@ def cocktail_detail(request, cocktail_id):
     user_lists = []
     user_custom_lists = []
     favorites_list = None
+    is_favorited = False
     
     if request.user.is_authenticated:
         user_lists = List.objects.filter(
@@ -489,6 +492,9 @@ def cocktail_detail(request, cocktail_id):
         
         # Get user's favorites list
         favorites_list = List.get_or_create_favorites_list(request.user)
+        
+        # Check if this cocktail is favorited
+        is_favorited = favorites_list.cocktails.filter(id=cocktail.id).exists()
     
     # Calculate some stats
     total_volume = cocktail.get_total_volume()
@@ -500,12 +506,106 @@ def cocktail_detail(request, cocktail_id):
         'user_lists': user_lists,
         'user_custom_lists': user_custom_lists,
         'favorites_list': favorites_list,
+        'is_favorited': is_favorited,
         'total_volume': total_volume,
         'alcohol_content': alcohol_content,
         'can_edit': request.user == cocktail.creator,
+        'can_remove_tags': request.user == cocktail.creator or request.user.is_staff,
+        'popularity_stats': cocktail.get_popularity_stats(),
     }
     
     return render(request, 'cocktails/detail.html', context)
+
+
+@require_POST
+@login_required
+def add_cocktail_tag(request, cocktail_id):
+    """
+    Add a vibe tag to a cocktail.
+    Any authenticated user can add tags.
+    """
+    cocktail = get_object_or_404(Cocktail, id=cocktail_id)
+    tag_name = request.POST.get('tag_name', '').strip()
+    
+    if not tag_name:
+        return JsonResponse({'success': False, 'error': 'Tag name is required'})
+    
+    # Validate tag name (alphanumeric, spaces, hyphens only)
+    import re
+    if not re.match(r'^[a-zA-Z0-9\s\-]+$', tag_name):
+        return JsonResponse({'success': False, 'error': 'Tag can only contain letters, numbers, spaces, and hyphens'})
+    
+    # Limit tag length
+    if len(tag_name) > 30:
+        return JsonResponse({'success': False, 'error': 'Tag name too long (max 30 characters)'})
+    
+    # Add the tag
+    cocktail.vibe_tags.add(tag_name)
+    
+    return JsonResponse({
+        'success': True, 
+        'tag_name': tag_name,
+        'message': f'Added "{tag_name}" tag successfully'
+    })
+
+
+@require_POST
+@login_required
+def remove_cocktail_tag(request, cocktail_id):
+    """
+    Remove a vibe tag from a cocktail.
+    Only the cocktail creator or staff can remove tags.
+    """
+    cocktail = get_object_or_404(Cocktail, id=cocktail_id)
+    tag_name = request.POST.get('tag_name', '').strip()
+    
+    # Check permissions
+    if request.user != cocktail.creator and not request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'You do not have permission to remove tags from this cocktail'})
+    
+    if not tag_name:
+        return JsonResponse({'success': False, 'error': 'Tag name is required'})
+    
+    # Remove the tag
+    cocktail.vibe_tags.remove(tag_name)
+    
+    return JsonResponse({
+        'success': True, 
+        'tag_name': tag_name,
+        'message': f'Removed "{tag_name}" tag successfully'
+    })
+
+
+@require_POST
+@login_required
+def add_ingredient_flavor_tag(request, ingredient_id):
+    """
+    Add a flavor tag to an ingredient.
+    Any authenticated user can add flavor tags to help describe ingredients.
+    """
+    ingredient = get_object_or_404(Ingredient, id=ingredient_id)
+    tag_name = request.POST.get('tag_name', '').strip()
+    
+    if not tag_name:
+        return JsonResponse({'success': False, 'error': 'Tag name is required'})
+    
+    # Validate tag name
+    import re
+    if not re.match(r'^[a-zA-Z0-9\s\-]+$', tag_name):
+        return JsonResponse({'success': False, 'error': 'Tag can only contain letters, numbers, spaces, and hyphens'})
+    
+    if len(tag_name) > 30:
+        return JsonResponse({'success': False, 'error': 'Tag name too long (max 30 characters)'})
+    
+    # Add the tag
+    ingredient.flavor_tags.add(tag_name)
+    
+    return JsonResponse({
+        'success': True, 
+        'tag_name': tag_name,
+        'message': f'Added "{tag_name}" flavor tag successfully'
+    })
+
 
 @login_required
 def cocktail_create(request, fork_from_id=None):
