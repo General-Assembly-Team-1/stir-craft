@@ -177,7 +177,7 @@ class DashboardViewTest(TestCase):
         """Test that dashboard view requires authentication."""
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 302)  # Redirect to login
-        self.assertIn('/admin/login/', response.url)
+        self.assertIn('/sign-in/', response.url)
 
     def test_dashboard_view_authenticated(self):
         """Test dashboard view for authenticated user."""

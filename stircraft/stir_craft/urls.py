@@ -20,6 +20,7 @@ urlpatterns = [
     path('cocktails/', views.cocktail_index, name='cocktail_index'),
     path('cocktails/<int:cocktail_id>/', views.cocktail_detail, name='cocktail_detail'),
     path('cocktails/create/', views.cocktail_create, name='cocktail_create'),
+    path('cocktails/<int:fork_from_id>/fork/', views.cocktail_create, name='cocktail_fork'),
     path('cocktails/<int:cocktail_id>/edit/', views.cocktail_update, name='cocktail_update'),
     path('cocktails/<int:cocktail_id>/delete/', views.cocktail_delete, name='cocktail_delete'),
     
@@ -34,6 +35,7 @@ urlpatterns = [
     
     # 🎯 AJAX LIST ACTIONS
     path('cocktails/<int:cocktail_id>/add-to-list/<int:list_id>/', views.add_to_list, name='add_to_list'),
+    path('cocktails/<int:cocktail_id>/quick-add-to-list/', views.quick_add_to_list, name='quick_add_to_list'),
     path('cocktails/<int:cocktail_id>/remove-from-list/<int:list_id>/', views.remove_from_list, name='remove_from_list'),
     path('cocktails/<int:cocktail_id>/favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('cocktails/<int:cocktail_id>/quick-add/', views.quick_add_modal, name='quick_add_modal'),

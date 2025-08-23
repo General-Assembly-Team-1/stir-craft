@@ -151,7 +151,7 @@ class CocktailViewTest(TestCase):
         response = self.client.get(reverse('cocktail_create'))
         # Should redirect to login page
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/admin/login/', response.url)
+        self.assertIn('/sign-in/', response.url)
 
     def test_cocktail_index_search_functionality(self):
         """Test search functionality in cocktail index view."""
