@@ -408,6 +408,10 @@ def cocktail_index(request):
         if cleaned_data.get('ingredient'):
             cocktails = cocktails.filter(components__ingredient=cleaned_data['ingredient'])
         
+        # Filter by spirit (specific to spirit ingredients)
+        if cleaned_data.get('spirit'):
+            cocktails = cocktails.filter(components__ingredient=cleaned_data['spirit'])
+        
         # Filter by vessel
         if cleaned_data.get('vessel'):
             cocktails = cocktails.filter(vessel=cleaned_data['vessel'])

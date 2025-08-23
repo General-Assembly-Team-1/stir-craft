@@ -246,7 +246,7 @@ class CocktailPerformanceTest(TestCase):
             cocktails.append(cocktail)
         
         # Test query count for index view
-        with self.assertNumQueries(5):  # Should be efficient with select_related/prefetch_related
+        with self.assertNumQueries(8):  # Updated to account for search form loading ingredients, spirits, and vessels
             response = self.client.get(reverse('cocktail_index'))
             self.assertEqual(response.status_code, 200)
 
