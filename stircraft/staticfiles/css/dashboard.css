@@ -1,0 +1,342 @@
+/* 
+ * StirCraft Dashboard CSS
+ * Contains styles specific to the dashboard page
+ */
+
+/* =============================================================================
+ * 📊 DASHBOARD LAYOUT
+ * ============================================================================= */
+
+.dashboard-container {
+    padding: 2rem 0;
+}
+
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    margin-bottom: 0.25rem;
+}
+
+.dashboard-header .text-muted {
+    margin-bottom: 0;
+}
+
+.dashboard-action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* =============================================================================
+ * 📈 STATS DISPLAY
+ * ============================================================================= */
+
+.stats-row {
+    text-align: center;
+}
+
+.stats-item {
+    padding: 0;
+}
+
+.stats-value {
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.stats-value.text-primary {
+    color: var(--bs-primary) !important;
+}
+
+.stats-value.text-success {
+    color: var(--bs-success) !important;
+}
+
+.stats-value.text-info {
+    color: var(--bs-info) !important;
+}
+
+.stats-label {
+    font-size: 0.875rem;
+    color: var(--bs-secondary);
+}
+
+/* =============================================================================
+ * 🔒 CREATION LIST STYLES
+ * ============================================================================= */
+
+.creations-alert {
+    background-color: rgba(13, 202, 240, 0.1);
+    border: 1px solid rgba(13, 202, 240, 0.2);
+    color: rgba(13, 202, 240, 0.8);
+}
+
+.creations-alert .bi-info-circle {
+    color: var(--bs-info);
+}
+
+.creation-card {
+    border: 0;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    height: 100%;
+}
+
+.creation-card .card-body {
+    padding: 1rem;
+}
+
+.creation-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.creation-actions .btn {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* =============================================================================
+ * ❤️ FAVORITES STYLES
+ * ============================================================================= */
+
+.favorite-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+}
+
+.favorite-item:not(:last-child) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.favorite-icon {
+    background: var(--bs-light);
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    margin-right: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.favorite-content {
+    flex: 1;
+}
+
+.favorite-content h6 {
+    margin-bottom: 0.25rem;
+}
+
+.favorite-content small {
+    color: var(--bs-secondary);
+}
+
+.favorite-actions button {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* =============================================================================
+ * 📋 LIST OVERVIEW STYLES
+ * ============================================================================= */
+
+.list-overview-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+}
+
+.list-overview-item:not(:last-child) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.list-icon {
+    background: var(--bs-light);
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    margin-right: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.list-content {
+    flex: 1;
+}
+
+.list-content h6 {
+    margin-bottom: 0.25rem;
+}
+
+.list-content small {
+    color: var(--bs-secondary);
+    display: block;
+}
+
+.list-content p {
+    margin-bottom: 0;
+    font-size: 0.875rem;
+    color: var(--bs-secondary);
+}
+
+.list-meta {
+    text-align: right;
+}
+
+.list-meta small {
+    color: var(--bs-secondary);
+}
+
+/* =============================================================================
+ * ⚡ DASHBOARD QUICK ACTIONS
+ * ============================================================================= */
+
+.dashboard-quick-actions {
+    margin-top: 2rem;
+}
+
+.dashboard-quick-actions .card-body {
+    padding: 2rem;
+}
+
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    text-align: center;
+}
+
+.dashboard-action {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 1rem;
+    text-decoration: none;
+    border-radius: 0.375rem;
+    transition: all 0.15s ease-in-out;
+    min-height: 140px;
+}
+
+.dashboard-action:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+}
+
+.dashboard-action i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.dashboard-action span {
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.dashboard-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.dashboard-action:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* =============================================================================
+ * 🏷️ BADGE STYLES
+ * ============================================================================= */
+
+.badge-count {
+    margin-right: 0.5rem;
+}
+
+.badge.bg-primary {
+    background: var(--bs-primary) !important;
+}
+
+.badge.bg-danger {
+    background: var(--bs-danger) !important;
+}
+
+.badge.bg-info {
+    background: var(--bs-info) !important;
+}
+
+/* =============================================================================
+ * 📱 RESPONSIVE DASHBOARD
+ * ============================================================================= */
+
+@media (max-width: 992px) {
+    .dashboard-header {
+        text-align: center;
+    }
+    
+    .dashboard-action-buttons {
+        justify-content: center;
+        margin-top: 1rem;
+    }
+    
+    .stats-row {
+        margin-top: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1rem 0;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .dashboard-action {
+        min-height: 120px;
+        padding: 1.5rem 1rem;
+    }
+    
+    .dashboard-action i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .dashboard-action span {
+        font-size: 0.875rem;
+    }
+    
+    .creation-card .card-body {
+        padding: 0.75rem;
+    }
+    
+    .creation-actions {
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 576px) {
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .dashboard-action {
+        min-height: 100px;
+        padding: 1rem 0.5rem;
+    }
+    
+    .dashboard-action i {
+        font-size: 1.5rem;
+    }
+    
+    .dashboard-action span {
+        font-size: 0.75rem;
+    }
+}

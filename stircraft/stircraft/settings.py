@@ -184,7 +184,7 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
 # URL for login page (when @login_required decorator is triggered)
-LOGIN_URL = '/admin/login/'  # Using Django admin login for now
+LOGIN_URL = '/sign-in/'  # Redirect to custom auth page
 
 
 # =============================================================================

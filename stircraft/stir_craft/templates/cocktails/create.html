@@ -14,8 +14,31 @@
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
                     <h2 class="mb-0">🍸 {{ page_title }}</h2>
+                    {% if fork_from %}
+                        <small class="text-white-50">
+                            Making your own version of "{{ fork_from.name }}" by {{ fork_from.creator.username }}
+                        </small>
+                    {% endif %}
                 </div>
                 <div class="card-body">
+                    {% if fork_from %}
+                        <!-- Show helpful context for forking -->
+                        <div class="alert alert-info mb-4">
+                            <h5 class="alert-heading">
+                                <i class="bi bi-info-circle"></i> Creating Your Own Version
+                            </h5>
+                            <p class="mb-2">
+                                You're creating your own version of <strong>"{{ fork_from.name }}"</strong> by 
+                                <strong>{{ fork_from.creator.username }}</strong>. The form below has been pre-filled 
+                                with the original recipe - feel free to modify ingredients, instructions, or any other details!
+                            </p>
+                            <hr>
+                            <p class="mb-0">
+                                <i class="bi bi-lightbulb text-warning"></i>
+                                <strong>Tip:</strong> Change the name and description to reflect what makes your version unique!
+                            </p>
+                        </div>
+                    {% endif %}
                     <form method="post" enctype="multipart/form-data" id="cocktail-form">
                         {% csrf_token %}
                         
@@ -194,4 +217,145 @@
         </div>
     </div>
 </div>
+
+<!-- Quick Ingredient Creation Modal -->
+<div class="modal fade" id="newIngredientModal" tabindex="-1" aria-labelledby="newIngredientModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newIngredientModalLabel">
+                    <i class="bi bi-plus-circle"></i> Add New Ingredient
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quick-ingredient-form">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="new-ingredient-name" class="form-label">Ingredient Name *</label>
+                        <input type="text" class="form-control" id="new-ingredient-name" name="name" 
+                               placeholder="e.g., London Dry Gin" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-ingredient-type" class="form-label">Category *</label>
+                        <select class="form-select" id="new-ingredient-type" name="ingredient_type" required>
+                            <option value="">Select category...</option>
+                            <option value="spirit">Spirit</option>
+                            <option value="liqueur">Liqueur</option>
+                            <option value="mixer">Mixer</option>
+                            <option value="garnish">Garnish</option>
+                            <option value="syrup">Syrup</option>
+                            <option value="bitters">Bitters</option>
+                            <option value="juice">Juice</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-ingredient-alcohol" class="form-label">Alcohol Content (ABV %)</label>
+                        <input type="number" class="form-control" id="new-ingredient-alcohol" name="alcohol_content" 
+                               min="0" max="100" step="0.1" value="0" placeholder="40.0">
+                        <div class="form-text">Enter 0 for non-alcoholic ingredients</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-ingredient-description" class="form-label">Description (Optional)</label>
+                        <textarea class="form-control" id="new-ingredient-description" name="description" 
+                                  rows="2" placeholder="Brand, tasting notes, etc."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-new-ingredient">
+                    <i class="bi bi-check-circle"></i> Add Ingredient
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Handle the "Create New Ingredient" option in dropdowns
+document.addEventListener('DOMContentLoaded', function() {
+    // Listen for changes on ingredient select dropdowns
+    document.querySelectorAll('select[name$="ingredient"]').forEach(function(select) {
+        select.addEventListener('change', function() {
+            if (this.value === 'new_ingredient') {
+                // Show the modal
+                const modal = new bootstrap.Modal(document.getElementById('newIngredientModal'));
+                modal.show();
+                
+                // Store reference to the select that triggered this
+                document.getElementById('newIngredientModal').dataset.targetSelect = this.id;
+                
+                // Reset this select to empty for now
+                this.value = '';
+            }
+        });
+    });
+    
+    // Handle saving new ingredient
+    document.getElementById('save-new-ingredient').addEventListener('click', function() {
+        const form = document.getElementById('quick-ingredient-form');
+        const formData = new FormData(form);
+        
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch('{% url "ingredient_add" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Add the new ingredient to all ingredient dropdowns
+                const newOption = new Option(data.ingredient.name, data.ingredient.id);
+                document.querySelectorAll('select[name$="ingredient"]').forEach(function(select) {
+                    // Find the right optgroup to add to
+                    const typeGroup = select.querySelector(`optgroup[label="${data.ingredient.type_display}"]`);
+                    if (typeGroup) {
+                        typeGroup.appendChild(newOption.cloneNode(true));
+                    }
+                });
+                
+                // Set the ingredient in the select that triggered this modal
+                const targetSelectId = document.getElementById('newIngredientModal').dataset.targetSelect;
+                if (targetSelectId) {
+                    const targetSelect = document.getElementById(targetSelectId);
+                    targetSelect.value = data.ingredient.id;
+                }
+                
+                // Hide modal and reset form
+                const modal = bootstrap.Modal.getInstance(document.getElementById('newIngredientModal'));
+                modal.hide();
+                form.reset();
+                
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    <strong>Success!</strong> "${data.ingredient.name}" has been added to your ingredients.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                form.parentElement.insertBefore(alertDiv, form);
+                
+                // Auto-dismiss after 3 seconds
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 3000);
+            } else {
+                alert('Error creating ingredient: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error creating ingredient. Please try again.');
+        });
+    });
+});
+</script>
 {% endblock %}
