@@ -353,7 +353,7 @@ class CocktailViewTest(TestCase):
 
     def test_ingredient_create_functionality(self):
         """Test the core functionality of ingredient creation"""
-        self.client.login(username='testuser', password='testpass123')
+        self.client.login(username='cocktail_user', password='test_password_123')
         
         # Debug: Check login status
         response = self.client.get('/dashboard/')
@@ -372,7 +372,8 @@ class CocktailViewTest(TestCase):
         initial_count = Ingredient.objects.count()
         response = self.client.post(reverse('ingredient_add'), {
             'name': 'New Test Ingredient',
-            'category': 'spirit',
+            'ingredient_type': 'spirit',
+            'alcohol_content': '40.0',
             'flavor_tags': 'sweet, fruity',
         }, follow=True)  # Follow redirects
         
@@ -385,14 +386,14 @@ class CocktailViewTest(TestCase):
         
         # Verify the ingredient exists and has correct properties
         ingredient = Ingredient.objects.get(name='New Test Ingredient')
-        self.assertEqual(ingredient.category, 'spirit')
+        self.assertEqual(ingredient.ingredient_type, 'spirit')
         flavor_names = [tag.name for tag in ingredient.flavor_tags.all()]
         self.assertIn('sweet', flavor_names)
         self.assertIn('fruity', flavor_names)
 
     def test_ingredient_duplicate_prevention(self):
         """Test that duplicate ingredients are prevented"""
-        self.client.login(username='testuser', password='testpass123')
+        self.client.login(username='cocktail_user', password='test_password_123')
         
         # Try to create duplicate ingredient (Vodka already exists)
         initial_count = Ingredient.objects.filter(name__iexact='Vodka').count()
@@ -418,12 +419,13 @@ class CocktailViewTest(TestCase):
 
     def test_ingredient_create_duplicate_handling(self):
         """Test that duplicate ingredient creation returns helpful error"""
-        self.client.login(username='testuser', password='testpass123')
+        self.client.login(username='cocktail_user', password='test_password_123')
         
         # Try to create duplicate ingredient
         response = self.client.post(reverse('ingredient_add'), {
-            'name': 'Vodka',  # Already exists in setUp
-            'category': 'spirit',
+            'name': 'Premium Vodka',  # Already exists in setUp
+            'ingredient_type': 'spirit',
+            'alcohol_content': '40',
         }, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         
         self.assertEqual(response.status_code, 200)
@@ -433,15 +435,16 @@ class CocktailViewTest(TestCase):
         self.assertIn('name', data['errors'])
         error_message = data['errors']['name'][0]
         self.assertIn('already exists', error_message)
-        self.assertIn('spirit', error_message)  # Should mention category
+        self.assertIn('Spirit', error_message)  # Should mention category (title case)
 
     def test_ingredient_create_case_insensitive_duplicate(self):
         """Test that case-insensitive duplicates are detected"""
-        self.client.login(username='testuser', password='testpass123')
+        self.client.login(username='cocktail_user', password='test_password_123')
         
         response = self.client.post(reverse('ingredient_add'), {
-            'name': 'VODKA',  # Different case
-            'category': 'spirit',
+            'name': 'premium vodka',  # Case-insensitive test with existing "Premium Vodka"
+            'ingredient_type': 'spirit',
+            'alcohol_content': '40',
         }, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         
         self.assertEqual(response.status_code, 200)
@@ -451,7 +454,7 @@ class CocktailViewTest(TestCase):
 
     def test_ingredient_create_non_ajax_request(self):
         """Test that non-AJAX requests are handled properly"""
-        self.client.login(username='testuser', password='testpass123')
+        self.client.login(username='cocktail_user', password='test_password_123')
         
         response = self.client.post(reverse('ingredient_add'), {
             'name': 'Test Ingredient',
@@ -463,7 +466,7 @@ class CocktailViewTest(TestCase):
 
     def test_ingredient_create_invalid_data(self):
         """Test ingredient creation with invalid data"""
-        self.client.login(username='testuser', password='testpass123')
+        self.client.login(username='cocktail_user', password='test_password_123')
         
         response = self.client.post(reverse('ingredient_add'), {
             'name': '',  # Empty name

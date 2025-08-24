@@ -498,6 +498,7 @@ class CocktailSearchForm(forms.Form):
             ('name', 'Name A-Z'),
             ('-name', 'Name Z-A'),
             ('creator__username', 'Creator A-Z'),
+            ('-favorites_count', 'Most Popular (Most Favorites)'),
         ],
         required=False,
         initial='-created_at',

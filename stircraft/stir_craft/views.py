@@ -116,22 +116,53 @@ def sign_out(request):
 # 👤 USER & PROFILE VIEWS
 # =============================================================================
 # the login_required decorator ensures that only authenticated users can access the profile detail view
-@login_required
 def profile_detail(request, user_id=None):
     """
-    Display user profile information.
-    If user_id is None, show current user's profile.
+    Display user profile information with public lists and stats.
+    If user_id is None, show current user's profile (requires login).
+    For other users, only show public information (username, public lists, creation count).
     """
     if user_id is None:
+        # Viewing own profile requires login
+        if not request.user.is_authenticated:
+            return redirect('login')
         user = request.user
     else:
         user = get_object_or_404(User, id=user_id)
 
     profile = get_object_or_404(Profile, user=user)
+    
+    # Calculate stats for the profile user
+    from .models import Cocktail, List
+    
+    # Get cocktail creation count
+    cocktails_created = Cocktail.objects.filter(creator=user).count()
+    
+    # Get public lists (custom lists only, excluding favorites/creations for other users)
+    if request.user.is_authenticated and request.user == user:
+        # For own profile, show all lists
+        public_lists = List.objects.filter(creator=user).order_by('-updated_at')
+        favorites_list = List.get_or_create_favorites_list(user)
+        favorites_count = favorites_list.cocktail_count()
+    else:
+        # For other users, only show custom lists (not favorites/creations)
+        public_lists = List.objects.filter(
+            creator=user, 
+            list_type='custom'
+        ).order_by('-updated_at')
+        favorites_count = 0  # Don't show private favorites count
+    
+    stats = {
+        'cocktails_created': cocktails_created,
+        'public_lists': public_lists.count(),
+        'favorites_count': favorites_count,
+    }
 
     return render(request, 'users/profile_detail.html', {
         'profile': profile,
         'user': user,
+        'stats': stats,
+        'public_lists': public_lists,
     })
 
 @login_required
@@ -224,9 +255,15 @@ def ingredient_index(request):
         ingredients = ingredients.filter(ingredient_type=filter_type)
 
     # Group by category for accordion display
-    ingredients_by_category = defaultdict(list)
-    for ingredient in ingredients:
-        ingredients_by_category[ingredient.ingredient_type].append(ingredient)
+    ingredients_by_category = []
+    for category_key, category_label in Ingredient.INGREDIENT_TYPES:
+        category_ingredients = [ing for ing in ingredients if ing.ingredient_type == category_key]
+        if category_ingredients:  # Only include categories that have ingredients
+            ingredients_by_category.append({
+                'key': category_key,
+                'label': category_label,
+                'ingredients': category_ingredients
+            })
 
     context = {
         "ingredients_by_category": ingredients_by_category,
@@ -313,38 +350,12 @@ def ingredient_create(request):
         else:
             logger.warning(f"Form is invalid. Errors: {form.errors}")
             
-            # Enhanced error handling for duplicate ingredients
-            enhanced_errors = {}
-            for field, errors in form.errors.items():
-                if field == 'name' and any('already exists' in str(error).lower() for error in errors):
-                    # Check if an ingredient with this name exists and provide helpful info
-                    name = form.cleaned_data.get('name', '')
-                    if name:
-                        try:
-                            existing_ingredient = Ingredient.objects.get(name__iexact=name)
-                            enhanced_errors[field] = [
-                                f'An ingredient named "{existing_ingredient.name}" already exists in the {existing_ingredient.get_ingredient_type_display()} category. '
-                                f'You can find it in the dropdown under "{existing_ingredient.get_ingredient_type_display()}" → "{existing_ingredient.name}".'
-                            ]
-                        except Ingredient.DoesNotExist:
-                            enhanced_errors[field] = errors
-                        except Ingredient.MultipleObjectsReturned:
-                            # Handle case where there are multiple ingredients with similar names
-                            similar_ingredients = Ingredient.objects.filter(name__iexact=name)
-                            categories = [ing.get_ingredient_type_display() for ing in similar_ingredients]
-                            enhanced_errors[field] = [
-                                f'An ingredient named "{name}" already exists in multiple categories: {", ".join(set(categories))}. '
-                                f'Please check the dropdown or try a more specific name.'
-                            ]
-                else:
-                    enhanced_errors[field] = errors
-            
             # Handle form errors
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
                     'error': 'Please correct the form errors.',
-                    'errors': enhanced_errors
+                    'errors': dict(form.errors)
                 })
     else:
         form = QuickIngredientForm()
@@ -479,7 +490,18 @@ def cocktail_index(request):
         
         # Apply sorting
         if cleaned_data.get('sort_by'):
-            cocktails = cocktails.order_by(cleaned_data['sort_by'])
+            sort_option = cleaned_data['sort_by']
+            
+            # Handle popularity-based sorting
+            if sort_option == '-favorites_count':
+                # Add annotation for favorites count and filter to only show cocktails with at least 1 favorite
+                from django.db.models import Count, Q
+                cocktails = cocktails.annotate(
+                    favorites_count=Count('in_lists', filter=Q(in_lists__list_type='favorites'))
+                ).filter(favorites_count__gt=0).order_by('-favorites_count', '-created_at')
+            else:
+                # Regular sorting
+                cocktails = cocktails.order_by(sort_option)
     else:
         # Default ordering
         cocktails = cocktails.order_by('-created_at')
@@ -514,12 +536,12 @@ def cocktail_detail(request, cocktail_id):
     
     cocktail = get_object_or_404(
         Cocktail.objects.select_related('creator', 'vessel')
-                       .prefetch_related('components__ingredient', 'vibe_tags'),
+                       .prefetch_related('components__ingredient__flavor_tags', 'vibe_tags'),
         id=cocktail_id
     )
     
     # Get recipe components ordered by their order field
-    components = cocktail.components.select_related('ingredient').order_by('order', 'ingredient__name')
+    components = cocktail.components.select_related('ingredient').prefetch_related('ingredient__flavor_tags').order_by('order', 'ingredient__name')
     
     # Check if user has this in any of their lists (for authenticated users)
     user_lists = []
@@ -947,8 +969,12 @@ def list_detail(request, list_id):
     
     list_obj = get_object_or_404(List, id=list_id)
     
-    # Check if user can view this list (for now, all lists are viewable)
-    # TODO: Add privacy settings later if needed
+    # Check if user can view this list
+    # Custom lists are public (viewable by anyone)
+    # Favorites and creations lists are private (only owner can view)
+    if list_obj.list_type in ['favorites', 'creations'] and request.user != list_obj.creator:
+        messages.error(request, 'You do not have permission to view this private list.')
+        return redirect('profile_detail', user_id=list_obj.creator.id)
     
     # Get cocktails in this list with search/filtering
     cocktails = list_obj.cocktails.select_related('creator', 'vessel').prefetch_related('components__ingredient', 'vibe_tags')
@@ -1382,57 +1408,119 @@ def list_feed(request):
     })
 
 @login_required
-def list_detail(request, list_id):
+def list_bulk_operations(request, list_id):
     """
-    Display cocktails in a specific list.
-    Handle privacy settings, show list metadata.
+    Handle bulk operations on cocktails within a list (AJAX endpoint).
+    
+    Supported operations:
+    - move: Move selected cocktails to another list
+    - copy: Copy selected cocktails to another list  
+    - remove: Remove selected cocktails from current list
+    - clone: Clone entire list to another list
     """
-    cocktail_list = get_object_or_404(List, id=list_id)
+    from .models import List, Cocktail
+    from django.http import JsonResponse
+    import json
     
-    # For now, only the list creator can view the list
-    # TODO: Implement privacy settings with is_public field
-    if request.user != cocktail_list.creator:
-        messages.error(request, 'You do not have permission to view this list.')
-        return redirect('user_lists')  # Redirect to lists index or appropriate page
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST method required'})
     
-    return render(request, 'lists/detail.html', {
-        'list': cocktail_list,
-        'cocktails': cocktail_list.cocktails.all(),
-    })
+    # Get the source list
+    source_list = get_object_or_404(List, id=list_id)
+    
+    # Check permissions
+    if request.user != source_list.creator:
+        return JsonResponse({'success': False, 'error': 'Permission denied'})
+    
+    if not source_list.is_editable:
+        return JsonResponse({'success': False, 'error': 'List is not editable'})
+    
+    try:
+        # Parse request data
+        data = json.loads(request.body)
+        operation = data.get('operation')
+        cocktail_ids = data.get('cocktail_ids', [])
+        target_list_id = data.get('target_list_id')
+        
+        if operation in ['move', 'copy', 'clone'] and not target_list_id:
+            return JsonResponse({'success': False, 'error': 'Target list required for this operation'})
+        
+        # Get target list if needed
+        target_list = None
+        if target_list_id:
+            target_list = get_object_or_404(List, id=target_list_id)
+            if request.user != target_list.creator or not target_list.is_editable:
+                return JsonResponse({'success': False, 'error': 'Cannot modify target list'})
+        
+        # Get cocktails
+        cocktails = Cocktail.objects.filter(id__in=cocktail_ids) if cocktail_ids else source_list.cocktails.all()
+        
+        if operation == 'remove':
+            # Remove selected cocktails from source list
+            source_list.cocktails.remove(*cocktails)
+            message = f'Removed {cocktails.count()} cocktails from "{source_list.name}"'
+            
+        elif operation == 'move':
+            # Move cocktails from source to target
+            target_list.cocktails.add(*cocktails)
+            source_list.cocktails.remove(*cocktails)
+            message = f'Moved {cocktails.count()} cocktails from "{source_list.name}" to "{target_list.name}"'
+            
+        elif operation == 'copy':
+            # Copy cocktails to target (don't remove from source)
+            target_list.cocktails.add(*cocktails)
+            message = f'Copied {cocktails.count()} cocktails from "{source_list.name}" to "{target_list.name}"'
+            
+        elif operation == 'clone':
+            # Clone entire list
+            all_cocktails = source_list.cocktails.all()
+            target_list.cocktails.add(*all_cocktails)
+            message = f'Cloned all {all_cocktails.count()} cocktails from "{source_list.name}" to "{target_list.name}"'
+            
+        else:
+            return JsonResponse({'success': False, 'error': 'Invalid operation'})
+        
+        return JsonResponse({
+            'success': True,
+            'message': message,
+            'source_count': source_list.cocktail_count(),
+            'target_count': target_list.cocktail_count() if target_list else None
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
-# Class-based view for list detail (alternative implementation)
-class ListDetailView(DetailView):
-    model = List
-    template_name = 'lists/detail.html'  # Fixed template path
-    context_object_name = 'list'
-    
-    def get_object(self, queryset=None):
-        """Override to handle privacy checks"""
-        obj = super().get_object(queryset)
-        if not obj.is_public and self.request.user != obj.creator:
-            messages.error(self.request, 'You do not have permission to view this list.')
-            # You might want to raise Http404 or redirect instead
-            return None
-        return obj
-
-# Function-based view for list creation
 @login_required
 def list_create(request):
     """
     Create new cocktail collection.
-    Set visibility, name, description.
+    Set name, description for custom lists.
     """
+    from .forms.list_forms import ListForm
+    
     if request.method == 'POST':
         form = ListForm(request.POST, user=request.user)
+        
         if form.is_valid():
-            cocktail_list = form.save(commit=False)
-            cocktail_list.creator = request.user
-            cocktail_list.save()
-            return redirect('list_detail', list_id=cocktail_list.id)  # Fixed redirect
+            list_obj = form.save(commit=False)
+            list_obj.creator = request.user
+            list_obj.list_type = 'custom'  # Only custom lists can be created manually
+            list_obj.save()
+            
+            messages.success(request, f'🗂️ List "{list_obj.name}" has been created successfully!')
+            return redirect('list_detail', list_id=list_obj.id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = ListForm(user=request.user)
     
-    return render(request, 'lists/list_form.html', {'form': form})
+    return render(request, 'lists/list_form.html', {
+        'form': form,
+        'page_title': 'Create New List',
+        'submit_text': 'Create List',
+    })
 
 
 

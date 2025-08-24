@@ -5,7 +5,7 @@
     </div>
     <div class="list-content">
         <h6 class="mb-1">
-            <a href="#" class="text-decoration-none" title="View List (Coming Soon)">
+            <a href="{% url 'list_detail' list.id %}" class="text-decoration-none">
                 {{ list.name }}
             </a>
         </h6>
