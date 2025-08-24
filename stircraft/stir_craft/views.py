@@ -260,6 +260,7 @@ def ingredient_detail(request, ingredient_id):
 # -----------------------------------------------------------------------------
 # Ingredient Create View
 # -----------------------------------------------------------------------------
+@login_required
 def ingredient_create(request):
     """
     Create new ingredients.
@@ -267,34 +268,83 @@ def ingredient_create(request):
     Supports AJAX requests for on-the-fly ingredient creation during cocktail creation.
     """
     from django.http import JsonResponse
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"ingredient_create called with method: {request.method}")
+    logger.info(f"Is AJAX request: {request.headers.get('X-Requested-With') == 'XMLHttpRequest'}")
+    logger.info(f"POST data: {request.POST}")
     
     if request.method == "POST":
         form = QuickIngredientForm(request.POST)
+        logger.info(f"Form created with data: {request.POST}")
+        
         if form.is_valid():
-            ingredient = form.save()
-            
-            # If it's an AJAX request, return JSON response
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': True,
-                    'ingredient': {
-                        'id': ingredient.id,
-                        'name': ingredient.name,
-                        'type_display': ingredient.get_ingredient_type_display(),
-                        'alcohol_content': ingredient.alcohol_content,
+            logger.info("Form is valid, saving ingredient")
+            try:
+                ingredient = form.save()
+                logger.info(f"Ingredient saved successfully: {ingredient.name}")
+                
+                # If it's an AJAX request, return JSON response
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    response_data = {
+                        'success': True,
+                        'ingredient': {
+                            'id': ingredient.id,
+                            'name': ingredient.name,
+                            'type_display': ingredient.get_ingredient_type_display(),
+                            'alcohol_content': ingredient.alcohol_content,
+                        }
                     }
-                })
-            else:
-                # Regular form submission
-                messages.success(request, f'Ingredient "{ingredient.name}" created successfully!')
-                return redirect("ingredient_index")
+                    logger.info(f"Returning JSON response: {response_data}")
+                    return JsonResponse(response_data)
+                else:
+                    # Regular form submission
+                    messages.success(request, f'Ingredient "{ingredient.name}" created successfully!')
+                    return redirect("ingredient_index")
+            except Exception as e:
+                logger.error(f"Error saving ingredient: {e}")
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'Error saving ingredient: {str(e)}'
+                    })
+                raise
         else:
+            logger.warning(f"Form is invalid. Errors: {form.errors}")
+            
+            # Enhanced error handling for duplicate ingredients
+            enhanced_errors = {}
+            for field, errors in form.errors.items():
+                if field == 'name' and any('already exists' in str(error).lower() for error in errors):
+                    # Check if an ingredient with this name exists and provide helpful info
+                    name = form.cleaned_data.get('name', '')
+                    if name:
+                        try:
+                            existing_ingredient = Ingredient.objects.get(name__iexact=name)
+                            enhanced_errors[field] = [
+                                f'An ingredient named "{existing_ingredient.name}" already exists in the {existing_ingredient.get_ingredient_type_display()} category. '
+                                f'You can find it in the dropdown under "{existing_ingredient.get_ingredient_type_display()}" → "{existing_ingredient.name}".'
+                            ]
+                        except Ingredient.DoesNotExist:
+                            enhanced_errors[field] = errors
+                        except Ingredient.MultipleObjectsReturned:
+                            # Handle case where there are multiple ingredients with similar names
+                            similar_ingredients = Ingredient.objects.filter(name__iexact=name)
+                            categories = [ing.get_ingredient_type_display() for ing in similar_ingredients]
+                            enhanced_errors[field] = [
+                                f'An ingredient named "{name}" already exists in multiple categories: {", ".join(set(categories))}. '
+                                f'Please check the dropdown or try a more specific name.'
+                            ]
+                else:
+                    enhanced_errors[field] = errors
+            
             # Handle form errors
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
                     'error': 'Please correct the form errors.',
-                    'errors': form.errors
+                    'errors': enhanced_errors
                 })
     else:
         form = QuickIngredientForm()
@@ -735,6 +785,7 @@ def cocktail_create(request, fork_from_id=None):
         'formset': formset,
         'page_title': page_title,
         'fork_from': fork_from,
+        'quick_ingredient_form': QuickIngredientForm(),
     })
 
 
