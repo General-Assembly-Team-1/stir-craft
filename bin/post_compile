@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# This script runs after the buildpack has installed dependencies
+# It handles running collectstatic from the correct directory
+
+echo "-----> Running collectstatic from stircraft directory"
+cd stircraft
+python manage.py collectstatic --noinput

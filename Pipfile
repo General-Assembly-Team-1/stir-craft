@@ -4,12 +4,17 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "*"
-django-taggit = "*"
-psycopg2-binary = "*"
-requests = "*"
+django = "==5.2.5"
+django-taggit = "==6.1.0"
+django-environ = "==0.12.0"
+psycopg2-binary = "==2.9.10"
+requests = "==2.32.4"
+gunicorn = "==20.1.0"
+redis = "==4.5.5"
+django-redis = "==5.2.0"
+whitenoise = "==6.4.0"
 
 [dev-packages]
 
 [requires]
-python_version = "3.11"
+python_version = "3.12"

@@ -1,0 +1,59 @@
+# requirements.txt — pinned application dependencies and notes
+# ---------------------------------------------------------------------------
+# Purpose:
+#  - A pip-compatible, line-oriented list of packages used for production
+#  - CI systems and Heroku commonly use this file to install dependencies
+#  - Use this file to create reproducible environments with pip or Docker
+#
+# How this file was generated:
+#  - The project uses Pipenv/Pipfile.lock for exact dependency pins.
+#  - A minimal, hand-curated `requirements.txt` was produced from the
+#    lockfile by selecting top-level packages and exact versions where
+#    available in `Pipfile.lock`. For a full, fully pinned export use:
+#      pipenv lock -r  (if using pipenv) OR
+#      pip-compile --output-file=requirements.txt pyproject.toml (if using pip-tools)
+#
+# Notes / best practices:
+#  - Pin exact versions in production for reproducible installs.
+#  - Keep `Pipfile.lock` as the canonical source-of-truth if you use Pipenv;
+#    regenerate `requirements.txt` from it when you change dependencies.
+#  - If you rely on extras or dev dependencies, maintain a separate
+#    `requirements-dev.txt` (not included here).
+#
+
+# Core Django and ecosystem (pinned from Pipfile.lock where available)
+Django==5.2.5                # Primary web framework (core app)
+django-taggit==6.1.0         # Tagging utility used by models
+django-environ==0.12.0       # Environment-variable config helper
+psycopg2-binary==2.9.10      # PostgreSQL client
+requests==2.32.4             # HTTP client used for external APIs
+Pillow==10.4.0               # Image processing library for Django ImageField
+
+# WSGI server for production
+# (Pipfile listed gunicorn but it was not present in the lockfile; pin to a stable minor)
+gunicorn==20.1.0             # Production WSGI server used by Heroku / Docker
+
+# Caching / redis support (application imports redis/django-redis in code)
+redis==4.5.5                 # Redis python client (used when REDIS_URL set)
+django-redis==5.2.0          # Django cache backend integration for Redis
+
+# Deploy helpers (not strictly required but common in production)
+whitenoise==6.4.0            # Serve static files directly from Django in simple deployments
+
+# NOTE: This is a minimal list of top-level packages. `pip install -r requirements.txt`
+# will install these packages and their transitive dependencies. For a complete,
+# deterministic reproduction pin every transitive dependency (use pipenv lock -r or
+# pip-tools for that).
+#
+# Regenerate guidance (when you control the environment):
+# 1) If you use pipenv locally:
+#    pipenv lock -r > requirements.txt
+#    (Older pipenv versions may not accept -r; if so, use `pipenv lock --requirements`)
+# 2) If you use pip-tools / poetry, use the appropriate export commands.
+#
+# Security note:
+#  - Review dependency CVE advisories regularly and update pins as needed.
+#  - Avoid committing secrets to repo; use .env or platform config for secrets.
+#
+# EOF
+Pillow==10.0.0

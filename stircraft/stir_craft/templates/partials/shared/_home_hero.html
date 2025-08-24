@@ -1,0 +1,24 @@
+{% load static %}
+<div class="jumbotron p-5 rounded bg-light shadow-sm">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <h1 class="display-5">Welcome to StirCraft</h1>
+                <p class="lead text-muted">Discover, create, and share cocktail recipes crafted by a passionate community.</p>
+                <p>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'cocktail_create' %}" class="btn btn-primary btn-lg">Create a Cocktail</a>
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-lg ms-2">Your Dashboard</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Log in</a>
+                        <a href="{% url 'cocktail_index' %}" class="btn btn-outline-secondary btn-lg ms-2">Browse Cocktails</a>
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="col-md-5 text-center d-none d-md-block">
+                <img src="{% static 'images/favicon_io/stircraftLogoNew.png' %}" alt="StirCraft logo" class="img-fluid rounded shadow-sm home-hero-logo">
+            </div>
+        </div>
+    </div>
+</div>

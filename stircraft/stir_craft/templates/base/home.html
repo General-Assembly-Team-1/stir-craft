@@ -1,0 +1,30 @@
+
+{% extends 'base/base.html' %}
+
+{% block title %}Home - StirCraft{% endblock %}
+
+{% block content %}
+
+	{# Hero section for the home page #}
+	{% include 'partials/shared/_home_hero.html' %}
+
+	{# Simple site intro + call-to-action (no search on home) #}
+	<div class="mt-4">
+		<div class="card shadow-sm">
+			<div class="card-body">
+				<h2 class="h5">What is StirCraft?</h2>
+				<p class="mb-3 text-muted">StirCraft is a quick reference and community for aspiring hosts and bartenders — view classic cocktails, add your own variations, and keep curated lists of related recipes.</p>
+				<p>
+					{% if user.is_authenticated %}
+						<a href="{% url 'cocktail_create' %}" class="btn btn-primary">Add a cocktail</a>
+						<a href="{% url 'cocktail_index' %}" class="btn btn-outline-secondary ms-2">Browse classics</a>
+					{% else %}
+						<a href="{% url 'login' %}" class="btn btn-primary">Join / Log in</a>
+						<a href="{% url 'cocktail_index' %}" class="btn btn-outline-secondary ms-2">Browse classics</a>
+					{% endif %}
+				</p>
+			</div>
+		</div>
+	</div>
+
+{% endblock %}

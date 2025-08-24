@@ -61,7 +61,7 @@ class ProfileFormTest(TestCase):
             'last_name': 'Name', 
             'email': 'updated@stircraft.com',
             'birthdate': '1995-06-15',
-            'location': 'Updated City',
+            'location': 'NYC',  # Shortened to fit 10 char limit
         }
         form = ProfileUpdateForm(data=form_data)
         self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
@@ -75,7 +75,7 @@ class ProfileFormTest(TestCase):
         form = ProfileDeleteForm(data=form_data)
         # Note: This form requires user context for password validation
         # In a real test, you'd pass the user and validate accordingly
-        self.assertIn('confirmation', form.fields)
+        self.assertIn('username_confirmation', form.fields)
         self.assertIn('password', form.fields)
 
 
@@ -105,6 +105,7 @@ class ProfileViewTest(TestCase):
 
     def test_profile_detail_specific_user(self):
         """Test that profile detail view displays a specific user's profile."""
+        self.client.login(username='testuser', password='password123')
         other_user = User.objects.create_user(
             username='otheruser',
             email='otheruser@example.com',
@@ -122,7 +123,11 @@ class ProfileViewTest(TestCase):
         """Test that profile update view successfully updates the profile."""
         self.client.login(username='testuser', password='password123')
         response = self.client.post(reverse('profile_update'), {
-            'birthdate': '1999-01-01'
+            'first_name': 'Test',
+            'last_name': 'User',
+            'email': 'testuser@example.com',
+            'birthdate': '1999-01-01',
+            'location': 'Test City'
         })
         self.assertEqual(response.status_code, 302)  # Redirect after success
         self.profile.refresh_from_db()
@@ -147,7 +152,7 @@ class GeneralViewTest(TestCase):
         """Test that the home view renders the correct template."""
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home.html')
+        self.assertTemplateUsed(response, 'base/home.html')
 
 
 class DashboardViewTest(TestCase):
@@ -172,14 +177,14 @@ class DashboardViewTest(TestCase):
         """Test that dashboard view requires authentication."""
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 302)  # Redirect to login
-        self.assertIn('/admin/login/', response.url)
+        self.assertIn('/sign-in/', response.url)
 
     def test_dashboard_view_authenticated(self):
         """Test dashboard view for authenticated user."""
         self.client.login(username='dashboard_user', password='test_password_123')
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'stir_craft/dashboard.html')
+        self.assertTemplateUsed(response, 'users/dashboard.html')
         self.assertContains(response, self.user.username)
 
     def test_dashboard_context_data(self):

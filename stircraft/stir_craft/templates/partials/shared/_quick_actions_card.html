@@ -1,0 +1,51 @@
+<!-- Quick Actions Dashboard Card -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-lightning-fill text-warning"></i> Quick Actions
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="quick-actions-grid">
+            {% if user.is_authenticated %}
+                <!-- Show "Make it your own" button if viewing someone else's cocktail -->
+                {% if cocktail and user != cocktail.creator %}
+                    <a href="{% url 'cocktail_fork' cocktail.id %}" class="btn btn-outline-success dashboard-action">
+                        <i class="bi bi-plus-square"></i>
+                        <span>Make it Your Own!</span>
+                    </a>
+                {% endif %}
+                
+                <!-- Standard create cocktail button -->
+                <a href="{% url 'cocktail_create' %}" class="btn btn-outline-primary dashboard-action">
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Create Cocktail</span>
+                </a>
+                
+                <!-- Edit button for cocktail owner -->
+                {% if cocktail and can_edit %}
+                    <a href="{% url 'cocktail_update' cocktail.id %}" class="btn btn-outline-warning dashboard-action">
+                        <i class="bi bi-pencil"></i>
+                        <span>Edit Recipe</span>
+                    </a>
+                {% endif %}
+            {% endif %}
+            
+            <a href="{% url 'cocktail_index' %}" class="btn btn-outline-success dashboard-action">
+                <i class="bi bi-search"></i>
+                <span>Browse Recipes</span>
+            </a>
+            
+            {% if user.is_authenticated %}
+                <a href="{% url 'user_lists' %}" class="btn btn-outline-info dashboard-action">
+                    <i class="bi bi-collection"></i>
+                    <span>Manage Lists</span>
+                </a>
+                <a href="{% url 'profile_update' %}" class="btn btn-outline-secondary dashboard-action">
+                    <i class="bi bi-gear"></i>
+                    <span>Settings</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

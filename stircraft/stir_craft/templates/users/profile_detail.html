@@ -1,0 +1,248 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ profile.user.username }}'s Profile - StirCraft{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Profile Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h1 class="mb-1">{{ profile.user.username }}</h1>
+                            {% if profile.user.first_name %}
+                                <p class="text-muted mb-2">{{ profile.user.first_name }} {{ profile.user.last_name }}</p>
+                            {% endif %}
+                            <div class="d-flex align-items-center gap-3">
+                                {% if profile.location %}
+                                    <small class="text-muted">
+                                        <i class="bi bi-geo-alt"></i> {{ profile.location }}
+                                    </small>
+                                {% endif %}
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i> Member since {{ profile.user.date_joined|date:"F Y" }}
+                                </small>
+                            </div>
+                        </div>
+                        {% if user == profile.user %}
+                            <div>
+                                <a href="{% url 'profile_update' %}" class="btn btn-outline-primary">
+                                    <i class="bi bi-pencil"></i> Edit Profile
+                                </a>
+                                <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                                    <i class="bi bi-house"></i> Dashboard
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Stats and Lists -->
+    <div class="row">
+        <!-- Stats Sidebar -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart text-info"></i> Stats
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h3 class="text-primary">{{ stats.cocktails_created|default:0 }}</h3>
+                                <small class="text-muted">cocktails created</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h3 class="text-success">{{ stats.public_lists|default:0 }}</h3>
+                                <small class="text-muted">Public Lists</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% if user == profile.user %}
+                        <hr>
+                        <div class="text-center">
+                            <small class="text-muted">
+                                <h4 class="text-warning">{{ stats.favorites_count|default:0 }}</h4>
+                                <small>Favorites (Private)</small>
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if user != profile.user %}
+                <!-- Public Actions for Other Users -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-person-plus text-primary"></i> Connect
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="small text-muted">
+                            Discover {{ profile.user.username }}'s cocktail creations and curated lists below.
+                        </p>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'cocktail_index' %}?creator={{ profile.user.id }}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-search"></i> View Cocktails
+                            </a>
+                            {% if stats.public_lists > 0 %}
+                                <a href="{% url 'user_lists' profile.user.id %}" class="btn btn-outline-info btn-sm">
+                                    <i class="bi bi-collection"></i> View Lists
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Public Lists (for other users) or Recent Activity (for self) -->
+            {% if user != profile.user %}
+                <!-- Public Lists for Other Users -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-collection text-info"></i> {{ profile.user.username }}'s Lists
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if public_lists %}
+                            <div class="row">
+                                {% for list in public_lists|slice:":6" %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body">
+                                                <h6 class="card-title">
+                                                    <a href="{% url 'list_detail' list.id %}" class="text-decoration-none">
+                                                        {{ list.name }}
+                                                    </a>
+                                                </h6>
+                                                {% if list.description %}
+                                                    <p class="card-text small text-muted">{{ list.description|truncatechars:80 }}</p>
+                                                {% endif %}
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-collection"></i> {{ list.cocktail_count }} cocktails
+                                                    </small>
+                                                    <small class="text-muted">{{ list.updated_at|timesince }} ago</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if public_lists.count > 6 %}
+                                <div class="text-center">
+                                    <a href="{% url 'user_lists' profile.user.id %}" class="btn btn-outline-primary">
+                                        View All {{ public_lists.count }} Lists
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-collection display-4 text-muted"></i>
+                                <h6 class="mt-3">No public lists yet</h6>
+                                <p class="text-muted">{{ profile.user.username }} hasn't created any public lists to share.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <!-- Quick Actions for Self -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightning text-warning"></i> Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <a href="{% url 'cocktail_create' %}" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-plus-circle"></i> Create Cocktail
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <a href="{% url 'list_create' %}" class="btn btn-outline-info w-100">
+                                    <i class="bi bi-collection"></i> Create List
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <a href="{% url 'user_lists' %}" class="btn btn-outline-secondary w-100">
+                                    <i class="bi bi-list-ul"></i> Manage Lists
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <a href="{% url 'cocktail_index' %}?creator={{ user.id }}" class="btn btn-outline-success w-100">
+                                    <i class="bi bi-search"></i> View My Cocktails
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Lists for Self -->
+                {% if public_lists %}
+                <div class="card mt-4 lists-overview-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-collection text-info"></i> My Lists
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for list in public_lists|slice:":6" %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-0 bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <a href="{% url 'list_detail' list.id %}" class="text-decoration-none">
+                                                    {{ list.name }}
+                                                </a>
+                                            </h6>
+                                            {% if list.description %}
+                                                <p class="card-text small text-muted">{{ list.description|truncatechars:80 }}</p>
+                                            {% endif %}
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-collection"></i> {{ list.cocktail_count }} cocktails
+                                                </small>
+                                                <small class="text-muted">{{ list.updated_at|timesince }} ago</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if public_lists.count > 6 %}
+                            <div class="text-center">
+                                <a href="{% url 'user_lists' %}" class="btn btn-outline-primary">
+                                    View All {{ public_lists.count }} Lists
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

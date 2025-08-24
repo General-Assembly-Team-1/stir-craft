@@ -1,0 +1,73 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ cocktail.name }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/cocktail.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <div class="card shadow">
+                {% include 'partials/cocktails/_cocktail_header.html' %}
+                
+                <div class="card-body">
+                    <!-- Description -->
+                    {% if cocktail.description %}
+                        <p class="lead">{{ cocktail.description }}</p>
+                    {% endif %}
+                    
+                    <!-- Creator and Meta Info -->
+                    {% include 'partials/cocktails/_cocktail_meta.html' %}
+                    
+                    <!-- Tag Management and Popularity Stats -->
+                    {% include 'partials/cocktails/_tag_management.html' %}
+                    
+                    <!-- Ingredients -->
+                    {% include 'partials/shared/_ingredients_table.html' %}
+                    
+                    <!-- Instructions -->
+                    <div class="mb-4">
+                        <h3><i class="bi bi-list-check"></i> Instructions</h3>
+                        <div class="card">
+                            <div class="card-body bg-light instructions-text">
+                                {{ cocktail.instructions|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Enhanced Actions Section -->
+                    {% include 'partials/cocktails/_enhanced_actions.html' %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            {% include 'partials/shared/_user_lists_card.html' %}
+            {% include 'partials/shared/_ingredient_details_card.html' %}
+        </div>
+    </div>
+</div>
+
+<!-- Configuration for JavaScript -->
+<script>
+// Pass Django URLs and data to JavaScript
+window.stirCraftConfig = {
+    csrfToken: '{{ csrf_token }}',
+    favoriteUrl: '{% url "toggle_favorite" cocktail.id %}',
+    addToListUrl: '{% url "quick_add_to_list" cocktail.id %}',
+    cocktailId: {{ cocktail.id }}
+};
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Enhanced cocktail actions -->
+<script src="{% static 'js/cocktail-actions.js' %}"></script>
+<script src="{% static 'js/favorites-new.js' %}"></script>
+{% endblock %}

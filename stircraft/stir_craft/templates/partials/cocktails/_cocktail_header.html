@@ -1,0 +1,103 @@
+<!-- Cocktail Header Partial -->
+<div class="card-header bg-primary text-white">
+    <div class="row align-items-center">
+        <!-- Cocktail Image -->
+        <div class="col-md-3 text-center">
+            {% if cocktail.image %}
+                <img src="{{ cocktail.image.url }}" 
+                     alt="{{ cocktail.name }}" 
+                     class="cocktail-header-image img-fluid rounded shadow">
+            {% else %}
+                <div class="image-placeholder rounded shadow d-flex align-items-center justify-content-center text-white-50" 
+                     style="width: 200px; height: 200px; background: rgba(255,255,255,0.1);">
+                    <i class="bi bi-cup-straw" style="font-size: 4rem;"></i>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Cocktail Title and Attribution -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <h1 class="mb-2 fw-bold">🍸 {{ cocktail.name }}</h1>
+                    
+                    {% if cocktail.vessel %}
+                        <p class="mb-2 opacity-75">
+                            <i class="bi bi-cup"></i> {{ cocktail.vessel.name }}
+                            {% if cocktail.vessel.volume %}
+                                ({{ cocktail.vessel.volume|floatformat:2 }} oz)
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                    
+                    <!-- Attribution -->
+                    <div class="mb-3">
+                        <p class="mb-1">
+                            <i class="bi bi-person-circle"></i>
+                            <strong>Created by:</strong> 
+                            <a href="{% url 'profile_detail' cocktail.creator.id %}" class="text-white text-decoration-underline">
+                                {{ cocktail.creator.username }}
+                            </a>
+                            <small class="opacity-75">on {{ cocktail.created_at|date:"M d, Y" }}</small>
+                        </p>
+                        
+                        {% if cocktail.forked_from %}
+                            <p class="mb-1 opacity-90">
+                                <i class="bi bi-arrow-right-circle"></i>
+                                <strong>Based on:</strong> 
+                                <a href="{% url 'cocktail_detail' cocktail.forked_from.id %}" class="text-white text-decoration-underline">
+                                    "{{ cocktail.forked_from.name }}"
+                                </a>
+                                by
+                                <a href="{% url 'profile_detail' cocktail.forked_from.creator.id %}" class="text-white text-decoration-underline">
+                                    {{ cocktail.forked_from.creator.username }}
+                                </a>
+                            </p>
+                        {% endif %}
+                        
+                        {% if cocktail.attribution_text %}
+                            <p class="mb-1 opacity-90 attribution-text">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Source:</strong> 
+                                {% if cocktail.attribution_url %}
+                                    <a href="{{ cocktail.attribution_url }}" target="_blank" rel="noopener noreferrer" class="text-white text-decoration-underline attribution-link">
+                                        {{ cocktail.attribution_text }}
+                                    </a>
+                                {% else %}
+                                    <span class="attribution-text">{{ cocktail.attribution_text }}</span>
+                                {% endif %}
+                            </p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Vibe Tags -->
+                    {% if cocktail.vibe_tags.all %}
+                        <div class="mb-2">
+                            <i class="bi bi-tags me-2"></i>
+                            {% for tag in cocktail.vibe_tags.all|slice:":5" %}
+                                <span class="badge bg-light text-dark me-1 mb-1">{{ tag.name }}</span>
+                            {% endfor %}
+                            {% if cocktail.vibe_tags.count > 5 %}
+                                <span class="badge bg-light text-muted me-1 mb-1">+{{ cocktail.vibe_tags.count|add:"-5" }} more</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Owner Actions -->
+                {% if can_edit %}
+                    <div class="ms-3">
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'cocktail_update' cocktail.id %}" class="btn btn-outline-light btn-sm">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <a href="{% url 'cocktail_delete' cocktail.id %}" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

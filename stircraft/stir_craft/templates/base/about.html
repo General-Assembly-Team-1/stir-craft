@@ -1,0 +1,120 @@
+{% extends 'base/base.html' %}
+
+{% block title %}About - StirCraft{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Page Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 text-primary mb-3">
+                    <i class="bi bi-cup-hot"></i> About StirCraft
+                </h1>
+                <p class="lead text-muted">Your digital companion for cocktail creation and discovery</p>
+            </div>
+
+            <!-- About Section -->
+            <div class="row mb-5">
+                <div class="col-md-8 mx-auto">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-4">
+                            <h2 class="h4 text-primary mb-3">What is StirCraft?</h2>
+                            <p class="mb-3">StirCraft makes cocktail creation easy and fun. Build complex recipes with multiple ingredients, measurements, and notes—all in one intuitive form. Perfect for home bartenders and pros alike, StirCraft helps you mix, manage, and share your favorite drinks effortlessly.</p>
+                            
+                            <div class="d-flex flex-wrap gap-2 mt-4">
+                                <a href="{% url 'cocktail_index' %}" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> Browse Cocktails
+                                </a>
+                                {% if user.is_authenticated %}
+                                    <a href="{% url 'cocktail_create' %}" class="btn btn-outline-primary">
+                                        <i class="bi bi-plus-circle"></i> Create Recipe
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'signup' %}" class="btn btn-outline-primary">
+                                        <i class="bi bi-person-plus"></i> Join Now
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="row mb-5">
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0 bg-light">
+                        <div class="card-body text-center">
+                            <i class="bi bi-pencil-square text-primary mb-3" style="font-size: 2rem;"></i>
+                            <h5 class="card-title">Create Recipes</h5>
+                            <p class="card-text text-muted">Build detailed cocktail recipes with multiple ingredients, measurements, and preparation notes.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0 bg-light">
+                        <div class="card-body text-center">
+                            <i class="bi bi-heart-fill text-primary mb-3" style="font-size: 2rem;"></i>
+                            <h5 class="card-title">Save Favorites</h5>
+                            <p class="card-text text-muted">Keep track of your favorite cocktails and organize them into custom lists and collections.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0 bg-light">
+                        <div class="card-body text-center">
+                            <i class="bi bi-people-fill text-primary mb-3" style="font-size: 2rem;"></i>
+                            <h5 class="card-title">Share & Discover</h5>
+                            <p class="card-text text-muted">Discover new recipes from other mixologists and share your own creations with the community.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tech Stack Section -->
+            <div class="row">
+                <div class="col-md-8 mx-auto">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h3 class="h5 mb-0">
+                                <i class="bi bi-gear-fill"></i> Built With Modern Technology
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <strong><i class="bi bi-server text-success"></i> Backend:</strong> Django 5.2
+                                        </li>
+                                        <li class="mb-2">
+                                            <strong><i class="bi bi-palette text-info"></i> Frontend:</strong> Bootstrap 5 + JavaScript
+                                        </li>
+                                        <li class="mb-2">
+                                            <strong><i class="bi bi-database text-warning"></i> Database:</strong> PostgreSQL
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="col-sm-6">
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <strong><i class="bi bi-shield-check text-primary"></i> Security:</strong> HTTPS + Authentication
+                                        </li>
+                                        <li class="mb-2">
+                                            <strong><i class="bi bi-cloud text-secondary"></i> Hosting:</strong> Production-ready deployment
+                                        </li>
+                                        <li class="mb-2">
+                                            <strong><i class="bi bi-speedometer2 text-danger"></i> Performance:</strong> Optimized queries
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

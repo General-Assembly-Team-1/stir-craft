@@ -12,21 +12,42 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Initialize environment variables with django-environ
+env = environ.Env(
+    DEBUG=(bool, False),
+    ALLOWED_HOSTS=(list, []),
+)
+
+# Read .env file if it exists (for local development)
+# .env should be in the project root (two levels up from this file)
+env_file_path = os.path.join(BASE_DIR.parent, '.env')
+if os.path.exists(env_file_path):
+    environ.Env.read_env(env_file=env_file_path)
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-w334#fw055a^0b5e-m7m9)0*ho(58h^b&r6krnz=+_5n(w5258'
+SECRET_KEY = env('SECRET_KEY', default='django-insecure-w334#fw055a^0b5e-m7m9)0*ho(58h^b&r6krnz=+_5n(w5258')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = []
+# Fail fast in production if SECRET_KEY is still the unsafe default
+if not DEBUG and SECRET_KEY == 'django-insecure-w334#fw055a^0b5e-m7m9)0*ho(58h^b&r6krnz=+_5n(w5258':
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured(
+        'You must set a unique SECRET_KEY in production. '
+        'Copy .env.example to .env and generate a new SECRET_KEY.'
+    )
+
+ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 
 
 # Application definition
@@ -44,6 +65,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static files serving for production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -75,40 +97,24 @@ WSGI_APPLICATION = 'stircraft.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-DATABASES = {
-    # Make the database configurable via environment variables so
-    # local development doesn't require a running PostgreSQL instance
-    # with specific credentials. If no DB env vars are set, fall back
-    # to a local SQLite database inside the project directory.
-}
-
-# PostgreSQL configuration driven by environment variables.
-# This project requires PostgreSQL; set the following env vars in
-# your shell or .env file before running management commands:
-#   DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
-DATABASES['default'] = {
-    'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
-    'NAME': os.getenv('DB_NAME', 'stircraft'),
-    'USER': os.getenv('DB_USER', 'macfarley'),
-    'PASSWORD': os.getenv('DB_PASSWORD', ''),
-    'HOST': os.getenv('DB_HOST', 'localhost'),
-    'PORT': os.getenv('DB_PORT', '5432'),
-}
-
-# PostgreSQL configuration (commented out for now)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'stircraft',
-#         'USER': 'macfarley',
-#         'PASSWORD': '',
-#         'HOST': '',  # Empty host uses Unix domain socket
-#         'PORT': '',
-#     }
-# }
+# Use DATABASE_URL if provided (recommended for production)
+# Falls back to individual DB variables for compatibility
+try:
+    DATABASES = {
+        'default': env.db()
+    }
+except environ.ImproperlyConfigured:
+    # Fallback to individual environment variables
+    DATABASES = {
+        'default': {
+            'ENGINE': env('DB_ENGINE', default='django.db.backends.postgresql'),
+            'NAME': env('DB_NAME', default='stircraft'),
+            'USER': env('DB_USER', default='macfarley'),
+            'PASSWORD': env('DB_PASSWORD', default=''),
+            'HOST': env('DB_HOST', default='localhost'),
+            'PORT': env('DB_PORT', default='5432'),
+        }
+    }
 
 
 # Password validation
@@ -147,6 +153,42 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Production static files configuration
+# Heroku and most production deployments require STATIC_ROOT to collect static files
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Use whitenoise for static file compression and efficient serving
+# Only applies when whitenoise is enabled via middleware (see MIDDLEWARE setting)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Static files directories - Django will search these directories for static files
+# Currently using app-level static directories (stir_craft/static/)
+STATICFILES_DIRS = [
+    # Add any project-level static directories here if needed
+    # os.path.join(BASE_DIR, 'static'),
+]
+
+# =============================================================================
+# 🖼️  MEDIA FILES CONFIGURATION (User uploads and images)
+# =============================================================================
+
+# Media files (user uploads, cocktail images, etc.)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# =============================================================================
+# 📁 MEDIA FILES (User Uploads & Images)
+# =============================================================================
+
+# Media files (user uploads, cocktail images, etc.)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Image processing settings
+# Maximum file size for uploaded images (5MB)
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB in bytes
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB in bytes
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -163,4 +205,28 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
 # URL for login page (when @login_required decorator is triggered)
-LOGIN_URL = '/admin/login/'  # Using Django admin login for now
+LOGIN_URL = '/sign-in/'  # Redirect to custom auth page
+
+
+# =============================================================================
+# 🔒 PRODUCTION SECURITY SETTINGS
+# =============================================================================
+
+# Production security settings (only apply when DEBUG=False)
+if not DEBUG:
+    # Force HTTPS redirect
+    SECURE_SSL_REDIRECT = True
+    
+    # Trust the 'X-Forwarded-Proto' header from the proxy (Heroku, nginx)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
+    # HTTP Strict Transport Security (HSTS) settings
+    # Tells browsers to only access this site via HTTPS for the next year
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Additional security headers
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
