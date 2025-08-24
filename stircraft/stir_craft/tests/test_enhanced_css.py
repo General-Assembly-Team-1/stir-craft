@@ -20,9 +20,9 @@ class EnhancedCSSTest(TestCase):
         self.ingredient = Ingredient.objects.create(
             name='Test Ingredient', 
             ingredient_type='spirit', 
-            alcohol_content=40.0,
-            flavor_profile='sweet,citrus'
+            alcohol_content=40.0
         )
+        self.ingredient.flavor_tags.add('sweet', 'citrus')
         
         # Create cocktail
         self.cocktail = Cocktail.objects.create(

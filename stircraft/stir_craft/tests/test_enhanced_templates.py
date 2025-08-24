@@ -21,21 +21,23 @@ class EnhancedTemplateTest(TestCase):
         self.ingredient1 = Ingredient.objects.create(
             name='Gin', 
             ingredient_type='spirit', 
-            alcohol_content=40.0,
-            flavor_profile='herbal,citrus'
+            alcohol_content=40.0
         )
+        self.ingredient1.flavor_tags.add('herbal', 'citrus')
+        
         self.ingredient2 = Ingredient.objects.create(
             name='Simple Syrup', 
-            ingredient_type='sweetener', 
-            alcohol_content=0.0,
-            flavor_profile='sweet'
+            ingredient_type='syrup', 
+            alcohol_content=0.0
         )
+        self.ingredient2.flavor_tags.add('sweet')
+        
         self.ingredient3 = Ingredient.objects.create(
             name='Lemon Juice', 
-            ingredient_type='citrus', 
-            alcohol_content=0.0,
-            flavor_profile='sour,citrus'
+            ingredient_type='juice', 
+            alcohol_content=0.0
         )
+        self.ingredient3.flavor_tags.add('sour', 'citrus')
         
         # Create a cocktail with flavor profiles
         self.cocktail = Cocktail.objects.create(
@@ -73,8 +75,7 @@ class EnhancedTemplateTest(TestCase):
             name='Test List',
             description='List for testing enhanced templates',
             creator=self.user,
-            list_type='custom',
-            is_public=True
+            list_type='custom'
         )
         self.cocktail_list.cocktails.add(self.cocktail)
 
@@ -233,8 +234,7 @@ class EnhancedTemplateTest(TestCase):
             name='Empty List',
             description='A list with no cocktails',
             creator=empty_user,
-            list_type='custom',
-            is_public=True
+            list_type='custom'
         )
         
         context = {

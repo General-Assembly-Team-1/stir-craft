@@ -320,6 +320,17 @@ class Cocktail(models.Model):
         help_text="Cocktail image - auto-populated from TheCocktailDB or user-uploaded"
     )
     
+    # Attribution for recipe sourcing
+    attribution_text = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Attribution text for recipe source (e.g., 'Original recipe by...', 'Adapted from...')"
+    )
+    attribution_url = models.URLField(
+        blank=True,
+        help_text="URL to the original recipe or source"
+    )
+    
     # Tagging for vibes and categories
     vibe_tags = TaggableManager(
         help_text="Tags for vibes like tropical, cozy, party, etc.",
@@ -774,10 +785,17 @@ class List(models.Model):
 
     class Meta:
         ordering = ['-updated_at']
-        # Allow same name for different creators, but ensure unique list types per user
+        # Allow same name for different creators
         unique_together = [
-            ['name', 'creator'],
-            ['creator', 'list_type']  # Each user can only have one list of each type
+            ['name', 'creator'],  # Each user can have unique list names
+        ]
+        constraints = [
+            # Each user can only have one favorites list and one creations list
+            models.UniqueConstraint(
+                fields=['creator', 'list_type'],
+                condition=models.Q(list_type__in=['favorites', 'creations']),
+                name='unique_system_lists_per_user'
+            )
         ] 
 
 
