@@ -6,9 +6,9 @@
         </h5>
         <div>
             <span class="badge bg-info badge-count">{{ user_lists.count }} list{{ user_lists.count|pluralize }}</span>
-            <button class="btn btn-sm btn-primary" disabled title="Create New List (Coming Soon)">
+            <a href="{% url 'list_create' %}" class="btn btn-sm btn-primary">
                 <i class="bi bi-plus"></i> New List
-            </button>
+            </a>
         </div>
     </div>
     <div class="card-body">
@@ -19,7 +19,7 @@
             
             {% if user_lists.count > 5 %}
             <div class="text-center">
-                <a href="#" class="btn btn-outline-primary btn-sm" title="View All Lists (Coming Soon)">
+                <a href="{% url 'user_lists' %}" class="btn btn-outline-primary btn-sm">
                     View All {{ user_lists.count }} Lists
                 </a>
             </div>

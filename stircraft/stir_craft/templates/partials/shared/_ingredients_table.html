@@ -9,6 +9,7 @@
                     <th>Ingredient</th>
                     <th>Amount</th>
                     <th>Type</th>
+                    <th>Flavor Profile</th>
                     <th>Notes</th>
                 </tr>
             </thead>
@@ -16,20 +17,40 @@
                 {% for component in components %}
                     <tr>
                         <td>
-                            <strong>{{ component.ingredient.name }}</strong>
+                            <strong>
+                                <a href="{% url 'ingredient_detail' component.ingredient.id %}" class="text-decoration-none">
+                                    {{ component.ingredient.name }}
+                                </a>
+                            </strong>
                             {% if component.ingredient.alcohol_content > 0 %}
-                                <small class="text-muted">({{ component.ingredient.alcohol_content }}% ABV)</small>
+                                <small class="text-warning d-block">{{ component.ingredient.alcohol_content }}% ABV</small>
                             {% endif %}
                         </td>
-                        <td>{{ component.get_display_amount }}</td>
                         <td>
-                            <span class="badge bg-light text-dark">
+                            <span class="fw-bold">{{ component.get_display_amount }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">
                                 {{ component.ingredient.get_ingredient_type_display }}
                             </span>
                         </td>
                         <td>
+                            {% if component.ingredient.flavor_tags.all %}
+                                <div class="flavor-tags">
+                                    {% for tag in component.ingredient.flavor_tags.all|slice:":3" %}
+                                        <span class="badge bg-light text-dark me-1 mb-1">{{ tag.name }}</span>
+                                    {% endfor %}
+                                    {% if component.ingredient.flavor_tags.count > 3 %}
+                                        <small class="text-muted">+{{ component.ingredient.flavor_tags.count|add:"-3" }} more</small>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
                             {% if component.preparation_note %}
-                                <em>{{ component.preparation_note }}</em>
+                                <em class="text-muted">{{ component.preparation_note }}</em>
                             {% else %}
                                 <span class="text-muted">—</span>
                             {% endif %}
@@ -39,4 +60,13 @@
             </tbody>
         </table>
     </div>
+    
+    {% if components %}
+        <div class="mt-3">
+            <small class="text-muted">
+                <i class="bi bi-info-circle"></i>
+                <strong>Tip:</strong> Click ingredient names to learn more about substitutions and flavor profiles.
+            </small>
+        </div>
+    {% endif %}
 </div>

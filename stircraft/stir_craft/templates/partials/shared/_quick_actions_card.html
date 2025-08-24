@@ -37,10 +37,10 @@
             </a>
             
             {% if user.is_authenticated %}
-                <button class="btn btn-outline-info dashboard-action" disabled title="Coming Soon">
+                <a href="{% url 'user_lists' %}" class="btn btn-outline-info dashboard-action">
                     <i class="bi bi-collection"></i>
                     <span>Manage Lists</span>
-                </button>
+                </a>
                 <a href="{% url 'profile_update' %}" class="btn btn-outline-secondary dashboard-action">
                     <i class="bi bi-gear"></i>
                     <span>Settings</span>
