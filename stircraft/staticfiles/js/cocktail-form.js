@@ -41,6 +41,7 @@ class CocktailForm {
     init() {
         this.bindEvents();
         this.setupIngredientDropdowns();
+        this.setupImagePreview();
     }
     
     bindEvents() {
@@ -95,6 +96,90 @@ class CocktailForm {
         document.querySelectorAll('select[name$="ingredient"]').forEach(select => {
             this.bindIngredientDropdown(select);
         });
+    }
+    
+    setupImagePreview() {
+        const imageInput = document.querySelector('input[name="image"]');
+        if (!imageInput) return;
+        
+        // Create preview container
+        const previewContainer = document.createElement('div');
+        previewContainer.className = 'image-preview-container mt-2';
+        previewContainer.style.display = 'none';
+        
+        const previewImage = document.createElement('img');
+        previewImage.className = 'image-preview';
+        previewImage.style.cssText = `
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            border: 2px solid #e3e6f0;
+            object-fit: cover;
+        `;
+        
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'btn btn-sm btn-outline-danger mt-2';
+        removeButton.innerHTML = '<i class="bi bi-trash"></i> Remove Image';
+        removeButton.onclick = () => this.removeImagePreview();
+        
+        previewContainer.appendChild(previewImage);
+        previewContainer.appendChild(removeButton);
+        
+        // Insert after the file input
+        imageInput.parentNode.insertBefore(previewContainer, imageInput.nextSibling);
+        
+        // Store references
+        this.imageInput = imageInput;
+        this.previewContainer = previewContainer;
+        this.previewImage = previewImage;
+        
+        // Bind change event
+        imageInput.addEventListener('change', (e) => this.handleImageSelect(e));
+    }
+    
+    handleImageSelect(event) {
+        const file = event.target.files[0];
+        
+        if (file) {
+            // Validate file size (2MB limit)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Image file too large. Please choose an image smaller than 2MB.');
+                this.clearImagePreview();
+                return;
+            }
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select a valid image file.');
+                this.clearImagePreview();
+                return;
+            }
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.previewImage.src = e.target.result;
+                this.previewContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            this.clearImagePreview();
+        }
+    }
+    
+    removeImagePreview() {
+        this.clearImagePreview();
+        this.imageInput.value = '';
+    }
+    
+    clearImagePreview() {
+        if (this.previewContainer) {
+            this.previewContainer.style.display = 'none';
+        }
+        if (this.previewImage) {
+            this.previewImage.src = '';
+        }
     }
     
     bindIngredientDropdown(select) {
