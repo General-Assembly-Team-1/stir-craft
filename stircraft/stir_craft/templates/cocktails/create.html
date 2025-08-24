@@ -242,34 +242,47 @@
                 <form id="quick-ingredient-form">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="new-ingredient-name" class="form-label">Ingredient Name *</label>
-                        <input type="text" class="form-control" id="new-ingredient-name" name="name" 
-                               placeholder="e.g., London Dry Gin" required>
+                        {{ quick_ingredient_form.name.label_tag }}
+                        {{ quick_ingredient_form.name }}
+                        {% if quick_ingredient_form.name.help_text %}
+                            <div class="form-text">{{ quick_ingredient_form.name.help_text }}</div>
+                        {% endif %}
+                        <div class="form-text">
+                            <strong>Tip:</strong> Before creating a new ingredient, try searching the dropdown above for similar ingredients like "lime juice", "Lime Juice", or "lemon juice".
+                        </div>
+                        <div class="invalid-feedback" id="name-error"></div>
                     </div>
                     <div class="mb-3">
-                        <label for="new-ingredient-type" class="form-label">Category *</label>
-                        <select class="form-select" id="new-ingredient-type" name="ingredient_type" required>
-                            <option value="">Select category...</option>
-                            <option value="spirit">Spirit</option>
-                            <option value="liqueur">Liqueur</option>
-                            <option value="mixer">Mixer</option>
-                            <option value="garnish">Garnish</option>
-                            <option value="syrup">Syrup</option>
-                            <option value="bitters">Bitters</option>
-                            <option value="juice">Juice</option>
-                            <option value="other">Other</option>
-                        </select>
+                        {{ quick_ingredient_form.ingredient_type.label_tag }}
+                        {{ quick_ingredient_form.ingredient_type }}
+                        {% if quick_ingredient_form.ingredient_type.help_text %}
+                            <div class="form-text">{{ quick_ingredient_form.ingredient_type.help_text }}</div>
+                        {% endif %}
+                        <div class="invalid-feedback" id="ingredient_type-error"></div>
                     </div>
                     <div class="mb-3">
-                        <label for="new-ingredient-alcohol" class="form-label">Alcohol Content (ABV %)</label>
-                        <input type="number" class="form-control" id="new-ingredient-alcohol" name="alcohol_content" 
-                               min="0" max="100" step="0.1" value="0" placeholder="40.0">
-                        <div class="form-text">Enter 0 for non-alcoholic ingredients</div>
+                        {{ quick_ingredient_form.alcohol_content.label_tag }}
+                        {{ quick_ingredient_form.alcohol_content }}
+                        {% if quick_ingredient_form.alcohol_content.help_text %}
+                            <div class="form-text">{{ quick_ingredient_form.alcohol_content.help_text }}</div>
+                        {% endif %}
+                        <div class="invalid-feedback" id="alcohol_content-error"></div>
                     </div>
                     <div class="mb-3">
-                        <label for="new-ingredient-description" class="form-label">Description (Optional)</label>
-                        <textarea class="form-control" id="new-ingredient-description" name="description" 
-                                  rows="2" placeholder="Brand, tasting notes, etc."></textarea>
+                        {{ quick_ingredient_form.flavor_tags.label_tag }}
+                        {{ quick_ingredient_form.flavor_tags }}
+                        {% if quick_ingredient_form.flavor_tags.help_text %}
+                            <div class="form-text">{{ quick_ingredient_form.flavor_tags.help_text }}</div>
+                        {% endif %}
+                        <div class="invalid-feedback" id="flavor_tags-error"></div>
+                    </div>
+                    <div class="mb-3">
+                        {{ quick_ingredient_form.description.label_tag }}
+                        {{ quick_ingredient_form.description }}
+                        {% if quick_ingredient_form.description.help_text %}
+                            <div class="form-text">{{ quick_ingredient_form.description.help_text }}</div>
+                        {% endif %}
+                        <div class="invalid-feedback" id="description-error"></div>
                     </div>
                 </form>
             </div>

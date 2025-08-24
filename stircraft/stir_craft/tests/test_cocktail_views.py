@@ -340,3 +340,137 @@ class CocktailViewTest(TestCase):
         response = self.client.post(reverse('cocktail_delete', args=[cocktail2.id]))
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Cocktail.objects.filter(name='StaffDelete').exists())
+
+    def test_ingredient_create_requires_login(self):
+        """Test that ingredient creation requires authentication"""
+        self.client.logout()
+        response = self.client.post(reverse('ingredient_add'), {
+            'name': 'Test Ingredient',
+            'category': 'spirit',
+        }, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        
+        self.assertEqual(response.status_code, 302)  # Redirect to login
+
+    def test_ingredient_create_functionality(self):
+        """Test the core functionality of ingredient creation"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Debug: Check login status
+        response = self.client.get('/dashboard/')
+        self.assertEqual(response.status_code, 200, "User should be logged in")
+        
+        # First test: Check that we can access the form
+        response = self.client.get(reverse('ingredient_add'))
+        if response.status_code == 302:
+            # Follow the redirect to see where it goes
+            response = self.client.get(reverse('ingredient_add'), follow=True)
+            self.assertEqual(response.status_code, 200, f"Should be able to access ingredient form, redirected to: {response.redirect_chain}")
+        else:
+            self.assertEqual(response.status_code, 200)
+        
+        # Test successful ingredient creation via standard form submission
+        initial_count = Ingredient.objects.count()
+        response = self.client.post(reverse('ingredient_add'), {
+            'name': 'New Test Ingredient',
+            'category': 'spirit',
+            'flavor_tags': 'sweet, fruity',
+        }, follow=True)  # Follow redirects
+        
+        # Should succeed
+        self.assertEqual(response.status_code, 200)
+        
+        # Check that ingredient was created
+        new_count = Ingredient.objects.count()
+        self.assertEqual(new_count, initial_count + 1)
+        
+        # Verify the ingredient exists and has correct properties
+        ingredient = Ingredient.objects.get(name='New Test Ingredient')
+        self.assertEqual(ingredient.category, 'spirit')
+        flavor_names = [tag.name for tag in ingredient.flavor_tags.all()]
+        self.assertIn('sweet', flavor_names)
+        self.assertIn('fruity', flavor_names)
+
+    def test_ingredient_duplicate_prevention(self):
+        """Test that duplicate ingredients are prevented"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Try to create duplicate ingredient (Vodka already exists)
+        initial_count = Ingredient.objects.filter(name__iexact='Vodka').count()
+        
+        response = self.client.post(reverse('ingredient_add'), {
+            'name': 'Vodka',  # Already exists
+            'category': 'spirit',
+        })
+        
+        # Should not create a duplicate
+        final_count = Ingredient.objects.filter(name__iexact='Vodka').count()
+        self.assertEqual(final_count, initial_count)  # No new ingredients
+        
+        # Test case-insensitive duplicate
+        response = self.client.post(reverse('ingredient_add'), {
+            'name': 'VODKA',  # Different case
+            'category': 'spirit',
+        })
+        
+        # Still should not create a duplicate
+        final_count = Ingredient.objects.filter(name__iexact='VODKA').count()
+        self.assertEqual(final_count, initial_count)  # Still no new ingredients
+
+    def test_ingredient_create_duplicate_handling(self):
+        """Test that duplicate ingredient creation returns helpful error"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Try to create duplicate ingredient
+        response = self.client.post(reverse('ingredient_add'), {
+            'name': 'Vodka',  # Already exists in setUp
+            'category': 'spirit',
+        }, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertFalse(data['success'])
+        self.assertIn('errors', data)
+        self.assertIn('name', data['errors'])
+        error_message = data['errors']['name'][0]
+        self.assertIn('already exists', error_message)
+        self.assertIn('spirit', error_message)  # Should mention category
+
+    def test_ingredient_create_case_insensitive_duplicate(self):
+        """Test that case-insensitive duplicates are detected"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        response = self.client.post(reverse('ingredient_add'), {
+            'name': 'VODKA',  # Different case
+            'category': 'spirit',
+        }, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertFalse(data['success'])
+        self.assertIn('already exists', data['errors']['name'][0])
+
+    def test_ingredient_create_non_ajax_request(self):
+        """Test that non-AJAX requests are handled properly"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        response = self.client.post(reverse('ingredient_add'), {
+            'name': 'Test Ingredient',
+            'category': 'spirit',
+        })
+        
+        # Should redirect or return appropriate response for non-AJAX
+        self.assertIn(response.status_code, [200, 302])
+
+    def test_ingredient_create_invalid_data(self):
+        """Test ingredient creation with invalid data"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        response = self.client.post(reverse('ingredient_add'), {
+            'name': '',  # Empty name
+            'category': 'invalid_category',
+        }, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertFalse(data['success'])
+        self.assertIn('errors', data)

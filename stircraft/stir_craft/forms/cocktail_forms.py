@@ -301,7 +301,7 @@ class QuickIngredientForm(forms.ModelForm):
     
     class Meta:
         model = Ingredient
-        fields = ['name', 'ingredient_type', 'alcohol_content', 'description']
+        fields = ['name', 'ingredient_type', 'alcohol_content', 'description', 'flavor_tags']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -325,14 +325,42 @@ class QuickIngredientForm(forms.ModelForm):
                 'rows': 2,
                 'placeholder': 'Optional: Brand, tasting notes, etc.'
             }),
+            'flavor_tags': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., citrusy, smoky, sweet (comma-separated)'
+            }),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['description'].required = False
+        self.fields['flavor_tags'].required = False
         self.fields['name'].help_text = "Enter the full name of the ingredient"
         self.fields['ingredient_type'].help_text = "What category does this ingredient belong to?"
         self.fields['alcohol_content'].help_text = "ABV percentage (0 for non-alcoholic)"
+        self.fields['flavor_tags'].help_text = "Flavor descriptors that help with recipe matching"
+        
+    def clean_name(self):
+        """Provide better error messages for duplicate ingredients."""
+        name = self.cleaned_data.get('name')
+        if name:
+            # Check for exact match
+            existing = Ingredient.objects.filter(name=name).first()
+            if existing:
+                raise forms.ValidationError(
+                    f'An ingredient named "{name}" already exists in the {existing.get_ingredient_type_display()} category. '
+                    f'Try searching for it in the ingredient dropdown instead.'
+                )
+            
+            # Check for case-insensitive near matches to help users
+            similar = Ingredient.objects.filter(name__iexact=name).first()
+            if similar and similar.name != name:
+                raise forms.ValidationError(
+                    f'An ingredient named "{similar.name}" already exists in the {similar.get_ingredient_type_display()} category. '
+                    f'Did you mean to use that one instead?'
+                )
+        
+        return name
         
 
 # =============================================================================
