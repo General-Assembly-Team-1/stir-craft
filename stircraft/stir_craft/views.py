@@ -510,7 +510,18 @@ def cocktail_index(request):
         
         # Apply sorting
         if cleaned_data.get('sort_by'):
-            cocktails = cocktails.order_by(cleaned_data['sort_by'])
+            sort_option = cleaned_data['sort_by']
+            
+            # Handle popularity-based sorting
+            if sort_option == '-favorites_count':
+                # Add annotation for favorites count and filter to only show cocktails with at least 1 favorite
+                from django.db.models import Count, Q
+                cocktails = cocktails.annotate(
+                    favorites_count=Count('in_lists', filter=Q(in_lists__list_type='favorites'))
+                ).filter(favorites_count__gt=0).order_by('-favorites_count', '-created_at')
+            else:
+                # Regular sorting
+                cocktails = cocktails.order_by(sort_option)
     else:
         # Default ordering
         cocktails = cocktails.order_by('-created_at')
