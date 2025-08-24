@@ -41,6 +41,7 @@ class CocktailForm {
     init() {
         this.bindEvents();
         this.setupIngredientDropdowns();
+        this.setupImagePreview();
     }
     
     bindEvents() {
@@ -78,9 +79,16 @@ class CocktailForm {
         });
         
         // Handle saving new ingredient
-        document.getElementById('save-new-ingredient').addEventListener('click', () => {
-            this.saveNewIngredient();
-        });
+        const saveButton = document.getElementById('save-new-ingredient');
+        console.log('Save button found:', saveButton);
+        if (saveButton) {
+            saveButton.addEventListener('click', () => {
+                console.log('Save new ingredient button clicked!');
+                this.saveNewIngredient();
+            });
+        } else {
+            console.error('Save new ingredient button not found!');
+        }
     }
     
     setupIngredientDropdowns() {
@@ -90,16 +98,145 @@ class CocktailForm {
         });
     }
     
+    setupImagePreview() {
+        const imageInput = document.querySelector('input[name="image"]');
+        if (!imageInput) return;
+        
+        // Create preview container
+        const previewContainer = document.createElement('div');
+        previewContainer.className = 'image-preview-container mt-2';
+        previewContainer.style.display = 'none';
+        
+        const previewImage = document.createElement('img');
+        previewImage.className = 'image-preview';
+        previewImage.style.cssText = `
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            border: 2px solid #e3e6f0;
+            object-fit: cover;
+        `;
+        
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'btn btn-sm btn-outline-danger mt-2';
+        removeButton.innerHTML = '<i class="bi bi-trash"></i> Remove Image';
+        removeButton.onclick = () => this.removeImagePreview();
+        
+        previewContainer.appendChild(previewImage);
+        previewContainer.appendChild(removeButton);
+        
+        // Insert after the file input
+        imageInput.parentNode.insertBefore(previewContainer, imageInput.nextSibling);
+        
+        // Store references
+        this.imageInput = imageInput;
+        this.previewContainer = previewContainer;
+        this.previewImage = previewImage;
+        
+        // Bind change event
+        imageInput.addEventListener('change', (e) => this.handleImageSelect(e));
+    }
+    
+    handleImageSelect(event) {
+        const file = event.target.files[0];
+        
+        if (file) {
+            // Validate file size (2MB limit)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Image file too large. Please choose an image smaller than 2MB.');
+                this.clearImagePreview();
+                return;
+            }
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select a valid image file.');
+                this.clearImagePreview();
+                return;
+            }
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.previewImage.src = e.target.result;
+                this.previewContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            this.clearImagePreview();
+        }
+    }
+    
+    removeImagePreview() {
+        this.clearImagePreview();
+        this.imageInput.value = '';
+    }
+    
+    clearImagePreview() {
+        if (this.previewContainer) {
+            this.previewContainer.style.display = 'none';
+        }
+        if (this.previewImage) {
+            this.previewImage.src = '';
+        }
+    }
+    
     bindIngredientDropdown(select) {
         select.addEventListener('change', (e) => {
             if (e.target.value === 'new_ingredient') {
                 this.showNewIngredientModal(e.target);
             }
         });
+        
+        // Add search functionality
+        this.addIngredientSearch(select);
+    }
+    
+    addIngredientSearch(select) {
+        // Add a simple search input above the select
+        const wrapper = select.parentElement;
+        
+        // Check if search input already exists
+        if (wrapper.querySelector('.ingredient-search')) {
+            return;
+        }
+        
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.className = 'form-control ingredient-search mb-2';
+        searchInput.placeholder = 'Search ingredients...';
+        searchInput.style.fontSize = '0.9em';
+        
+        // Insert search input before the select
+        wrapper.insertBefore(searchInput, select);
+        
+        // Add search functionality
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const options = select.querySelectorAll('option');
+            
+            options.forEach(option => {
+                if (option.value === '' || option.value === 'new_ingredient') {
+                    return; // Don't hide empty option or "create new" option
+                }
+                
+                const text = option.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        });
     }
     
     showNewIngredientModal(triggerSelect) {
+        console.log('showNewIngredientModal called with:', triggerSelect);
+        
         const modal = new bootstrap.Modal(document.getElementById('newIngredientModal'));
+        console.log('Modal created:', modal);
+        
         modal.show();
         
         // Store reference to the select that triggered this
@@ -107,18 +244,70 @@ class CocktailForm {
         
         // Reset the select to empty for now
         triggerSelect.value = '';
+        
+        console.log('Modal should be visible now');
     }
     
     async saveNewIngredient() {
+        console.log('saveNewIngredient function called!');
+        
         const form = document.getElementById('quick-ingredient-form');
+        if (!form) {
+            console.error('Quick ingredient form not found!');
+            alert('Form not found. Please try again.');
+            return;
+        }
+        
+        console.log('Form found:', form);
         const formData = new FormData(form);
         
-        // Get CSRF token from configuration or DOM
-        const csrfToken = window.stirCraftConfig?.csrfToken || 
-                         document.querySelector('[name=csrfmiddlewaretoken]').value;
+        // Debug: Log form data
+        console.log('Form data being sent:');
+        for (let [key, value] of formData.entries()) {
+            console.log(key, value);
+        }
+        
+        // Clear previous error states
+        this.clearFormErrors();
+        
+        // Get CSRF token - try multiple sources
+        let csrfToken = window.stirCraftConfig?.csrfToken;
+        
+        if (!csrfToken) {
+            // Try to get from form
+            const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfInput) {
+                csrfToken = csrfInput.value;
+            }
+        }
+        
+        if (!csrfToken) {
+            // Try to get from cookie
+            const cookieValue = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+            if (cookieValue) {
+                csrfToken = cookieValue;
+            }
+        }
+        
+        if (!csrfToken) {
+            console.error('No CSRF token found!');
+            alert('CSRF token not found. Please refresh the page and try again.');
+            return;
+        }
+        
+        // Ensure CSRF token is in the form data
+        if (!formData.has('csrfmiddlewaretoken')) {
+            formData.append('csrfmiddlewaretoken', csrfToken);
+        }
         
         // Get ingredient add URL from configuration
-        const ingredientAddUrl = window.stirCraftConfig?.ingredientAddUrl || '/ingredients/add/';
+        const ingredientAddUrl = window.stirCraftConfig?.ingredientAddUrl || '/ingredients/create/';
+        
+        console.log('Sending request to:', ingredientAddUrl);
+        console.log('CSRF Token:', csrfToken);
         
         try {
             const response = await fetch(ingredientAddUrl, {
@@ -127,20 +316,96 @@ class CocktailForm {
                 headers: {
                     'X-CSRFToken': csrfToken,
                     'X-Requested-With': 'XMLHttpRequest'
-                }
+                },
+                credentials: 'same-origin'  // Important: include session cookies
             });
             
-            const data = await response.json();
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            const responseText = await response.text();
+            console.log('Raw response:', responseText);
+            
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Failed to parse JSON:', parseError);
+                console.error('Response was:', responseText);
+                alert('Server returned an invalid response. Check console for details.');
+                return;
+            }
             
             if (data.success) {
                 this.handleNewIngredientSuccess(data);
             } else {
-                alert('Error creating ingredient: ' + (data.error || 'Unknown error'));
+                console.log('Server returned error:', data);
+                console.log('Form errors:', data.errors);
+                this.handleFormErrors(data.errors || {});
+                
+                // Show a more user-friendly error message
+                let errorMessage = data.error || 'Please correct the form errors.';
+                if (data.errors && Object.keys(data.errors).length > 0) {
+                    // Extract specific error messages, especially for name field
+                    if (data.errors.name) {
+                        errorMessage = data.errors.name.join('\n');
+                    } else {
+                        const errorDetails = Object.entries(data.errors)
+                            .map(([field, errors]) => `${field}: ${errors.join(', ')}`)
+                            .join('\n');
+                        errorMessage = `Validation errors:\n${errorDetails}`;
+                    }
+                }
+                
+                // Show a more helpful dialog instead of basic alert
+                this.showIngredientErrorDialog(errorMessage);
             }
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Network error:', error);
             alert('Error creating ingredient. Please try again.');
         }
+    }
+    
+    showIngredientErrorDialog(errorMessage) {
+        // Show a more helpful error dialog
+        const isNameError = errorMessage.includes('already exists');
+        
+        if (isNameError) {
+            // For duplicate ingredient errors, show a more helpful message
+            alert(`Ingredient Already Exists!\n\n${errorMessage}\n\nTip: Try searching for the ingredient in the dropdown above before creating a new one.`);
+        } else {
+            alert('Error creating ingredient: ' + errorMessage);
+        }
+    }
+    
+    clearFormErrors() {
+        // Remove error classes and messages
+        const form = document.getElementById('quick-ingredient-form');
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.classList.remove('is-invalid');
+        });
+        
+        const errorDivs = form.querySelectorAll('.invalid-feedback');
+        errorDivs.forEach(div => {
+            div.textContent = '';
+        });
+    }
+    
+    handleFormErrors(errors) {
+        // Display field-specific errors
+        Object.keys(errors).forEach(fieldName => {
+            const field = document.querySelector(`[name="${fieldName}"]`);
+            const errorDiv = document.getElementById(`${fieldName}-error`);
+            
+            if (field) {
+                field.classList.add('is-invalid');
+            }
+            
+            if (errorDiv) {
+                errorDiv.textContent = errors[fieldName].join(', ');
+            }
+        });
     }
     
     handleNewIngredientSuccess(data) {

@@ -85,6 +85,27 @@
                                 {% endif %}
                             </div>
                             
+                            <!-- Cocktail Image Upload -->
+                            <div class="mb-3">
+                                <label for="{{ cocktail_form.image.id_for_label }}" class="form-label">
+                                    <i class="bi bi-camera"></i> Cocktail Photo
+                                </label>
+                                {{ cocktail_form.image }}
+                                {% if cocktail_form.image.help_text %}
+                                    <div class="form-text">{{ cocktail_form.image.help_text }}</div>
+                                {% endif %}
+                                {% if cocktail_form.image.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ cocktail_form.image.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle text-primary"></i>
+                                    <strong>Optional:</strong> Upload a photo to help others recognize your cocktail. 
+                                    Image will be resized automatically for optimal display.
+                                </div>
+                            </div>
+                            
                             <div class="mb-3">
                                 <label for="{{ cocktail_form.instructions.id_for_label }}" class="form-label">Instructions *</label>
                                 {{ cocktail_form.instructions }}

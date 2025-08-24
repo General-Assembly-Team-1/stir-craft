@@ -1,10 +1,41 @@
 <!-- Cocktail Header Partial -->
-<div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-    <h1 class="mb-0">🍸 {{ cocktail.name }}</h1>
-    {% if can_edit %}
-        <div>
-            <a href="{% url 'cocktail_update' cocktail.id %}" class="btn btn-outline-light btn-sm">✏️ Edit</a>
-            <a href="{% url 'cocktail_delete' cocktail.id %}" class="btn btn-outline-danger btn-sm">🗑️ Delete</a>
+<div class="card-header bg-primary text-white">
+    <div class="row align-items-center">
+        <!-- Cocktail Image -->
+        <div class="col-md-3">
+            {% if cocktail.image %}
+                <img src="{{ cocktail.image.url }}" 
+                     alt="{{ cocktail.name }}" 
+                     class="cocktail-header-image img-fluid">
+            {% else %}
+                <div class="image-placeholder rounded" 
+                     style="width: 200px; height: 200px;">
+                    <i class="bi bi-cup-straw" style="font-size: 4rem;"></i>
+                </div>
+            {% endif %}
         </div>
-    {% endif %}
+        
+        <!-- Cocktail Title and Actions -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="mb-0">🍸 {{ cocktail.name }}</h1>
+                    {% if cocktail.vibe_tags.all %}
+                        <div class="mt-2">
+                            {% for tag in cocktail.vibe_tags.all|slice:":5" %}
+                                <span class="badge bg-light text-dark me-1">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {% if can_edit %}
+                    <div>
+                        <a href="{% url 'cocktail_update' cocktail.id %}" class="btn btn-outline-light btn-sm">✏️ Edit</a>
+                        <a href="{% url 'cocktail_delete' cocktail.id %}" class="btn btn-outline-danger btn-sm">🗑️ Delete</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>

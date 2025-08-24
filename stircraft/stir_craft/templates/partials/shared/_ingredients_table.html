@@ -21,7 +21,7 @@
                                 <small class="text-muted">({{ component.ingredient.alcohol_content }}% ABV)</small>
                             {% endif %}
                         </td>
-                        <td>{{ component.amount|smart_round:component.unit }} {{ component.unit }}</td>
+                        <td>{{ component.get_display_amount }}</td>
                         <td>
                             <span class="badge bg-light text-dark">
                                 {{ component.ingredient.get_ingredient_type_display }}

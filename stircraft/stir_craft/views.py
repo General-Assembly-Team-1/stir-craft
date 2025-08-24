@@ -716,8 +716,8 @@ def cocktail_create(request, fork_from_id=None):
             return redirect('cocktail_index')
     
     if request.method == 'POST':
-        # Create forms with POST data
-        cocktail_form = CocktailForm(request.POST, user=request.user, fork_from=fork_from)
+        # Create forms with POST data and FILES
+        cocktail_form = CocktailForm(request.POST, request.FILES, user=request.user, fork_from=fork_from)
         formset = RecipeComponentFormSet(request.POST)
         
         # Check if both forms are valid
@@ -810,7 +810,7 @@ def cocktail_update(request, cocktail_id):
         return render_error(request, 403, 'Only the creator of this cocktail can edit it.')
 
     if request.method == 'POST':
-        cocktail_form = CocktailForm(request.POST, instance=cocktail, user=request.user)
+        cocktail_form = CocktailForm(request.POST, request.FILES, instance=cocktail, user=request.user)
         formset = RecipeComponentFormSet(request.POST, instance=cocktail)
 
         if cocktail_form.is_valid() and formset.is_valid():

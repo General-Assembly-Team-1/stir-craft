@@ -27,6 +27,7 @@ django-taggit==6.1.0         # Tagging utility used by models
 django-environ==0.12.0       # Environment-variable config helper
 psycopg2-binary==2.9.10      # PostgreSQL client
 requests==2.32.4             # HTTP client used for external APIs
+Pillow==10.4.0               # Image processing library for Django ImageField
 
 # WSGI server for production
 # (Pipfile listed gunicorn but it was not present in the lockfile; pin to a stable minor)
@@ -55,3 +56,4 @@ whitenoise==6.4.0            # Serve static files directly from Django in simple
 #  - Avoid committing secrets to repo; use .env or platform config for secrets.
 #
 # EOF
+Pillow==10.0.0

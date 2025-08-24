@@ -168,6 +168,27 @@ STATICFILES_DIRS = [
     # os.path.join(BASE_DIR, 'static'),
 ]
 
+# =============================================================================
+# 🖼️  MEDIA FILES CONFIGURATION (User uploads and images)
+# =============================================================================
+
+# Media files (user uploads, cocktail images, etc.)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# =============================================================================
+# 📁 MEDIA FILES (User Uploads & Images)
+# =============================================================================
+
+# Media files (user uploads, cocktail images, etc.)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Image processing settings
+# Maximum file size for uploaded images (5MB)
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB in bytes
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB in bytes
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

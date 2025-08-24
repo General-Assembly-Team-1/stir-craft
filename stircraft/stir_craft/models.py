@@ -51,14 +51,18 @@ class Ingredient(models.Model):
     # Define predefined choices for ingredient categories
     # This ensures data consistency and enables filtering by ingredient type
     INGREDIENT_TYPES = [
-        ('spirit', 'Spirit'),       # Base spirits like gin, vodka, whiskey
-        ('liqueur', 'Liqueur'),     # Flavored liqueurs like triple sec, amaretto
-        ('mixer', 'Mixer'),         # Non-alcoholic mixers like tonic, soda
-        ('syrup', 'Syrup'),         # Syrups like simple syrup, grenadine
-        ('bitters', 'Bitters'),     # Concentrated flavorings like Angostura
-        ('juice', 'Juice'),         # Fresh juices like lime, lemon, orange
-        ('garnish', 'Garnish'),     # Garnishes like olives, cherries, herbs
-        ('other', 'Other'),         # Catch-all for unique ingredients
+        ('spirit', 'Spirit'),           # Base spirits like gin, vodka, whiskey, rum
+        ('liqueur', 'Liqueur'),         # Flavored liqueurs, vermouth, amaretto, triple sec
+        ('wine', 'Wine'),               # Wine, champagne, sherry, port
+        ('beer', 'Beer'),               # Beer, ale, stout
+        ('mixer', 'Mixer'),             # Non-alcoholic mixers like juices, water
+        ('soda', 'Soda'),               # Carbonated beverages like tonic, coke, seltzer
+        ('syrup', 'Syrup'),             # Syrups like simple syrup, grenadine
+        ('bitters', 'Bitters'),         # Concentrated flavorings like Angostura
+        ('juice', 'Juice'),             # Fresh juices like lime, lemon, orange
+        ('dairy', 'Dairy'),             # Cream, milk, egg whites
+        ('garnish', 'Garnish'),         # Edible garnishes: lemon wedge, olives, herbs, coffee beans
+        ('other', 'Other'),             # Non-edible decorations: umbrellas, flowers, straws
     ]
     
     # Core ingredient information
@@ -241,6 +245,14 @@ class Cocktail(models.Model):
         help_text="Step-by-step preparation instructions"
     )
     
+    # Cocktail image (populated from TheCocktailDB or user uploads)
+    image = models.ImageField(
+        upload_to='cocktails/',
+        blank=True,
+        null=True,
+        help_text="Cocktail image - auto-populated from TheCocktailDB API during seeding"
+    )
+    
     # Relationships
     creator = models.ForeignKey(
         User,  # Links to the User model
@@ -274,10 +286,38 @@ class Cocktail(models.Model):
         default=True,  # Default value is alcoholic
         help_text="Indicates whether the cocktail contains alcohol"
     )
+    
+    # Define color choices for consistent filtering
+    COLOR_CHOICES = [
+        ('Clear', 'Clear'),
+        ('White', 'White'),
+        ('Yellow', 'Yellow'),
+        ('Orange', 'Orange'),
+        ('Red', 'Red'),
+        ('Pink', 'Pink'),
+        ('Purple', 'Purple'),
+        ('Blue', 'Blue'),
+        ('Green', 'Green'),
+        ('Brown', 'Brown'),
+        ('Black', 'Black'),
+        ('Gold', 'Gold'),
+        ('Silver', 'Silver'),
+        ('Cream', 'Cream'),
+        ('Amber', 'Amber'),
+    ]
+    
     color = models.CharField(
         max_length=20,  # Maximum length for color description
-        blank=True,  # Color is optional
-        help_text="Cocktail color for filtering (e.g., 'Red', 'Yellow')"
+        choices=COLOR_CHOICES,
+        default='Clear',  # Default color when none specified
+        blank=True,  # Color is optional for user input
+        help_text="Cocktail color for filtering and visual identification"
+    )
+    image = models.ImageField(
+        upload_to='cocktails/',
+        blank=True,
+        null=True,
+        help_text="Cocktail image - auto-populated from TheCocktailDB or user-uploaded"
     )
     
     # Tagging for vibes and categories
@@ -375,6 +415,26 @@ class Cocktail(models.Model):
             'has_more_lists': custom_lists_count > 5,
         }
     
+    def get_image_url(self):
+        """
+        Get the URL for the cocktail image, with fallback handling.
+        
+        Returns:
+            str: URL to the cocktail image or None if no image exists
+        """
+        if self.image and hasattr(self.image, 'url'):
+            return self.image.url
+        return None
+    
+    def has_image(self):
+        """
+        Check if the cocktail has an associated image.
+        
+        Returns:
+            bool: True if cocktail has an image, False otherwise
+        """
+        return bool(self.image and hasattr(self.image, 'url'))
+    
     class Meta:
         ordering = ['-created_at']  # Orders cocktails by creation date (newest first)
         unique_together = ['name', 'creator']  # Ensures unique cocktail names per creator 
@@ -436,6 +496,139 @@ class RecipeComponent(models.Model):
         Returns True if this ingredient contains no alcohol (ABV = 0).
         """
         return self.ingredient.alcohol_content == 0
+    
+    def get_display_amount(self):
+        """
+        Returns the amount with proper unit conversion and formatting.
+        - Converts mL to ounces for display (quarters only)
+        - Uses teaspoons for very small amounts
+        - Maintains semantic units (dash, splash) for special measurements
+        """
+        # Non-standard units that should be displayed as-is
+        non_standard_units = ['dash', 'splash', 'pinch', 'piece', 'slice', 'wedge', 'sprig']
+        
+        if self.unit in non_standard_units:
+            # Display as whole number for non-standard units
+            if self.amount == int(self.amount):
+                return f"{int(self.amount)} {self.get_unit_display()}"
+            else:
+                return f"{self.amount} {self.get_unit_display()}"
+        
+        # Convert mL to ounces for display (1 oz = 29.5735 mL)
+        if self.unit == 'ml':
+            oz_amount = float(self.amount) / 29.5735
+            
+            # For very small amounts (less than 0.33 oz / ~10 mL), use teaspoons
+            if oz_amount < 0.33:
+                tsp_amount = float(self.amount) / 4.92892  # 1 tsp = 4.92892 mL
+                if tsp_amount <= 0.5:
+                    return "1/2 tsp"
+                elif tsp_amount <= 1:
+                    return "1 tsp"
+                elif tsp_amount <= 1.5:
+                    return "1 1/2 tsp"
+                elif tsp_amount <= 2:
+                    return "2 tsp"
+                else:
+                    return f"{tsp_amount:.1f} tsp"
+            
+            # Round to nearest quarter ounce for larger amounts
+            quarter_oz = round(oz_amount * 4) / 4
+            
+            # Format quarters nicely
+            if quarter_oz == int(quarter_oz):
+                return f"{int(quarter_oz)} oz"
+            elif quarter_oz == int(quarter_oz) + 0.25:
+                if int(quarter_oz) == 0:
+                    return "1/4 oz"
+                else:
+                    return f"{int(quarter_oz)} 1/4 oz"
+            elif quarter_oz == int(quarter_oz) + 0.5:
+                if int(quarter_oz) == 0:
+                    return "1/2 oz"
+                else:
+                    return f"{int(quarter_oz)} 1/2 oz"
+            elif quarter_oz == int(quarter_oz) + 0.75:
+                if int(quarter_oz) == 0:
+                    return "3/4 oz"
+                else:
+                    return f"{int(quarter_oz)} 3/4 oz"
+            else:
+                # Fallback to single decimal
+                return f"{quarter_oz:.1f} oz"
+        
+        # For teaspoons stored as tsp, display nicely
+        if self.unit == 'tsp':
+            amount = float(self.amount)
+            if amount == 0.5:
+                return "1/2 tsp"
+            elif amount == 1.5:
+                return "1 1/2 tsp"
+            elif amount == int(amount):
+                return f"{int(amount)} tsp"
+            else:
+                return f"{amount} tsp"
+        
+        # For other standard units, display as-is with proper formatting
+        if self.amount == int(self.amount):
+            return f"{int(self.amount)} {self.get_unit_display()}"
+        else:
+            return f"{self.amount} {self.get_unit_display()}"
+    
+    def get_storage_amount_ml(self):
+        """
+        Converts the amount to mL for consistent storage.
+        Returns the amount in mL regardless of input unit.
+        """
+        conversion_factors = {
+            'oz': 29.5735,
+            'ml': 1,
+            'tsp': 4.92892,
+            'tbsp': 14.7868,
+            # Non-standard units are stored as-is (not converted)
+            'dash': 1,
+            'splash': 1,
+            'pinch': 1,
+            'piece': 1,
+            'slice': 1,
+            'wedge': 1,
+            'sprig': 1,
+        }
+        
+        factor = conversion_factors.get(self.unit, 1)
+        return float(self.amount) * factor
+    
+    @classmethod
+    def create_standardized(cls, cocktail, ingredient, amount, unit, **kwargs):
+        """
+        Creates a RecipeComponent with standardized unit storage.
+        Converts input units to mL for storage when appropriate.
+        """
+        # Units that should be converted to mL for storage
+        convertible_units = ['oz', 'tsp', 'tbsp']
+        
+        if unit in convertible_units:
+            # Convert to mL and store as mL
+            conversion_factors = {
+                'oz': 29.5735,
+                'tsp': 4.92892,
+                'tbsp': 14.7868,
+            }
+            ml_amount = float(amount) * conversion_factors[unit]
+            storage_unit = 'ml'
+            storage_amount = round(ml_amount, 2)
+        else:
+            # Store as-is for non-standard units
+            storage_unit = unit
+            storage_amount = amount
+        
+        return cls.objects.create(
+            cocktail=cocktail,
+            ingredient=ingredient,
+            amount=storage_amount,
+            unit=storage_unit,
+            **kwargs
+        )
     
     def __str__(self):
         """
