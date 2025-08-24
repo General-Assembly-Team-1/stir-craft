@@ -21,6 +21,15 @@
                 <div class="flex-grow-1">
                     <h1 class="mb-2 fw-bold">🍸 {{ cocktail.name }}</h1>
                     
+                    {% if cocktail.vessel %}
+                        <p class="mb-2 opacity-75">
+                            <i class="bi bi-cup"></i> {{ cocktail.vessel.name }}
+                            {% if cocktail.vessel.volume %}
+                                ({{ cocktail.vessel.volume|floatformat:2 }} oz)
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                    
                     <!-- Attribution -->
                     <div class="mb-3">
                         <p class="mb-1">
@@ -43,6 +52,20 @@
                                 <a href="{% url 'profile_detail' cocktail.forked_from.creator.id %}" class="text-white text-decoration-underline">
                                     {{ cocktail.forked_from.creator.username }}
                                 </a>
+                            </p>
+                        {% endif %}
+                        
+                        {% if cocktail.attribution_text %}
+                            <p class="mb-1 opacity-90 attribution-text">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Source:</strong> 
+                                {% if cocktail.attribution_url %}
+                                    <a href="{{ cocktail.attribution_url }}" target="_blank" rel="noopener noreferrer" class="text-white text-decoration-underline attribution-link">
+                                        {{ cocktail.attribution_text }}
+                                    </a>
+                                {% else %}
+                                    <span class="attribution-text">{{ cocktail.attribution_text }}</span>
+                                {% endif %}
                             </p>
                         {% endif %}
                     </div>

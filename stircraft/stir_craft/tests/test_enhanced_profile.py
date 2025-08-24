@@ -87,12 +87,8 @@ class EnhancedProfileTest(TestCase):
         )
         self.private_list1.cocktails.add(self.cocktail2)
         
-        self.favorites_list1 = List.objects.create(
-            name='Favorites',
-            description='Favorite cocktails',
-            creator=self.user1,
-            list_type='favorites'
-        )
+        # Use the get_or_create method instead of manual creation
+        self.favorites_list1 = List.get_or_create_favorites_list(self.user1)
         
         # Create lists for user2
         self.public_list2 = List.objects.create(
@@ -125,18 +121,19 @@ class EnhancedProfileTest(TestCase):
         
         # Should see all own lists (including private and special types)
         public_lists = response.context['public_lists']
-        self.assertEqual(len(public_lists), 3)  # public, private, favorites
+        self.assertEqual(len(public_lists), 4)  # public, private, favorites, your creations
         list_names = [lst.name for lst in public_lists]
         self.assertIn('Public List 1', list_names)
         self.assertIn('Private List 1', list_names)
         self.assertIn('Favorites', list_names)
+        self.assertIn('Your Creations', list_names)
 
     def test_own_profile_view_unauthenticated(self):
         """Test accessing own profile URL without authentication redirects to login."""
         url = reverse('profile_detail')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 302)  # Redirect to login
-        self.assertIn('/accounts/login/', response.url)
+        self.assertIn('/sign-in/', response.url)
 
     def test_other_user_profile_view_authenticated(self):
         """Test viewing another user's profile shows only custom lists (not favorites/creations)."""
@@ -192,7 +189,7 @@ class EnhancedProfileTest(TestCase):
         self.assertEqual(response.context['stats']['cocktails_created'], 2)
         
         # Check public lists count in stats
-        self.assertEqual(response.context['stats']['public_lists'], 3)  # All lists for own profile
+        self.assertEqual(response.context['stats']['public_lists'], 4)  # All lists for own profile (public, private, favorites, creations)
 
     def test_profile_nonexistent_user(self):
         """Test viewing profile of non-existent user returns 404."""
@@ -204,13 +201,8 @@ class EnhancedProfileTest(TestCase):
 
     def test_profile_lists_exclude_system_types_for_others(self):
         """Test that viewing others' profiles excludes system list types like favorites/creations."""
-        # Create a creations list (system type) for user2
-        creations_list = List.objects.create(
-            name='My Creations',
-            description='System generated list',
-            creator=self.user2,
-            list_type='creations'
-        )
+        # Use the get_or_create method for creations list
+        creations_list = List.get_or_create_creations_list(self.user2)
         
         self.client.login(username='profile_user', password='pass123')
         url = reverse('profile_detail', kwargs={'user_id': self.user2.id})

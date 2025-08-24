@@ -7,7 +7,7 @@
   Original contribution from vesselform.html in commit e504b7e
 #}
 
-{% block title %}{{ list.name }} - StirCraft{% endblock %}
+{% block title %}{{ list_obj.name }} - StirCraft{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -16,10 +16,10 @@
         <div class="card">
             <div class="card-header">
                 <h2>
-                    <i class="fas fa-list"></i> {{ list.name }}
+                    <i class="fas fa-list"></i> {{ list_obj.name }}
                 </h2>
                 <div>
-                    {% if list.is_public %}
+                    {% if list_obj.is_public %}
                         <span class="badge badge-success"><i class="fas fa-globe"></i> Public</span>
                     {% else %}
                         <span class="badge badge-warning"><i class="fas fa-lock"></i> Private</span>
@@ -27,15 +27,15 @@
                 </div>
             </div>
             <div class="card-body">
-                {% if list.description %}
-                    <p class="card-text">{{ list.description|linebreaks }}</p>
+                {% if list_obj.description %}
+                    <p class="card-text">{{ list_obj.description|linebreaks }}</p>
                 {% endif %}
                 <div class="row small text-muted">
                     <div class="col-6">
-                        <i class="fas fa-user"></i> Created by: {{ list.creator.username }}
+                        <i class="fas fa-user"></i> Created by: {{ list_obj.creator.username }}
                     </div>
                     <div class="col-6">
-                        <i class="fas fa-calendar"></i> {{ list.created_at|date:"M d, Y" }}
+                        <i class="fas fa-calendar"></i> {{ list_obj.created_at|date:"M d, Y" }}
                     </div>
                 </div>
             </div>
@@ -46,13 +46,13 @@
             <div class="card-header">
                 <h4>
                     <i class="fas fa-cocktail"></i> 
-                    Cocktails ({{ cocktails.count }})
+                    Cocktails ({{ page_obj.paginator.count }})
                 </h4>
             </div>
             <div class="card-body">
-                {% if cocktails %}
+                {% if page_obj %}
                     <div class="row">
-                        {% for cocktail in cocktails %}
+                        {% for cocktail in page_obj %}
                             <div class="col-lg-4 cocktail-col">
                                 <div class="card cocktail-card">
                                     {% if cocktail.image %}
@@ -70,8 +70,8 @@
                                         <a href="{% url 'cocktail_detail' cocktail.id %}" class="btn btn-primary btn-sm">
                                             <i class="fas fa-eye"></i> View Recipe
                                         </a>
-                                        {% if user == list.creator %}
-                                            <a href="{% url 'remove_from_list' list.id cocktail.id %}" class="btn btn-outline-danger btn-sm">
+                                        {% if user == list_obj.creator %}
+                                            <a href="{% url 'remove_from_list' list_obj.id cocktail.id %}" class="btn btn-outline-danger btn-sm">
                                                 <i class="fas fa-times"></i> Remove
                                             </a>
                                         {% endif %}
@@ -84,7 +84,7 @@
                     <div class="empty-state">
                         <i class="fas fa-cocktail"></i>
                         <h5 class="text-muted">No cocktails in this list yet</h5>
-                        {% if user == list.creator %}
+                        {% if user == list_obj.creator %}
                             <p class="text-muted">Start building your collection by adding some cocktails!</p>
                             <a href="{% url 'cocktail_index' %}" class="btn btn-primary">
                                 <i class="fas fa-plus"></i> Add Cocktails
@@ -98,7 +98,7 @@
 
     <!-- Sidebar -->
     <div class="col-lg-4">
-        {% if user == list.creator %}
+        {% if user == list_obj.creator %}
             <!-- List Management -->
             <div class="card">
                 <div class="card-header">
@@ -106,7 +106,7 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid">
-                        <a href="{% url 'list_update' list.id %}" class="btn btn-outline-primary">
+                        <a href="{% url 'list_update' list_obj.id %}" class="btn btn-outline-primary">
                             <i class="fas fa-edit"></i> Edit List
                         </a>
                         <button class="btn btn-outline-danger" onclick="showModal('deleteModal')">
@@ -124,7 +124,7 @@
             </div>
             <div class="card-body">
                 <div class="stats">
-                    <h4>{{ cocktails.count }}</h4>
+                    <h4>{{ page_obj.paginator.count }}</h4>
                     <p class="text-muted">Cocktails</p>
                 </div>
             </div>
@@ -133,7 +133,7 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-{% if user == list.creator %}
+{% if user == list_obj.creator %}
 <div id="deleteModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -141,11 +141,11 @@
             <button type="button" onclick="hideModal('deleteModal')">&times;</button>
         </div>
         <div class="modal-body">
-            <p>Are you sure you want to delete "{{ list.name }}"? This action cannot be undone.</p>
+            <p>Are you sure you want to delete "{{ list_obj.name }}"? This action cannot be undone.</p>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="hideModal('deleteModal')">Cancel</button>
-            <a href="{% url 'list_delete' list.id %}" class="btn btn-danger">Delete</a>
+            <a href="{% url 'list_delete' list_obj.id %}" class="btn btn-danger">Delete</a>
         </div>
     </div>
 </div>

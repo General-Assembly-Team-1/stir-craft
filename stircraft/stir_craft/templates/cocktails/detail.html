@@ -3,6 +3,10 @@
 
 {% block title %}{{ cocktail.name }}{% endblock %}
 
+{% block extra_css %}
+<link href="{% static 'css/cocktail.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="row">
@@ -30,7 +34,7 @@
                     <div class="mb-4">
                         <h3><i class="bi bi-list-check"></i> Instructions</h3>
                         <div class="card">
-                            <div class="card-body bg-light">
+                            <div class="card-body bg-light instructions-text">
                                 {{ cocktail.instructions|linebreaks }}
                             </div>
                         </div>
@@ -65,4 +69,5 @@ window.stirCraftConfig = {
 {% block extra_js %}
 <!-- Enhanced cocktail actions -->
 <script src="{% static 'js/cocktail-actions.js' %}"></script>
+<script src="{% static 'js/favorites-new.js' %}"></script>
 {% endblock %}

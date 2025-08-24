@@ -3,7 +3,7 @@
 <div class="mb-4">
     <h3>🧂 Ingredients</h3>
     <div class="table-responsive">
-        <table class="table table-striped">
+        <table class="table table-striped ingredients-table">
             <thead>
                 <tr>
                     <th>Ingredient</th>
@@ -38,7 +38,7 @@
                             {% if component.ingredient.flavor_tags.all %}
                                 <div class="flavor-tags">
                                     {% for tag in component.ingredient.flavor_tags.all|slice:":3" %}
-                                        <span class="badge bg-light text-dark me-1 mb-1">{{ tag.name }}</span>
+                                        <span class="badge bg-light text-dark me-1 mb-1 flavor-tag flavor-{{ tag.name }}">{{ tag.name }}</span>
                                     {% endfor %}
                                     {% if component.ingredient.flavor_tags.count > 3 %}
                                         <small class="text-muted">+{{ component.ingredient.flavor_tags.count|add:"-3" }} more</small>

@@ -2,7 +2,7 @@
 {% load static %}
 
 {% if user.is_authenticated %}
-    <div class="card mb-4 enhanced-actions-card">
+    <div class="card mb-4 enhanced-actions-card cocktail-actions">
         <div class="card-header bg-gradient-primary text-white">
             <h4 class="mb-0 text-center">
                 <i class="bi bi-star-fill text-warning"></i> Take Action
@@ -11,14 +11,15 @@
         <div class="card-body">
             <div class="row g-3">
                 <!-- Primary Action: Favorite -->
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <button type="button" 
-                            class="btn {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %} w-100 action-btn" 
+                            class="btn {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %} w-100 action-btn btn-action btn-favorite" 
                             id="favorite-btn" 
                             data-cocktail-id="{{ cocktail.id }}"
-                            data-favorited="{{ is_favorited|yesno:'true,false' }}">
+                            data-is-favorited="{{ is_favorited|yesno:'true,false' }}"
+                            data-favorite-url="{% url 'toggle_favorite' cocktail.id %}">
                         <div class="action-icon">
-                            <i class="bi {% if is_favorited %}bi-heart-fill{% else %}bi-heart{% endif %}" id="favorite-icon"></i>
+                            <i class="bi {% if is_favorited %}bi-heart-fill{% else %}bi-heart{% endif %} fa-heart" id="favorite-icon"></i>
                         </div>
                         <div class="action-text">
                             <span id="favorite-text">
@@ -29,16 +30,16 @@
                 </div>
                 
                 <!-- Secondary Action: Fork or Edit -->
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     {% if user != cocktail.creator %}
-                        <a href="{% url 'cocktail_fork' cocktail.id %}" class="btn btn-outline-primary w-100 action-btn">
+                        <a href="{% url 'cocktail_fork' cocktail.id %}" class="btn btn-outline-primary w-100 action-btn btn-action">
                             <div class="action-icon">
                                 <i class="bi bi-plus-square"></i>
                             </div>
                             <div class="action-text">Make Your Own</div>
                         </a>
                     {% else %}
-                        <a href="{% url 'cocktail_update' cocktail.id %}" class="btn btn-outline-warning w-100 action-btn">
+                        <a href="{% url 'cocktail_update' cocktail.id %}" class="btn btn-outline-warning w-100 action-btn btn-action">
                             <div class="action-icon">
                                 <i class="bi bi-pencil"></i>
                             </div>
@@ -48,15 +49,15 @@
                 </div>
                 
                 <!-- Tertiary Action: Add to List -->
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <div class="dropdown w-100">
-                        <button class="btn btn-outline-success w-100 dropdown-toggle action-btn" 
+                        <button class="btn btn-outline-success w-100 dropdown-toggle action-btn btn-action btn-add-to-list" 
                                 type="button" 
                                 id="addToListDropdown" 
                                 data-bs-toggle="dropdown" 
                                 aria-expanded="false">
                             <div class="action-icon">
-                                <i class="bi bi-collection"></i>
+                                <i class="bi bi-collection fa-plus"></i>
                             </div>
                             <div class="action-text">Add to List</div>
                         </button>
@@ -143,7 +144,7 @@
 {% endif %}
 
 <!-- Navigation -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
     <a href="{% url 'cocktail_index' %}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left"></i> Back to Browse
     </a>
@@ -161,7 +162,7 @@
 </div>
 
 <!-- Toast Container for Messages -->
-<div class="position-fixed top-0 end-0 p-3" style="z-index: 11">
+<div class="position-fixed top-0 end-0 p-3 toast-container" style="z-index: 11">
     <div id="actionToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header">
             <strong class="me-auto" id="toast-title">StirCraft</strong>

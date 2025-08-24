@@ -255,9 +255,15 @@ def ingredient_index(request):
         ingredients = ingredients.filter(ingredient_type=filter_type)
 
     # Group by category for accordion display
-    ingredients_by_category = defaultdict(list)
-    for ingredient in ingredients:
-        ingredients_by_category[ingredient.ingredient_type].append(ingredient)
+    ingredients_by_category = []
+    for category_key, category_label in Ingredient.INGREDIENT_TYPES:
+        category_ingredients = [ing for ing in ingredients if ing.ingredient_type == category_key]
+        if category_ingredients:  # Only include categories that have ingredients
+            ingredients_by_category.append({
+                'key': category_key,
+                'label': category_label,
+                'ingredients': category_ingredients
+            })
 
     context = {
         "ingredients_by_category": ingredients_by_category,
@@ -344,38 +350,12 @@ def ingredient_create(request):
         else:
             logger.warning(f"Form is invalid. Errors: {form.errors}")
             
-            # Enhanced error handling for duplicate ingredients
-            enhanced_errors = {}
-            for field, errors in form.errors.items():
-                if field == 'name' and any('already exists' in str(error).lower() for error in errors):
-                    # Check if an ingredient with this name exists and provide helpful info
-                    name = form.cleaned_data.get('name', '')
-                    if name:
-                        try:
-                            existing_ingredient = Ingredient.objects.get(name__iexact=name)
-                            enhanced_errors[field] = [
-                                f'An ingredient named "{existing_ingredient.name}" already exists in the {existing_ingredient.get_ingredient_type_display()} category. '
-                                f'You can find it in the dropdown under "{existing_ingredient.get_ingredient_type_display()}" → "{existing_ingredient.name}".'
-                            ]
-                        except Ingredient.DoesNotExist:
-                            enhanced_errors[field] = errors
-                        except Ingredient.MultipleObjectsReturned:
-                            # Handle case where there are multiple ingredients with similar names
-                            similar_ingredients = Ingredient.objects.filter(name__iexact=name)
-                            categories = [ing.get_ingredient_type_display() for ing in similar_ingredients]
-                            enhanced_errors[field] = [
-                                f'An ingredient named "{name}" already exists in multiple categories: {", ".join(set(categories))}. '
-                                f'Please check the dropdown or try a more specific name.'
-                            ]
-                else:
-                    enhanced_errors[field] = errors
-            
             # Handle form errors
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
                     'error': 'Please correct the form errors.',
-                    'errors': enhanced_errors
+                    'errors': dict(form.errors)
                 })
     else:
         form = QuickIngredientForm()
@@ -556,12 +536,12 @@ def cocktail_detail(request, cocktail_id):
     
     cocktail = get_object_or_404(
         Cocktail.objects.select_related('creator', 'vessel')
-                       .prefetch_related('components__ingredient', 'vibe_tags'),
+                       .prefetch_related('components__ingredient__flavor_tags', 'vibe_tags'),
         id=cocktail_id
     )
     
     # Get recipe components ordered by their order field
-    components = cocktail.components.select_related('ingredient').order_by('order', 'ingredient__name')
+    components = cocktail.components.select_related('ingredient').prefetch_related('ingredient__flavor_tags').order_by('order', 'ingredient__name')
     
     # Check if user has this in any of their lists (for authenticated users)
     user_lists = []
