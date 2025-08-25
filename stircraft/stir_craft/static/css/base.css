@@ -3,22 +3,25 @@
  * Contains styles for reusable components, partials, and global styling
  */
 
+/* Import color variables first */
+@import url('variables.css');
+
 /* =============================================================================
  * 🎨 GLOBAL STYLES
  * ============================================================================= */
 
 .card {
     border: none;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    transition: box-shadow 0.15s ease-in-out;
+    box-shadow: var(--card-shadow);
+    transition: box-shadow var(--transition-fast);
 }
 
 .card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    box-shadow: var(--card-shadow-hover);
 }
 
 .btn {
-    transition: all 0.15s ease-in-out;
+    transition: all var(--transition-fast);
 }
 
 .text-decoration-none:hover {
@@ -26,8 +29,8 @@
 }
 
 .card-header {
-    background: rgba(0, 123, 255, 0.05);
-    border-bottom: 1px solid rgba(0, 123, 255, 0.1);
+    background: var(--card-header-bg);
+    border-bottom: 1px solid var(--primary-lighter);
 }
 
 /* =============================================================================
@@ -35,7 +38,7 @@
  * ============================================================================= */
 
 .bg-primary {
-    background: linear-gradient(135deg, #007bff, #0056b3) !important;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
 }
 
 /* =============================================================================
@@ -60,13 +63,13 @@
 
 .cocktail-card {
     border: 0;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    box-shadow: var(--card-shadow);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .cocktail-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    box-shadow: var(--card-shadow-hover);
 }
 
 .cocktail-card .card-body {
@@ -83,7 +86,7 @@
 }
 
 .cocktail-card .card-title a:hover {
-    color: var(--bs-primary);
+    color: var(--primary-color);
     text-decoration: underline;
 }
 
@@ -99,12 +102,12 @@
 }
 
 .list-item:not(:last-child) {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .list-item-icon {
-    background: var(--bs-light);
-    border-radius: 0.375rem;
+    background: var(--bg-light);
+    border-radius: var(--border-radius);
     padding: 0.5rem;
     margin-right: 1rem;
     display: flex;
@@ -133,17 +136,17 @@
 
 .empty-state-icon {
     font-size: 3rem;
-    color: var(--bs-secondary);
+    color: var(--text-secondary);
     margin-bottom: 1rem;
 }
 
 .empty-state h6 {
     margin-top: 1rem;
-    color: var(--bs-secondary);
+    color: var(--text-secondary);
 }
 
 .empty-state p {
-    color: var(--bs-secondary);
+    color: var(--text-secondary);
     margin-bottom: 1.5rem;
 }
 
@@ -159,7 +162,7 @@
     height: 100%;
     min-height: 120px;
     text-decoration: none;
-    transition: all 0.15s ease-in-out;
+    transition: all var(--transition-fast);
 }
 
 .quick-action-btn:hover {
@@ -228,11 +231,11 @@
  * 🍸 COCKTAIL FORM STYLES (moved from template: stir_craft/templates/stir_craft/cocktail_create.html)
  * ============================================================================= */
 .ingredient-formset {
-    border: 1px solid #dee2e6;
-    border-radius: 0.375rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
     padding: 1rem;
     margin-bottom: 1rem;
-    background-color: #f8f9fa;
+    background-color: var(--bg-light);
 }
 
 .ingredient-row {
@@ -242,9 +245,9 @@
     align-items: end;
     margin-bottom: 0.5rem;
     padding: 0.5rem;
-    border: 1px solid #dee2e6;
-    border-radius: 0.25rem;
-    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--bg-white);
 }
 
 .delete-checkbox {
@@ -260,13 +263,13 @@
 .form-section {
     margin-bottom: 2rem;
     padding: 1.5rem;
-    border: 1px solid #e9ecef;
-    border-radius: 0.5rem;
-    background-color: white;
+    border: 1px solid var(--bg-gray-200);
+    border-radius: var(--border-radius-lg);
+    background-color: var(--bg-white);
 }
 
 .section-title {
-    color: #495057;
+    color: var(--text-primary);
     margin-bottom: 1rem;
     font-weight: 600;
 }

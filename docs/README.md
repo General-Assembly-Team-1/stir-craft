@@ -68,25 +68,35 @@ pipenv run python manage.py runserver
 | **CSS** | ✅ Organized | Structured styling architecture |
 | **Deployment** | ✅ Live | Heroku with PostgreSQL addon |
 
-## 📚 **DOCUMENTATION** (10 Essential Guides)
+## 📚 **DOCUMENTATION** (12 Essential Guides)
 
 ### 🚀 Getting Started (3 docs)
 - **[Quick Setup Guide](quick-setup.md)** - Get running in 10 minutes
 - **[Development Guide](development-guide.md)** - Coding standards and workflow  
 - **[PostgreSQL Setup](postgres-setup.md)** - Database configuration help
 
-### 🛠️ Technical Implementation (4 docs)
+### 🛠️ Technical Implementation (6 docs)
 - **[Testing Infrastructure](testing-infrastructure.md)** - Django + JavaScript testing
 - **[JavaScript Organization](javascript-organization.md)** - Frontend architecture
-- **[CSS Organization](css-organization.md)** - Styling architecture
+- **[CSS Organization](css-organization.md)** - Styling architecture & color management
+- **[Color Management System](color-management-system.md)** - CSS variables guide
 - **[Template Partials Guide](template-partials-guide.md)** - Template component system
+- **[Image Handling Guide](image-handling-implementation-guide.md)** - Asset management
 
-### 🎯 Feature Guides (2 docs)
+### 🎯 Feature Guides (3 docs)
 - **[Cocktail Forms Guide](cocktail-forms-technical-guide.md)** - Form system implementation
 - **[Deployment Guide](deployment-guide.md)** - Production deployment instructions
+- **[JavaScript Refactoring Summary](javascript-refactoring-summary.md)** - Recent improvements
+
+### 📋 Audit Reports & Project History
+See [audits/](audits/) folder for:
+- **CSS Audit Report** - Complete CSS consistency review
+- **CSS Implementation Summary** - Color management implementation
+- **File Organization Audit** - Project structure review
+- **JavaScript Testing Completion** - Testing implementation details
 
 ### 📋 **Documentation Philosophy**
-**Less is more.** We consolidated 20+ docs into 10 essential guides that cover everything you need. Each document serves a specific purpose with no redundancy.
+**Comprehensive yet focused.** Each document serves a specific purpose with clear organization and no redundancy. Audit reports are archived separately to maintain clean structure.
 
 ## 🎯 **RECENT MAJOR IMPROVEMENTS**
 

@@ -1,5 +1,8 @@
 /* Cocktail page specific styles (moved from base or inline). */
 
+/* Import color variables */
+@import url('variables.css');
+
 /* =============================================================================
    🖼️ COCKTAIL IMAGE STYLES
    ============================================================================= */
@@ -257,14 +260,14 @@
     letter-spacing: 0.5px;
 }
 
-.flavor-sweet { background-color: #ffe8e8; color: #d63384; }
-.flavor-sour { background-color: #fff3cd; color: #b08800; }
-.flavor-bitter { background-color: #d1ecf1; color: #0c5460; }
-.flavor-spicy { background-color: #f8d7da; color: #721c24; }
-.flavor-herbal { background-color: #d4edda; color: #155724; }
-.flavor-citrus { background-color: #fff3cd; color: #856404; }
-.flavor-fruity { background-color: #ffe8e8; color: #842029; }
-.flavor-floral { background-color: #e2e3f0; color: #383d41; }
+.flavor-sweet { background-color: var(--flavor-sweet-bg); color: var(--flavor-sweet-text); }
+.flavor-sour { background-color: var(--flavor-sour-bg); color: var(--flavor-sour-text); }
+.flavor-bitter { background-color: var(--flavor-bitter-bg); color: var(--flavor-bitter-text); }
+.flavor-spicy { background-color: var(--flavor-spicy-bg); color: var(--flavor-spicy-text); }
+.flavor-herbal { background-color: var(--flavor-herbal-bg); color: var(--flavor-herbal-text); }
+.flavor-citrus { background-color: var(--flavor-citrus-bg); color: var(--flavor-citrus-text); }
+.flavor-fruity { background-color: var(--flavor-fruity-bg); color: var(--flavor-fruity-text); }
+.flavor-floral { background-color: var(--flavor-floral-bg); color: var(--flavor-floral-text); }
 
 /* Enhanced action buttons */
 .cocktail-actions {
