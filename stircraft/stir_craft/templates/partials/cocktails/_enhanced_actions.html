@@ -17,7 +17,7 @@
                             id="favorite-btn" 
                             data-cocktail-id="{{ cocktail.id }}"
                             data-is-favorited="{{ is_favorited|yesno:'true,false' }}"
-                            data-favorite-url="{% url 'toggle_favorite' cocktail.id %}">
+                            data-favorite-url="{% url 'toggle_favorite' cocktail.id %}">>
                         <div class="action-icon">
                             <i class="bi {% if is_favorited %}bi-heart-fill{% else %}bi-heart{% endif %} fa-heart" id="favorite-icon"></i>
                         </div>
