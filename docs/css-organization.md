@@ -204,3 +204,122 @@ When reviewing or adding CSS files, ensure:
 - [ ] **No inline styles**: All styling moved to appropriate CSS files
 - [ ] **Consistent naming**: Follow established naming conventions
 - [ ] **Responsive design**: Mobile-first approach with proper breakpoints
+
+---
+
+# Color Management System
+
+## 🎨 How CSS Variables Work
+
+The color management system uses CSS Custom Properties (CSS Variables) which provide:
+- **Consistent theming** across all components
+- **Easy maintenance** - change colors in one place
+- **Browser native support** - no build tools required
+- **Dynamic updates** - can be changed with JavaScript if needed
+
+## 🔧 Using Color Variables
+
+### In CSS Files
+
+```css
+/* Import variables at the top of your CSS file */
+@import url('variables.css');
+
+/* Use variables instead of hardcoded colors */
+.my-component {
+    background-color: var(--primary-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    transition: all var(--transition-fast);
+}
+
+.my-component:hover {
+    background-color: var(--primary-dark);
+    box-shadow: var(--card-shadow-hover);
+}
+```
+
+### Available Variables
+
+#### Primary Colors
+- `--primary-color` - Main brand blue (#007bff)
+- `--primary-dark` - Darker blue for hover states
+- `--primary-light` - Lighter blue for accents
+- `--primary-alpha-05` - Semi-transparent primary (5% opacity)
+
+#### Semantic Colors
+- `--success-color`, `--success-dark`, `--success-light`
+- `--danger-color`, `--danger-dark`, `--danger-light`  
+- `--warning-color`, `--warning-dark`, `--warning-light`
+- `--info-color`, `--info-dark`, `--info-light`
+
+#### Text Colors
+- `--text-primary` - Main text color
+- `--text-secondary` - Secondary text color
+- `--text-muted` - Muted text color
+
+#### Background Colors
+- `--bg-white`, `--bg-light`, `--bg-lighter`
+- `--bg-gray-100`, `--bg-gray-200`, `--bg-gray-300`
+
+#### Borders & Effects
+- `--border-color`, `--border-light`, `--border-dark`
+- `--card-shadow`, `--card-shadow-hover`
+- `--border-radius`, `--border-radius-lg`
+
+#### Flavor Tags
+- `--flavor-sweet-bg/text`, `--flavor-sour-bg/text`, etc.
+
+## 🎨 Updating Colors
+
+To change the color scheme:
+
+1. **Edit `variables.css`** - Update the color values in the `:root` section
+2. **Colors update automatically** across all files using the variables
+3. **No need to update individual CSS files**
+
+### Example: Changing Primary Color
+
+```css
+/* In variables.css */
+:root {
+    /* Change from blue to green theme */
+    --primary-color: #28a745;        /* New green primary */
+    --primary-dark: #1e7e34;         /* Darker green */
+    --primary-light: #6fbf73;        /* Lighter green */
+    --primary-alpha-05: rgba(40, 167, 69, 0.05);
+}
+```
+
+All components using `var(--primary-color)` will automatically use the new green color!
+
+## 🔄 Migrating Existing Styles
+
+To convert hardcoded colors to variables:
+
+1. **Find hardcoded colors:**
+   ```css
+   /* Before */
+   .component {
+       background: #007bff;
+       border: 1px solid #dee2e6;
+   }
+   ```
+
+2. **Replace with variables:**
+   ```css
+   /* After */
+   .component {
+       background: var(--primary-color);
+       border: 1px solid var(--border-color);
+   }
+   ```
+
+## 📝 Color Management Best Practices
+
+1. **Always use variables** for colors, spacing, and common values
+2. **Import variables first** in each CSS file
+3. **Use semantic names** when adding new variables
+4. **Group related variables** together in variables.css
+5. **Test changes** across different pages to ensure consistency
+- [ ] **Responsive design**: Mobile-first approach with proper breakpoints

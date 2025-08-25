@@ -1,8 +1,57 @@
-# Stir Craft – Development Guide
+# StirCraft Development Guide
 
-**Prerequisites:** Make sure you've completed the setup in `docs/QUICK_SETUP.md` and `docs/POSTGRES_SETUP.md` first.
+## 🚀 Quick Setup (10 Minutes)
 
-## 🔐 Environment Variables & Secrets Management (NEW!)
+**New to the project? Start here for fast setup:**
+
+### 1. Prerequisites Check
+```bash
+# Check if you have these installed:
+python3 --version    # Should be 3.12+
+psql --version       # PostgreSQL client
+pip --version        # Python package manager
+```
+
+### 2. Database Setup (One-time)
+```bash
+# Create PostgreSQL user with password
+sudo -u postgres psql -c "ALTER USER $(whoami) PASSWORD 'stircraft123';"
+
+# Create database 
+sudo -u postgres createdb --owner=$(whoami) stircraft
+```
+
+### 3. Application Setup (One-time)
+```bash
+# Clone and setup project
+git clone <repo-url>
+cd stir-craft
+
+# Install dependencies
+pipenv install
+
+# Run migrations  
+DB_PASSWORD=stircraft123 pipenv run python stircraft/manage.py migrate
+
+# Import test data (optional but recommended)
+DB_PASSWORD=stircraft123 pipenv run python stircraft/manage.py seed_from_thecocktaildb --limit 10
+```
+
+### 4. Verify Everything Works
+```bash
+# Run the test suite to make sure everything is set up correctly
+./scripts/run_tests.sh
+
+# Start development server
+DB_PASSWORD=stircraft123 pipenv run python stircraft/manage.py runserver
+# Visit: http://127.0.0.1:8000
+```
+
+**🆘 Having issues? See the detailed setup sections below.**
+
+---
+
+## 🔐 Environment Variables & Secrets Management
 
 ### Overview
 StirCraft now uses secure environment variable management to protect sensitive information like database passwords, secret keys, and API credentials. This approach follows Django best practices and prepares the application for production deployment.
