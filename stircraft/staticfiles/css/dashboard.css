@@ -3,6 +3,8 @@
  * Contains styles specific to the dashboard page
  */
 
+@import url('variables.css');
+
 /* =============================================================================
  * 📊 DASHBOARD LAYOUT
  * ============================================================================= */
@@ -66,10 +68,13 @@
  * 🔒 CREATION LIST STYLES
  * ============================================================================= */
 
-.creations-alert {
-    background-color: rgba(13, 202, 240, 0.1);
-    border: 1px solid rgba(13, 202, 240, 0.2);
-    color: rgba(13, 202, 240, 0.8);
+.stats-card {
+    background-color: var(--info-alpha);
+    border: 1px solid var(--border-light);
+    color: var(--info-color);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-lg);
+    transition: all var(--transition-fast);
 }
 
 .creations-alert .bi-info-circle {
@@ -78,7 +83,7 @@
 
 .creation-card {
     border: 0;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    box-shadow: var(--card-shadow);
     height: 100%;
 }
 
@@ -108,7 +113,7 @@
 }
 
 .favorite-item:not(:last-child) {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .favorite-icon {
@@ -152,7 +157,7 @@
 }
 
 .list-overview-item:not(:last-child) {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .list-icon {
@@ -227,7 +232,7 @@
 
 .dashboard-action:hover {
     transform: translateY(-3px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    box-shadow: var(--card-shadow-hover);
     text-decoration: none;
 }
 

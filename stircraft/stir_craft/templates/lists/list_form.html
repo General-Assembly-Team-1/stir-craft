@@ -1,20 +1,117 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Create / Edit List{% endblock %}
+{% block title %}{{ page_title|default:"Create List" }} - StirCraft{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'css/forms.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<!-- LIST FORM SCAFFOLD
-     Purpose: Create/edit a List model. Insert your Django form here (e.g., {{ form }}).
--->
-
 <div class="container">
-    <h1>Create / Edit List</h1>
-    <p class="text-muted">(Placeholder - form to be added)</p>
-</div>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Create / Edit List</h1>
+                <a href="{% url 'user_lists' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Lists
+                </a>
+            </div>
 
+            <!-- Form Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-collection text-primary"></i> List Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- List Name -->
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                List Name <span class="text-danger">*</span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.name.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Give your list a descriptive name (e.g., "Summer Drinks", "Date Night Cocktails")
+                            </div>
+                        </div>
+
+                        <!-- List Description -->
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                Description
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.description.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Optional description to help others understand your list's theme or purpose
+                            </div>
+                        </div>
+
+                        <!-- Privacy Notice -->
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Privacy:</strong> Your custom lists will be visible to other users as part of your public profile. Only your list name, description, and cocktails will be shown - personal information remains private.
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'user_lists' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> {{ submit_text|default:"Create List" }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightbulb text-warning"></i> List Ideas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>By Occasion:</h6>
+                            <ul class="small text-muted">
+                                <li>Brunch Cocktails</li>
+                                <li>Date Night Drinks</li>
+                                <li>Party Favorites</li>
+                                <li>Holiday Specials</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>By Style:</h6>
+                            <ul class="small text-muted">
+                                <li>Low-ABV Options</li>
+                                <li>Tiki Classics</li>
+                                <li>Gin-Based Cocktails</li>
+                                <li>Easy 3-Ingredient Drinks</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

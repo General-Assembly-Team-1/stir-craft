@@ -1,0 +1,175 @@
+<!-- Enhanced Actions Section for Cocktail Detail -->
+{% load static %}
+
+{% if user.is_authenticated %}
+    <div class="card mb-4 enhanced-actions-card cocktail-actions">
+        <div class="card-header bg-gradient-primary text-white">
+            <h4 class="mb-0 text-center">
+                <i class="bi bi-star-fill text-warning"></i> Take Action
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <!-- Primary Action: Favorite -->
+                <div class="col-12 col-md-4">
+                    <button type="button" 
+                            class="btn {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %} w-100 action-btn btn-action btn-favorite" 
+                            id="favorite-btn" 
+                            data-cocktail-id="{{ cocktail.id }}"
+                            data-is-favorited="{{ is_favorited|yesno:'true,false' }}"
+                            data-favorite-url="{% url 'toggle_favorite' cocktail.id %}">
+                        <div class="action-icon">
+                            <i class="bi {% if is_favorited %}bi-heart-fill{% else %}bi-heart{% endif %} fa-heart" id="favorite-icon"></i>
+                        </div>
+                        <div class="action-text">
+                            <span id="favorite-text">
+                                {% if is_favorited %}Remove from Favorites{% else %}Add to Favorites{% endif %}
+                            </span>
+                        </div>
+                    </button>
+                </div>
+                
+                <!-- Secondary Action: Fork or Edit -->
+                <div class="col-12 col-md-4">
+                    {% if user != cocktail.creator %}
+                        <a href="{% url 'cocktail_fork' cocktail.id %}" class="btn btn-outline-primary w-100 action-btn btn-action">
+                            <div class="action-icon">
+                                <i class="bi bi-plus-square"></i>
+                            </div>
+                            <div class="action-text">Make Your Own</div>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'cocktail_update' cocktail.id %}" class="btn btn-outline-warning w-100 action-btn btn-action">
+                            <div class="action-icon">
+                                <i class="bi bi-pencil"></i>
+                            </div>
+                            <div class="action-text">Edit Recipe</div>
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Tertiary Action: Add to List -->
+                <div class="col-12 col-md-4">
+                    <div class="dropdown w-100">
+                        <button class="btn btn-outline-success w-100 dropdown-toggle action-btn btn-action btn-add-to-list" 
+                                type="button" 
+                                id="addToListDropdown" 
+                                data-bs-toggle="dropdown" 
+                                aria-expanded="false">
+                            <div class="action-icon">
+                                <i class="bi bi-collection fa-plus"></i>
+                            </div>
+                            <div class="action-text">Add to List</div>
+                        </button>
+                        <div class="dropdown-menu w-100 add-to-list-dropdown" aria-labelledby="addToListDropdown">
+                            {% if user_custom_lists %}
+                                <h6 class="dropdown-header">Your Lists</h6>
+                                {% for list in user_custom_lists %}
+                                    <button type="button" 
+                                            class="dropdown-item add-to-list-item" 
+                                            data-list-id="{{ list.id }}"
+                                            data-list-name="{{ list.name }}"
+                                            data-cocktail-id="{{ cocktail.id }}">
+                                        <i class="bi bi-plus-circle me-2"></i>
+                                        <span class="list-name">{{ list.name }}</span>
+                                        <small class="text-muted ms-auto">({{ list.cocktail_count }} cocktails)</small>
+                                    </button>
+                                {% endfor %}
+                                <div class="dropdown-divider"></div>
+                            {% else %}
+                                <div class="dropdown-item-text text-muted">
+                                    <small><em>No custom lists yet</em></small>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                            {% endif %}
+                            
+                            <a class="dropdown-item" href="{% url 'list_create' %}">
+                                <i class="bi bi-plus me-2"></i>
+                                <strong>Create New List</strong>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Attribution Notice -->
+            {% if user != cocktail.creator %}
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        <i class="bi bi-lightbulb"></i>
+                        <strong>Make Your Own</strong> creates a customizable copy with full credit to 
+                        <strong>{{ cocktail.creator.username }}</strong>
+                    </small>
+                </div>
+            {% endif %}
+            
+            <!-- Current Lists Info -->
+            {% if user_lists %}
+                <div class="mt-3 pt-3 border-top">
+                    <small class="text-success">
+                        <i class="bi bi-check-circle"></i>
+                        <strong>This cocktail is in your lists:</strong>
+                        {% for list_name in user_lists %}
+                            "{{ list_name }}"{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </small>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <!-- For non-authenticated users -->
+    <div class="card mb-4 guest-actions-card">
+        <div class="card-body bg-primary bg-opacity-10 text-center">
+            <h5 class="mb-3">
+                <i class="bi bi-heart text-danger"></i> Love this cocktail?
+            </h5>
+            <p class="mb-3">Join StirCraft to save favorites, create custom lists, and make your own recipes!</p>
+            <div class="d-grid gap-2 d-md-block">
+                <a href="{% url 'login' %}?next={{ request.get_full_path }}" class="btn btn-primary me-2">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign In
+                </a>
+                <a href="{% url 'signup' %}?next={{ request.get_full_path }}" class="btn btn-outline-primary">
+                    <i class="bi bi-person-plus"></i> Sign Up
+                </a>
+            </div>
+            <div class="mt-3">
+                <small class="text-muted">
+                    Already have an account? 
+                    <a href="{% url 'login' %}?next={{ request.get_full_path }}">Sign in here</a>
+                </small>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Navigation -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <a href="{% url 'cocktail_index' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Browse
+    </a>
+    
+    {% if user.is_authenticated %}
+        <div class="btn-group" role="group">
+            <a href="{% url 'cocktail_create' %}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-plus-circle"></i> Create New
+            </a>
+            <a href="{% url 'user_lists' %}" class="btn btn-outline-info btn-sm">
+                <i class="bi bi-collection"></i> My Lists
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Toast Container for Messages -->
+<div class="position-fixed top-0 end-0 p-3 toast-container" style="z-index: 11">
+    <div id="actionToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto" id="toast-title">StirCraft</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toast-body">
+            <!-- Message will be inserted here -->
+        </div>
+    </div>
+</div>

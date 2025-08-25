@@ -133,7 +133,9 @@ staticfiles/rest_framework/
 staticfiles/CACHE/
 
 # Django media uploads - user-uploaded content (configure separate backup)
-# media/  # Uncomment if you have user uploads you don't want in git
+# Exclude all media files from version control - these should be handled by cloud storage in production
+# TEMPORARY: Allow media files for production deployment (move to S3/Cloudinary later)
+# media/
 
 # Django migrations - KEEP these as they track database schema changes
 # migrations/ are intentionally NOT ignored

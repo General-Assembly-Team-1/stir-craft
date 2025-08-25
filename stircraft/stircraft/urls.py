@@ -16,10 +16,27 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from django.http import HttpResponse, Http404
+from django.views.static import serve
+import os
+
+def serve_media(request, path):
+    """Custom media serving view for production"""
+    media_root = settings.MEDIA_ROOT
+    file_path = os.path.join(media_root, path)
+    
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return serve(request, path, document_root=media_root)
+    else:
+        raise Http404("Media file not found")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('stir_craft.urls')),
+    # Custom media serving for production
+    path('media/<path:path>', serve_media, name='serve_media'),
 ]
 
 # Custom error handlers

@@ -50,3 +50,6 @@ CACHES = {
 # Ensure test database creation works
 SECRET_KEY = 'test-secret-key-for-tests-only'
 DEBUG = True
+
+# Allow all hosts for testing
+ALLOWED_HOSTS = ['*']

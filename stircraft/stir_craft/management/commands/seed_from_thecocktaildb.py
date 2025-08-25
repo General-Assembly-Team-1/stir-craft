@@ -1,5 +1,15 @@
 """
-Django management command to seed the StirCraft database with cocktail data 
+Django management command to seed the Stirimport requests
+import logging
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
+from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
+from django.conf import settings
+from PIL import Image
+import os
+import io
+import urllib.parse database with cocktail data 
 from TheCocktailDB API (https://www.thecocktaildb.com/api.php).
 
 TheCocktailDB is a free, open-source API that provides comprehensive cocktail data
@@ -49,12 +59,17 @@ import logging
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from stir_craft.models import (
     Ingredient, Vessel, Cocktail, RecipeComponent, List
 )
 from decimal import Decimal
 import re
 import time
+from PIL import Image
+import io
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -419,7 +434,7 @@ class Command(BaseCommand):
             creator=admin_user,
             vessel=vessel,
             is_alcoholic=is_alcoholic,
-            color=self._extract_color_from_category(cocktail_data.get('strCategory', '')),
+            color='Clear',  # Will be set by intelligent color detection
         )
         
         # Add category and alcoholic status as vibe tags for filtering
@@ -431,8 +446,14 @@ class Command(BaseCommand):
         # Add alcoholic status as a searchable tag
         cocktail.vibe_tags.add('alcoholic' if is_alcoholic else 'non-alcoholic')
         
+        # Add intelligent tags based on cocktail analysis
+        self._add_intelligent_tags(cocktail, cocktail_data)
+        
         # Process ingredients (TheCocktailDB has up to 15 ingredients per cocktail)
         self._process_thecocktaildb_ingredients(cocktail, cocktail_data)
+        
+        # Download and process cocktail image from TheCocktailDB
+        self._process_cocktail_image(cocktail, cocktail_data)
         
         return cocktail, True
     
@@ -614,6 +635,317 @@ class Command(BaseCommand):
         
         # Default estimation if no pattern matches
         return self._estimate_measurement(ingredient_name, order)
+    
+    def _add_intelligent_tags(self, cocktail, cocktail_data):
+        """
+        Add intelligent tags based on cocktail analysis.
+        
+        This method analyzes the cocktail's ingredients, preparation, and characteristics
+        to automatically add relevant tags that enhance searchability and filtering.
+        
+        Categories of intelligent tags:
+        - Carbonation: 'bubbly' for carbonated ingredients
+        - Colors: Based on main ingredient colors or cocktail appearance
+        - Flavor profiles: 'citrusy', 'sweet', 'bitter', 'herbal', etc.
+        - Preparation style: 'shaken', 'stirred', 'muddled', 'layered'
+        - Temperature: 'hot', 'frozen', 'chilled'
+        - Occasion: 'party', 'sophisticated', 'summer', 'winter'
+        - Complexity: 'simple', 'complex'
+        
+        Args:
+            cocktail (Cocktail): The cocktail object to add tags to
+            cocktail_data (dict): Raw cocktail data from TheCocktailDB API
+        """
+        
+        # Collect all ingredients for analysis
+        all_ingredients = []
+        for i in range(1, 16):
+            ingredient_name = cocktail_data.get(f'strIngredient{i}')
+            if ingredient_name and ingredient_name.strip():
+                all_ingredients.append(ingredient_name.strip().lower())
+        
+        instructions = cocktail_data.get('strInstructions', '').lower()
+        glass_type = cocktail_data.get('strGlass', '').lower()
+        
+        # 1. CARBONATION ANALYSIS
+        self._add_carbonation_tags(cocktail, all_ingredients)
+        
+        # 2. COLOR ANALYSIS  
+        self._add_color_tags(cocktail, all_ingredients, cocktail_data)
+        
+        # 3. FLAVOR PROFILE ANALYSIS
+        self._add_flavor_profile_tags(cocktail, all_ingredients)
+        
+        # 4. PREPARATION STYLE ANALYSIS
+        self._add_preparation_tags(cocktail, instructions)
+        
+        # 5. TEMPERATURE ANALYSIS
+        self._add_temperature_tags(cocktail, instructions, glass_type)
+        
+        # 6. OCCASION AND MOOD ANALYSIS
+        self._add_occasion_tags(cocktail, all_ingredients, instructions, glass_type)
+        
+        # 7. COMPLEXITY ANALYSIS
+        self._add_complexity_tags(cocktail, all_ingredients, instructions)
+    
+    def _add_carbonation_tags(self, cocktail, ingredients):
+        """Add carbonation-related tags based on ingredients."""
+        carbonated_ingredients = [
+            'champagne', 'prosecco', 'sparkling wine', 'cava',
+            'club soda', 'soda water', 'tonic water', 'ginger ale', 
+            'ginger beer', 'sprite', 'cola', 'coke', 'pepsi',
+            'beer', 'lager', 'ale', 'sparkling water', 'perrier',
+            '7-up', 'mountain dew', 'dr pepper'
+        ]
+        
+        for ingredient in ingredients:
+            if any(carb in ingredient for carb in carbonated_ingredients):
+                cocktail.vibe_tags.add('bubbly')
+                cocktail.vibe_tags.add('sparkling')
+                break
+    
+    def _add_color_tags(self, cocktail, ingredients, cocktail_data):
+        """Add color tags based on ingredient analysis and cocktail appearance."""
+        
+        # Color mapping based on ingredients
+        color_ingredients = {
+            'red': [
+                'cranberry', 'cherry', 'grenadine', 'red wine', 'strawberry',
+                'raspberry', 'pomegranate', 'red vermouth', 'campari',
+                'aperol', 'cherry juice', 'cranberry juice'
+            ],
+            'orange': [
+                'orange', 'orange juice', 'orange liqueur', 'cointreau',
+                'grand marnier', 'triple sec', 'aperol', 'orange bitters',
+                'orange peel', 'mandarin', 'tangerine'
+            ],
+            'yellow': [
+                'lemon', 'lemon juice', 'limoncello', 'yellow chartreuse',
+                'banana', 'pineapple', 'pineapple juice', 'lemon peel',
+                'champagne', 'white wine', 'ginger', 'honey'
+            ],
+            'green': [
+                'lime', 'lime juice', 'green chartreuse', 'midori',
+                'apple', 'green apple', 'mint', 'basil', 'cucumber',
+                'absinthe', 'green tea', 'matcha'
+            ],
+            'purple': [
+                'grape', 'grape juice', 'blackberry', 'blueberry',
+                'violet', 'lavender', 'purple'
+            ],
+            'pink': [
+                'rose', 'pink grapefruit', 'watermelon', 'pink lemonade',
+                'rosé', 'pink gin', 'hibiscus'
+            ],
+            'blue': [
+                'blue curacao', 'blue', 'blueberry'
+            ],
+            'brown': [
+                'coffee', 'espresso', 'kahlua', 'chocolate', 'cocoa',
+                'cola', 'whiskey', 'bourbon', 'rum', 'brandy'
+            ],
+            'clear': [
+                'vodka', 'gin', 'white rum', 'silver tequila', 'sake',
+                'water', 'soda water', 'club soda'
+            ]
+        }
+        
+        # Check ingredients for color indicators
+        detected_colors = set()
+        for color, color_ingredients_list in color_ingredients.items():
+            for ingredient in ingredients:
+                if any(color_ing in ingredient for color_ing in color_ingredients_list):
+                    detected_colors.add(color)
+        
+        # Add primary color tags (limit to avoid tag pollution) and set cocktail color
+        primary_colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink']
+        color_set = False
+        for color in primary_colors:
+            if color in detected_colors:
+                cocktail.vibe_tags.add(color)
+                # Set the cocktail's color field to match our predefined choices
+                color_mapping = {
+                    'red': 'Red',
+                    'orange': 'Orange', 
+                    'yellow': 'Yellow',
+                    'green': 'Green',
+                    'blue': 'Blue',
+                    'purple': 'Purple',
+                    'pink': 'Pink'
+                }
+                if color in color_mapping:
+                    cocktail.color = color_mapping[color]
+                    color_set = True
+                break  # Only add one primary color
+        
+        # Handle special cases for color field
+        if not color_set:
+            if 'brown' in detected_colors:
+                cocktail.color = 'Brown'
+                cocktail.vibe_tags.add('brown')
+            elif 'clear' in detected_colors and len(detected_colors) == 1:
+                cocktail.color = 'Clear'
+                cocktail.vibe_tags.add('clear')
+            else:
+                # Default to Clear if no color detected
+                cocktail.color = 'Clear'
+            cocktail.vibe_tags.add('dark')
+    
+    def _add_flavor_profile_tags(self, cocktail, ingredients):
+        """Add flavor profile tags based on ingredient analysis."""
+        
+        flavor_profiles = {
+            'citrusy': [
+                'lemon', 'lime', 'orange', 'grapefruit', 'citrus',
+                'lemon juice', 'lime juice', 'orange juice'
+            ],
+            'sweet': [
+                'sugar', 'simple syrup', 'agave', 'honey', 'grenadine',
+                'amaretto', 'kahlua', 'baileys', 'sweet vermouth',
+                'coconut', 'vanilla', 'chocolate'
+            ],
+            'bitter': [
+                'bitter', 'campari', 'aperol', 'fernet', 'angostura',
+                'orange bitters', 'peychauds'
+            ],
+            'herbal': [
+                'mint', 'basil', 'rosemary', 'thyme', 'sage', 'gin',
+                'chartreuse', 'benedictine', 'herbsaint', 'absinthe'
+            ],
+            'spicy': [
+                'ginger', 'cinnamon', 'pepper', 'jalapeno', 'hot sauce',
+                'tabasco', 'ginger beer', 'fireball', 'spiced rum'
+            ],
+            'smoky': [
+                'mezcal', 'islay scotch', 'peated', 'laphroaig',
+                'smoke', 'smoked'
+            ],
+            'fruity': [
+                'apple', 'pear', 'peach', 'berry', 'cherry', 'grape',
+                'strawberry', 'raspberry', 'blackberry', 'cranberry'
+            ],
+            'tropical': [
+                'coconut', 'pineapple', 'mango', 'passion fruit',
+                'rum', 'mai tai', 'piña colada'
+            ],
+            'creamy': [
+                'cream', 'milk', 'baileys', 'advocaat', 'egg white',
+                'coconut cream'
+            ]
+        }
+        
+        # Add flavor tags based on ingredients
+        for flavor, flavor_ingredients in flavor_profiles.items():
+            for ingredient in ingredients:
+                if any(flavor_ing in ingredient for flavor_ing in flavor_ingredients):
+                    cocktail.vibe_tags.add(flavor)
+                    break
+    
+    def _add_preparation_tags(self, cocktail, instructions):
+        """Add preparation method tags based on instructions."""
+        
+        preparation_methods = {
+            'shaken': ['shake', 'shaken', 'shaker'],
+            'stirred': ['stir', 'stirred', 'stirring'],
+            'muddled': ['muddle', 'muddled', 'muddling'],
+            'layered': ['layer', 'layered', 'float', 'top'],
+            'blended': ['blend', 'blended', 'blender'],
+            'built': ['build', 'built', 'pour directly'],
+            'flamed': ['flame', 'flamed', 'ignite'],
+            'rolled': ['roll', 'rolled', 'rolling']
+        }
+        
+        for method, keywords in preparation_methods.items():
+            if any(keyword in instructions for keyword in keywords):
+                cocktail.vibe_tags.add(method)
+    
+    def _add_temperature_tags(self, cocktail, instructions, glass_type):
+        """Add temperature-related tags."""
+        
+        # Hot drinks
+        hot_indicators = ['hot', 'warm', 'heated', 'coffee', 'tea', 'irish coffee']
+        if any(indicator in instructions for indicator in hot_indicators):
+            cocktail.vibe_tags.add('hot')
+        
+        # Frozen drinks  
+        frozen_indicators = ['frozen', 'blended', 'slush', 'ice cream', 'sorbet']
+        if any(indicator in instructions for indicator in frozen_indicators):
+            cocktail.vibe_tags.add('frozen')
+        
+        # Most cocktails are chilled by default
+        if 'hot' not in cocktail.vibe_tags.all() and 'frozen' not in cocktail.vibe_tags.all():
+            cocktail.vibe_tags.add('chilled')
+    
+    def _add_occasion_tags(self, cocktail, ingredients, instructions, glass_type):
+        """Add occasion and mood tags based on cocktail characteristics."""
+        
+        # Summer drinks
+        summer_indicators = [
+            'lemonade', 'iced', 'frozen', 'tropical', 'beach', 'mojito',
+            'margarita', 'daiquiri', 'piña colada', 'sangria'
+        ]
+        
+        # Winter drinks
+        winter_indicators = [
+            'hot', 'warm', 'cinnamon', 'nutmeg', 'eggnog', 'mulled',
+            'hot toddy', 'irish coffee'
+        ]
+        
+        # Party drinks
+        party_indicators = [
+            'punch', 'shot', 'jello', 'party', 'bomb', 'slam'
+        ]
+        
+        # Sophisticated/classy drinks
+        sophisticated_indicators = [
+            'martini', 'manhattan', 'old fashioned', 'negroni',
+            'sazerac', 'boulevardier', 'aviation'
+        ]
+        
+        cocktail_name_lower = cocktail.name.lower()
+        all_text = f"{cocktail_name_lower} {' '.join(ingredients)} {instructions} {glass_type}"
+        
+        if any(indicator in all_text for indicator in summer_indicators):
+            cocktail.vibe_tags.add('summer')
+        
+        if any(indicator in all_text for indicator in winter_indicators):
+            cocktail.vibe_tags.add('winter')
+        
+        if any(indicator in all_text for indicator in party_indicators):
+            cocktail.vibe_tags.add('party')
+        
+        if any(indicator in all_text for indicator in sophisticated_indicators):
+            cocktail.vibe_tags.add('sophisticated')
+            cocktail.vibe_tags.add('classic')
+        
+        # Brunch drinks
+        if 'champagne' in all_text or 'prosecco' in all_text or 'mimosa' in cocktail_name_lower:
+            cocktail.vibe_tags.add('brunch')
+        
+        # Date night drinks
+        if any(word in all_text for word in ['romantic', 'rose', 'pink', 'champagne']):
+            cocktail.vibe_tags.add('romantic')
+    
+    def _add_complexity_tags(self, cocktail, ingredients, instructions):
+        """Add complexity tags based on ingredient count and preparation steps."""
+        
+        ingredient_count = len(ingredients)
+        instruction_steps = instructions.count('.') + instructions.count('\n')
+        
+        # Simple cocktails (2-3 ingredients, basic instructions)
+        if ingredient_count <= 3 and instruction_steps <= 2:
+            cocktail.vibe_tags.add('simple')
+            cocktail.vibe_tags.add('easy')
+        
+        # Complex cocktails (5+ ingredients or complex instructions)
+        elif ingredient_count >= 5 or instruction_steps >= 4:
+            cocktail.vibe_tags.add('complex')
+            cocktail.vibe_tags.add('advanced')
+        
+        # Check for garnish complexity
+        garnish_words = ['garnish', 'twist', 'peel', 'wheel', 'wedge', 'rim', 'salt']
+        if any(word in instructions for word in garnish_words):
+            cocktail.vibe_tags.add('garnished')
     
     def _find_matching_vessel(self, glass_type):
         """Find the best matching vessel for a given glass type."""
@@ -868,6 +1200,125 @@ class Command(BaseCommand):
         
         # Default
         return Decimal('30.00'), 'ml'  # 1 oz in ml
+    
+    def _process_cocktail_image(self, cocktail, cocktail_data):
+        """
+        Download and process cocktail image from TheCocktailDB API.
+        
+        This method downloads the cocktail image from the `strDrinkThumb` URL,
+        resizes it to appropriate dimensions, and saves it to the cocktail model.
+        
+        Image Processing:
+        - Downloads from TheCocktailDB image URL
+        - Resizes to 400x400px (square format for consistency)
+        - Saves as JPEG with 85% quality for good balance of size/quality
+        - Handles errors gracefully (missing images don't stop processing)
+        
+        Args:
+            cocktail (Cocktail): The cocktail object to add image to
+            cocktail_data (dict): Raw cocktail data from TheCocktailDB API
+        """
+        
+        image_url = cocktail_data.get('strDrinkThumb')
+        
+        if not image_url:
+            logger.debug(f"No image URL for cocktail: {cocktail.name}")
+            return
+        
+        try:
+            # Download image with timeout and error handling
+            response = requests.get(image_url, timeout=15, stream=True)
+            response.raise_for_status()
+            
+            # Verify we got an image (check content type)
+            content_type = response.headers.get('content-type', '')
+            if not content_type.startswith('image/'):
+                logger.warning(f"Invalid image content type for {cocktail.name}: {content_type}")
+                return
+            
+            # Load image data into memory
+            image_data = response.content
+            
+            # Process image with Pillow
+            processed_image = self._resize_and_optimize_image(image_data, cocktail.name)
+            
+            if processed_image:
+                # Generate filename
+                safe_name = re.sub(r'[^\w\s-]', '', cocktail.name.lower())
+                safe_name = re.sub(r'[-\s]+', '-', safe_name)
+                filename = f"{safe_name}.jpg"
+                
+                # Save to cocktail model
+                cocktail.image.save(
+                    filename,
+                    ContentFile(processed_image),
+                    save=True
+                )
+                
+                logger.info(f"✅ Image saved for cocktail: {cocktail.name}")
+            
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Failed to download image for {cocktail.name}: {e}")
+        except Exception as e:
+            logger.error(f"Error processing image for {cocktail.name}: {e}")
+    
+    def _resize_and_optimize_image(self, image_data, cocktail_name):
+        """
+        Resize and optimize image for web display.
+        
+        Processing steps:
+        1. Load image from bytes
+        2. Convert to RGB (handles RGBA, grayscale, etc.)
+        3. Resize to 400x400px using high-quality resampling
+        4. Save as JPEG with 85% quality
+        5. Return processed image bytes
+        
+        Args:
+            image_data (bytes): Raw image data from API
+            cocktail_name (str): Name of cocktail (for logging)
+            
+        Returns:
+            bytes: Processed image data, or None if processing failed
+        """
+        
+        try:
+            # Load image from bytes
+            image = Image.open(io.BytesIO(image_data))
+            
+            # Convert to RGB if necessary (handles RGBA, P, grayscale, etc.)
+            if image.mode != 'RGB':
+                # Create white background for transparency
+                background = Image.new('RGB', image.size, (255, 255, 255))
+                if image.mode == 'RGBA':
+                    background.paste(image, mask=image.split()[-1])  # Use alpha channel as mask
+                else:
+                    background.paste(image)
+                image = background
+            
+            # Resize to consistent dimensions (400x400px square)
+            # Using LANCZOS resampling for high quality
+            target_size = (400, 400)
+            image = image.resize(target_size, Image.Resampling.LANCZOS)
+            
+            # Save to bytes buffer as JPEG
+            output_buffer = io.BytesIO()
+            image.save(
+                output_buffer,
+                format='JPEG',
+                quality=85,  # Good balance of quality and file size
+                optimize=True  # Enable additional optimization
+            )
+            
+            # Get processed image bytes
+            processed_data = output_buffer.getvalue()
+            output_buffer.close()
+            
+            logger.debug(f"Image processed for {cocktail_name}: {len(processed_data)} bytes")
+            return processed_data
+            
+        except Exception as e:
+            logger.error(f"Error resizing image for {cocktail_name}: {e}")
+            return None
     
     def _print_summary(self):
         """

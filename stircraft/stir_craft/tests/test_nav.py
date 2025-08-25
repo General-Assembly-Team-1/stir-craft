@@ -28,7 +28,7 @@ class NavTests(TestCase):
         self.assertContains(resp, 'Dashboard')
         self.assertContains(resp, 'Create Cocktail')
         # Right-side actions
-        self.assertContains(resp, 'Profile')
+        self.assertContains(resp, 'Dashboard')
         self.assertContains(resp, user.username)
         self.assertNotContains(resp, 'Login')
         self.assertNotContains(resp, 'Admin')

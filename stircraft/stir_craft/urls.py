@@ -40,6 +40,14 @@ urlpatterns = [
     path('cocktails/<int:cocktail_id>/favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('cocktails/<int:cocktail_id>/quick-add/', views.quick_add_modal, name='quick_add_modal'),
     
+    # 📋 BULK LIST OPERATIONS
+    path('lists/<int:list_id>/bulk-operations/', views.list_bulk_operations, name='list_bulk_operations'),
+    
+    # 🏷️ TAG MANAGEMENT ACTIONS
+    path('cocktails/<int:cocktail_id>/add-tag/', views.add_cocktail_tag, name='add_cocktail_tag'),
+    path('cocktails/<int:cocktail_id>/remove-tag/', views.remove_cocktail_tag, name='remove_cocktail_tag'),
+    path('ingredients/<int:ingredient_id>/add-flavor-tag/', views.add_ingredient_flavor_tag, name='add_ingredient_flavor_tag'),
+    
     # 🥃 INGREDIENT URLS (updated to follow naming conventions)
     path('ingredients/', views.ingredient_index, name='ingredient_index'),
     path('ingredients/<int:ingredient_id>/', views.ingredient_detail, name='ingredient_detail'),

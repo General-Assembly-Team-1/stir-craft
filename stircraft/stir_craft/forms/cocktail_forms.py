@@ -62,7 +62,7 @@ class CocktailForm(forms.ModelForm):
         model = Cocktail
         fields = [
             'name', 'description', 'instructions', 'vessel', 
-            'is_alcoholic', 'color', 'vibe_tags'
+            'is_alcoholic', 'color', 'vibe_tags', 'image'
         ]
         widgets = {
             'name': forms.TextInput(attrs={
@@ -86,19 +86,24 @@ class CocktailForm(forms.ModelForm):
             'is_alcoholic': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
-            'color': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'e.g., Red, Yellow, Clear'
+            'color': forms.Select(attrs={
+                'class': 'form-select',
+                'title': 'Select the cocktail color'
             }),
             'vibe_tags': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Enter tags separated by commas (e.g., tropical, cozy, party)'
+            }),
+            'image': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
             }),
         }
         help_texts = {
             'vessel': 'Choose the appropriate glassware for serving',
             'is_alcoholic': 'Uncheck for mocktails and non-alcoholic drinks',
             'vibe_tags': 'Add mood/occasion tags to help others find your cocktail',
+            'image': 'Upload a photo of your cocktail (max 2MB, JPG/PNG recommended)',
         }
 
     def __init__(self, *args, **kwargs):
@@ -134,6 +139,31 @@ class CocktailForm(forms.ModelForm):
                 self.fields['description'].help_text = f"Tell us what makes your version special compared to the original!"
             else:
                 self.fields['name'].help_text = f"This will be saved as '{self.user.username}'s [Your Cocktail Name]'"
+
+    def clean_image(self):
+        """Validate uploaded image file size and type."""
+        image = self.cleaned_data.get('image')
+        if image:
+            # Check file size (2MB limit)
+            if image.size > 2 * 1024 * 1024:  # 2MB in bytes
+                raise forms.ValidationError(
+                    "Image file too large. Please choose an image smaller than 2MB."
+                )
+            
+            # Check file type
+            if not image.content_type.startswith('image/'):
+                raise forms.ValidationError(
+                    "Please upload a valid image file (JPG, PNG, GIF, etc.)."
+                )
+            
+            # Check specific image formats we want to allow
+            allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+            if image.content_type not in allowed_types:
+                raise forms.ValidationError(
+                    "Please upload a JPG, PNG, GIF, or WebP image file."
+                )
+        
+        return image
 
 
 class RecipeComponentForm(forms.ModelForm):
@@ -301,7 +331,7 @@ class QuickIngredientForm(forms.ModelForm):
     
     class Meta:
         model = Ingredient
-        fields = ['name', 'ingredient_type', 'alcohol_content', 'description']
+        fields = ['name', 'ingredient_type', 'alcohol_content', 'description', 'flavor_tags']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -325,14 +355,42 @@ class QuickIngredientForm(forms.ModelForm):
                 'rows': 2,
                 'placeholder': 'Optional: Brand, tasting notes, etc.'
             }),
+            'flavor_tags': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., citrusy, smoky, sweet (comma-separated)'
+            }),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['description'].required = False
+        self.fields['flavor_tags'].required = False
         self.fields['name'].help_text = "Enter the full name of the ingredient"
         self.fields['ingredient_type'].help_text = "What category does this ingredient belong to?"
         self.fields['alcohol_content'].help_text = "ABV percentage (0 for non-alcoholic)"
+        self.fields['flavor_tags'].help_text = "Flavor descriptors that help with recipe matching"
+        
+    def clean_name(self):
+        """Provide better error messages for duplicate ingredients."""
+        name = self.cleaned_data.get('name')
+        if name:
+            # Check for exact match
+            existing = Ingredient.objects.filter(name=name).first()
+            if existing:
+                raise forms.ValidationError(
+                    f'An ingredient named "{name}" already exists in the {existing.get_ingredient_type_display()} category. '
+                    f'Try searching for it in the ingredient dropdown instead.'
+                )
+            
+            # Check for case-insensitive near matches to help users
+            similar = Ingredient.objects.filter(name__iexact=name).first()
+            if similar and similar.name != name:
+                raise forms.ValidationError(
+                    f'An ingredient named "{similar.name}" already exists in the {similar.get_ingredient_type_display()} category. '
+                    f'Did you mean to use that one instead?'
+                )
+        
+        return name
         
 
 # =============================================================================
@@ -423,13 +481,14 @@ class CocktailSearchForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     
-    color = forms.CharField(
-        max_length=20,
+    color = forms.ChoiceField(
+        choices=[('', 'Any color')] + Cocktail.COLOR_CHOICES,
         required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Filter by color...'
-        })
+        widget=forms.Select(attrs={
+            'class': 'form-select',
+            'title': 'Filter cocktails by color'
+        }),
+        help_text="Find cocktails by their visual appearance"
     )
     
     sort_by = forms.ChoiceField(
@@ -439,6 +498,7 @@ class CocktailSearchForm(forms.Form):
             ('name', 'Name A-Z'),
             ('-name', 'Name Z-A'),
             ('creator__username', 'Creator A-Z'),
+            ('-favorites_count', 'Most Popular (Most Favorites)'),
         ],
         required=False,
         initial='-created_at',

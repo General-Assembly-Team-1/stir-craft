@@ -3,6 +3,10 @@
 
 {% block title %}{{ cocktail.name }}{% endblock %}
 
+{% block extra_css %}
+<link href="{% static 'css/cocktail.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="row">
@@ -20,108 +24,24 @@
                     <!-- Creator and Meta Info -->
                     {% include 'partials/cocktails/_cocktail_meta.html' %}
                     
-                    <!-- Tags -->
-                    {% if cocktail.vibe_tags.all %}
-                        <div class="mb-4">
-                            <strong>Vibes:</strong>
-                            {% for tag in cocktail.vibe_tags.all %}
-                                <span class="badge bg-secondary me-1">{{ tag.name }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+                    <!-- Tag Management and Popularity Stats -->
+                    {% include 'partials/cocktails/_tag_management.html' %}
                     
                     <!-- Ingredients -->
                     {% include 'partials/shared/_ingredients_table.html' %}
                     
                     <!-- Instructions -->
                     <div class="mb-4">
-                        <h3>📝 Instructions</h3>
-                        <div class="bg-light p-3 rounded">
-                            {{ cocktail.instructions|linebreaks }}
+                        <h3><i class="bi bi-list-check"></i> Instructions</h3>
+                        <div class="card">
+                            <div class="card-body bg-light instructions-text">
+                                {{ cocktail.instructions|linebreaks }}
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Quick Actions (Favorite & Add to List) -->
-                    {% if user.is_authenticated %}
-                        <div class="mb-4 p-3 bg-light rounded border">
-                            <div class="row align-items-center">
-                                <div class="col-md-6">
-                                    <h5 class="mb-3">
-                                        <i class="bi bi-heart"></i> Quick Actions
-                                    </h5>
-                                    
-                                    <!-- Favorite Button -->
-                                    <button type="button" class="btn {% if cocktail in favorites_list.cocktails.all %}btn-danger{% else %}btn-outline-danger{% endif %}" 
-                                            id="favorite-btn" data-cocktail-id="{{ cocktail.id }}">
-                                        <i class="bi {% if cocktail in favorites_list.cocktails.all %}bi-heart-fill{% else %}bi-heart{% endif %}" id="favorite-icon"></i>
-                                        <span id="favorite-text">
-                                            {% if cocktail in favorites_list.cocktails.all %}Remove from Favorites{% else %}Add to Favorites{% endif %}
-                                        </span>
-                                    </button>
-                                </div>
-                                <div class="col-md-6">
-                                    <!-- Add to List -->
-                                    <form method="post" action="{% url 'quick_add_to_list' cocktail.id %}" id="add-to-list-form">
-                                        {% csrf_token %}
-                                        <div class="input-group">
-                                            <select name="list_id" class="form-select" required>
-                                                <option value="">Select a list...</option>
-                                                {% for list in user_custom_lists %}
-                                                    <option value="{{ list.id }}">{{ list.name }}</option>
-                                                {% endfor %}
-                                            </select>
-                                            <button type="submit" class="btn btn-outline-primary">
-                                                <i class="bi bi-plus-circle"></i> Add to List
-                                            </button>
-                                        </div>
-                                    </form>
-                                    <small class="text-muted mt-1 d-block">
-                                        <a href="{% url 'list_create' %}">Create a new list</a> if you don't have any yet.
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    {% else %}
-                        <!-- For non-authenticated users -->
-                        <div class="mb-4 p-3 bg-light rounded border">
-                            <div class="text-center">
-                                <h5 class="mb-3">❤️ Love this cocktail?</h5>
-                                <p class="mb-3">
-                                    <a href="{% url 'login' %}" class="btn btn-primary">Sign in</a> 
-                                    to add it to your favorites and personal lists!
-                                </p>
-                                <small class="text-muted">
-                                    Don't have an account? <a href="{% url 'signup' %}">Sign up</a> - it's free!
-                                </small>
-                            </div>
-                        </div>
-                    {% endif %}
-                    
-                    <!-- Make Your Own Section (if not the creator) -->
-                    {% if user.is_authenticated and user != cocktail.creator %}
-                        <div class="mb-4 p-4 bg-primary bg-opacity-10 rounded border-start border-primary border-4">
-                            <div class="row align-items-center">
-                                <div class="col-md-8">
-                                    <h4 class="text-primary mb-2">
-                                        <i class="bi bi-lightbulb"></i> Want to make it your own?
-                                    </h4>
-                                    <p class="mb-2">
-                                        Love this recipe but have ideas to make it even better? Create your own version 
-                                        with pre-filled ingredients and instructions that you can customize!
-                                    </p>
-                                    <small class="text-muted">
-                                        ✨ This will create a new cocktail recipe in your name with full credit to the original creator.
-                                    </small>
-                                </div>
-                                <div class="col-md-4 text-md-end">
-                                    <a href="{% url 'cocktail_fork' cocktail.id %}" class="btn btn-primary btn-lg">
-                                        <i class="bi bi-plus-square"></i>
-                                        Make it Your Own!
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
+                    <!-- Enhanced Actions Section -->
+                    {% include 'partials/cocktails/_enhanced_actions.html' %}
                 </div>
             </div>
         </div>
@@ -130,16 +50,6 @@
         <div class="col-lg-4">
             {% include 'partials/shared/_user_lists_card.html' %}
             {% include 'partials/shared/_ingredient_details_card.html' %}
-            {% include 'partials/shared/_quick_actions_card.html' %}
-        </div>
-    </div>
-    
-    <!-- Navigation -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <a href="{% url 'cocktail_index' %}" class="btn btn-secondary">
-                ← Back to Cocktails
-            </a>
         </div>
     </div>
 </div>
@@ -149,12 +59,15 @@
 // Pass Django URLs and data to JavaScript
 window.stirCraftConfig = {
     csrfToken: '{{ csrf_token }}',
-    favoriteUrl: '{% url "toggle_favorite" cocktail.id %}'
+    favoriteUrl: '{% url "toggle_favorite" cocktail.id %}',
+    addToListUrl: '{% url "quick_add_to_list" cocktail.id %}',
+    cocktailId: {{ cocktail.id }}
 };
 </script>
 {% endblock %}
 
 {% block extra_js %}
-<!-- Favorites functionality -->
-<script src="{% static 'js/favorites.js' %}"></script>
+<!-- Enhanced cocktail actions -->
+<script src="{% static 'js/cocktail-actions.js' %}"></script>
+<script src="{% static 'js/favorites-new.js' %}"></script>
 {% endblock %}

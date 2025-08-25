@@ -17,6 +17,9 @@
     <!-- StirCraft Base Styles -->
     {% load static %}
     
+    <!-- Color Variables & Design System -->
+    <link href="{% static 'css/variables.css' %}" rel="stylesheet">
+    
     <!-- Favicon Package -->
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/favicon_io/apple-touch-icon.png' %}">
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon_io/favicon-32x32.png' %}">
@@ -88,8 +91,8 @@
                                 <i class="bi bi-person-circle"></i> {{ user.username }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{% url 'profile_detail' %}">
-                                    <i class="bi bi-person"></i> Profile
+                                <li><a class="dropdown-item" href="{% url 'dashboard' %}">
+                                    <i class="bi bi-speedometer2"></i> Dashboard
                                 </a></li>
                                 <li><a class="dropdown-item" href="{% url 'profile_update' %}">
                                     <i class="bi bi-gear"></i> Settings

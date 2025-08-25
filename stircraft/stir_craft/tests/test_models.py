@@ -177,3 +177,79 @@ class CocktailModelTest(BaseModelTest):
         )
         self.assertEqual(cocktail.get_total_volume(), 150.0)
         self.assertAlmostEqual(cocktail.get_alcohol_content(), 13.33, places=2)
+
+    def test_cocktail_color_functionality(self):
+        """
+        Test cocktail color assignment and default behavior.
+        """
+        # Test default color
+        cocktail1 = Cocktail.objects.create(
+            name="Default Color Cocktail",
+            creator=self.test_user
+        )
+        self.assertEqual(cocktail1.color, "Clear")
+
+        # Test explicit color assignment
+        cocktail2 = Cocktail.objects.create(
+            name="Red Cocktail",
+            creator=self.test_user,
+            color="Red"
+        )
+        self.assertEqual(cocktail2.color, "Red")
+
+    def test_ingredient_new_categories(self):
+        """
+        Test new ingredient categories from enhanced categorization.
+        """
+        # Test spirit category
+        spirit = Ingredient.objects.create(
+            name="Premium Gin",
+            ingredient_type="spirit",
+            alcohol_content=42.0
+        )
+        self.assertEqual(spirit.ingredient_type, "spirit")
+        self.assertTrue(spirit.is_alcoholic())
+
+        # Test dairy category
+        dairy = Ingredient.objects.create(
+            name="Heavy Cream",
+            ingredient_type="dairy",
+            alcohol_content=0.0
+        )
+        self.assertEqual(dairy.ingredient_type, "dairy")
+        self.assertFalse(dairy.is_alcoholic())
+
+        # Test garnish category
+        garnish = Ingredient.objects.create(
+            name="Lemon Twist",
+            ingredient_type="garnish",
+            alcohol_content=0.0
+        )
+        self.assertEqual(garnish.ingredient_type, "garnish")
+        self.assertFalse(garnish.is_alcoholic())
+
+    def test_recipe_component_display_formatting(self):
+        """
+        Test enhanced display formatting for recipe components.
+        """
+        cocktail = Cocktail.objects.create(
+            name="Display Test Cocktail",
+            creator=self.test_user
+        )
+        ingredient = Ingredient.objects.create(
+            name="Test Ingredient",
+            ingredient_type="spirit",
+            alcohol_content=40.0
+        )
+        
+        # Test different unit displays
+        component = RecipeComponent.objects.create(
+            cocktail=cocktail,
+            ingredient=ingredient,
+            amount=30.0,
+            unit="ml"
+        )
+        
+        display = component.get_display_amount()
+        self.assertIsInstance(display, str)
+        self.assertIn("oz", display)  # Should convert mL to oz for display
