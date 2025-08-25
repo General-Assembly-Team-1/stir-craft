@@ -254,26 +254,28 @@ describe('Cocktail Actions JavaScript', () => {
             </div>
         `;
 
+        // Set up CSRF token meta tag for all tests
+        const existingMeta = document.querySelector('meta[name="csrf-token"]');
+        if (existingMeta) {
+            existingMeta.remove();
+        }
+        const metaTag = document.createElement('meta');
+        metaTag.name = 'csrf-token';
+        metaTag.content = 'test-csrf-token';
+        document.head.appendChild(metaTag);
+
         // Reset fetch mock
         fetch.mockClear();
     });
 
     describe('getCsrfToken', () => {
         test('should return CSRF token from meta tag', () => {
-            // Ensure meta tag exists
-            const metaTag = document.querySelector('meta[name="csrf-token"]');
-            if (!metaTag) {
-                const newMeta = document.createElement('meta');
-                newMeta.name = 'csrf-token';
-                newMeta.content = 'test-csrf-token';
-                document.head.appendChild(newMeta);
-            }
-            
             const token = cocktailActions.getCsrfToken();
             expect(token).toBe('test-csrf-token');
         });
 
         test('should return empty string if no CSRF token found', () => {
+            // Remove the meta tag for this specific test
             const metaTag = document.querySelector('meta[name="csrf-token"]');
             if (metaTag) {
                 metaTag.remove();
