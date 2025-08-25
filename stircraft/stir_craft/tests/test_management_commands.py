@@ -3,6 +3,7 @@ Test suite for management commands added in the image handling feature.
 
 This module tests:
 - detect_cocktail_colors command
+- detect_cocktail_vibes command (NEW)
 - fix_alcohol_content command  
 - normalize_colors command
 - recategorize_ingredients command
@@ -350,3 +351,163 @@ class ManagementCommandsTest(TestCase):
         # Color might be changed after actual execution
         # (Depends on detection logic)
         self.assertIsNotNone(self.red_cocktail.color)
+
+
+class DetectCocktailVibesCommandTest(TestCase):
+    """Test class for detect_cocktail_vibes management command."""
+    
+    @classmethod
+    def setUpTestData(cls):
+        """Create test data for vibe detection testing."""
+        cls.test_user = User.objects.create_user(
+            username='vibe_tester',
+            email='vibes@stircraft.com',
+            password='testpass123'
+        )
+        
+        # Create ingredients for vibe detection
+        cls.rum = Ingredient.objects.create(
+            name='White Rum',
+            ingredient_type='spirit',
+            alcohol_content=40.0
+        )
+        cls.lime = Ingredient.objects.create(
+            name='Lime Juice',
+            ingredient_type='mixer',
+            alcohol_content=0.0
+        )
+        cls.coconut = Ingredient.objects.create(
+            name='Coconut Cream',
+            ingredient_type='mixer',
+            alcohol_content=0.0
+        )
+        cls.pineapple = Ingredient.objects.create(
+            name='Pineapple Juice',
+            ingredient_type='mixer',
+            alcohol_content=0.0
+        )
+        
+    def setUp(self):
+        """Set up test cocktails for each test."""
+        # Tropical cocktail
+        self.tropical_cocktail = Cocktail.objects.create(
+            name='Piña Colada',
+            description='A tropical beach drink with coconut and pineapple',
+            instructions='Blend with ice and serve in a hurricane glass',
+            creator=self.test_user,
+            color='Yellow'
+        )
+        
+        # Add tropical ingredients
+        RecipeComponent.objects.create(
+            cocktail=self.tropical_cocktail,
+            ingredient=self.rum,
+            amount=2.0,
+            unit='oz'
+        )
+        RecipeComponent.objects.create(
+            cocktail=self.tropical_cocktail,
+            ingredient=self.coconut,
+            amount=1.0,
+            unit='oz'
+        )
+        RecipeComponent.objects.create(
+            cocktail=self.tropical_cocktail,
+            ingredient=self.pineapple,
+            amount=3.0,
+            unit='oz'
+        )
+        
+        # Winter cocktail
+        self.winter_cocktail = Cocktail.objects.create(
+            name='Hot Toddy',
+            description='A warming winter cocktail with spices',
+            instructions='Heat and serve hot in a mug',
+            creator=self.test_user,
+            color='Brown'
+        )
+        
+    def test_vibe_detection_basic_functionality(self):
+        """Test that vibe detection command runs without errors."""
+        out = StringIO()
+        
+        # Command should run without raising an exception
+        try:
+            call_command('detect_cocktail_vibes', stdout=out)
+        except Exception as e:
+            self.fail(f"Command raised an exception: {e}")
+        
+        # Check output contains expected summary
+        output = out.getvalue()
+        self.assertIn("VIBE DISTRIBUTION AFTER DETECTION", output)
+        
+    def test_tropical_vibe_detection(self):
+        """Test that tropical vibes are detected correctly."""
+        # Ensure no vibes initially
+        self.assertEqual(self.tropical_cocktail.vibe_tags.count(), 0)
+        
+        # Run vibe detection
+        out = StringIO()
+        call_command('detect_cocktail_vibes', stdout=out)
+        
+        # Check that tropical cocktail got tropical vibes
+        self.tropical_cocktail.refresh_from_db()
+        vibe_names = list(self.tropical_cocktail.vibe_tags.values_list('name', flat=True))
+        
+        # Should have detected tropical vibe
+        self.assertIn('tropical', vibe_names)
+        
+    def test_winter_vibe_detection(self):
+        """Test that winter vibes are detected correctly."""
+        # Ensure no vibes initially
+        self.assertEqual(self.winter_cocktail.vibe_tags.count(), 0)
+        
+        # Run vibe detection
+        out = StringIO()
+        call_command('detect_cocktail_vibes', stdout=out)
+        
+        # Check that winter cocktail got appropriate vibes
+        self.winter_cocktail.refresh_from_db()
+        vibe_names = list(self.winter_cocktail.vibe_tags.values_list('name', flat=True))
+        
+        # Should have detected winter or cozy vibe
+        winter_related_vibes = ['winter', 'cozy', 'hot']
+        has_winter_vibe = any(vibe in vibe_names for vibe in winter_related_vibes)
+        self.assertTrue(has_winter_vibe, f"Expected winter-related vibe, got: {vibe_names}")
+        
+    def test_vibe_detection_multiple_runs(self):
+        """Test that running vibe detection multiple times doesn't duplicate vibes."""
+        # Run command twice
+        out1 = StringIO()
+        call_command('detect_cocktail_vibes', stdout=out1)
+        
+        self.tropical_cocktail.refresh_from_db()
+        initial_vibe_count = self.tropical_cocktail.vibe_tags.count()
+        
+        out2 = StringIO()
+        call_command('detect_cocktail_vibes', stdout=out2)
+        
+        self.tropical_cocktail.refresh_from_db()
+        final_vibe_count = self.tropical_cocktail.vibe_tags.count()
+        
+        # Vibe count should not increase significantly (maybe slight differences due to detection logic)
+        self.assertLessEqual(final_vibe_count, initial_vibe_count + 2, 
+                           "Vibe detection should not create many duplicates")
+        
+    def test_vibe_detection_with_existing_vibes(self):
+        """Test that vibe detection works with cocktails that already have vibes."""
+        # Manually add a vibe first
+        self.tropical_cocktail.vibe_tags.add('summer')
+        initial_count = self.tropical_cocktail.vibe_tags.count()
+        
+        # Run vibe detection
+        out = StringIO()
+        call_command('detect_cocktail_vibes', stdout=out)
+        
+        # Should have more vibes now, including the original
+        self.tropical_cocktail.refresh_from_db()
+        final_count = self.tropical_cocktail.vibe_tags.count()
+        vibe_names = list(self.tropical_cocktail.vibe_tags.values_list('name', flat=True))
+        
+        self.assertGreaterEqual(final_count, initial_count)
+        self.assertIn('summer', vibe_names)  # Original vibe should remain

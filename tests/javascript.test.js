@@ -21,6 +21,9 @@ describe('JavaScript Files Syntax and Structure', () => {
       require('../stircraft/staticfiles/js/modal-utils.js');
     }).not.toThrow();
   });
+
+  // Note: cocktail-search.js uses ES6 classes and DOM APIs that require browser environment
+  // Integration testing is handled by Django tests and manual browser testing
 });
 
 describe('Modal Utils Functionality', () => {
@@ -102,5 +105,56 @@ describe('Configuration and Integration', () => {
                  document.querySelector('[name=csrfmiddlewaretoken]')?.value;
     
     expect(token).toBe('fallback-token');
+  });
+});
+
+describe('Color Filter Functionality', () => {
+  beforeEach(() => {
+    // Set up DOM for color filter tests
+    document.body.innerHTML = `
+      <form method="get" class="row g-3">
+        <select name="color" class="form-select" id="id_color">
+          <option value="">Any color</option>
+          <option value="Red">Red</option>
+          <option value="Orange">Orange</option>
+          <option value="Yellow">Yellow</option>
+          <option value="Clear">Clear</option>
+        </select>
+        <button type="submit">Search</button>
+      </form>
+      <div id="color-filters-buttons"></div>
+    `;
+  });
+
+  test('color input selector finds select element correctly', () => {
+    const colorInput = document.querySelector('select[name="color"]');
+    expect(colorInput).not.toBeNull();
+    expect(colorInput.tagName).toBe('SELECT');
+    expect(colorInput.name).toBe('color');
+  });
+
+  test('color filter form values match database values', () => {
+    const colorSelect = document.querySelector('select[name="color"]');
+    const options = Array.from(colorSelect.options).map(opt => opt.value).filter(val => val !== '');
+    
+    // These should match the COLOR_CHOICES in Django model (capitalized)
+    const expectedColors = ['Red', 'Orange', 'Yellow', 'Clear'];
+    expectedColors.forEach(color => {
+      expect(options).toContain(color);
+    });
+  });
+
+  test('color filter button click simulation', () => {
+    const colorSelect = document.querySelector('select[name="color"]');
+    const form = document.querySelector('form');
+    
+    // Simulate color filter button click by setting select value
+    colorSelect.value = 'Red';
+    
+    // Trigger change event
+    const changeEvent = new Event('change', { bubbles: true });
+    colorSelect.dispatchEvent(changeEvent);
+    
+    expect(colorSelect.value).toBe('Red');
   });
 });

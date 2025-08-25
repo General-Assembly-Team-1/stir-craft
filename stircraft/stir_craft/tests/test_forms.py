@@ -252,3 +252,44 @@ class CocktailSearchFormTest(TestCase):
         }
         form = CocktailSearchForm(data=form_data)
         self.assertTrue(form.is_valid())
+
+    def test_search_form_color_filtering(self):
+        """Test search form with color filtering."""
+        # Test valid color choices
+        valid_colors = ['Red', 'Orange', 'Yellow', 'Green', 'Brown', 'Clear', 'Blue', 'Purple', 'Pink', 'Black']
+        
+        for color in valid_colors:
+            form_data = {
+                'color': color,
+                'sort_by': '-created_at'
+            }
+            form = CocktailSearchForm(data=form_data)
+            self.assertTrue(form.is_valid(), f"Form should be valid for color: {color}")
+            self.assertEqual(form.cleaned_data['color'], color)
+        
+        # Test empty color (should be valid)
+        form_data = {'color': ''}
+        form = CocktailSearchForm(data=form_data)
+        self.assertTrue(form.is_valid())
+        
+    def test_search_form_all_filters_combined(self):
+        """Test search form with multiple filters including color."""
+        form_data = {
+            'query': 'cocktail',
+            'ingredient': self.ingredient.id,
+            'vessel': self.vessel.id,
+            'is_alcoholic': 'True',
+            'color': 'Red',
+            'sort_by': 'name'
+        }
+        form = CocktailSearchForm(data=form_data)
+        self.assertTrue(form.is_valid())
+        
+        # Verify all fields are properly cleaned
+        cleaned = form.cleaned_data
+        self.assertEqual(cleaned['query'], 'cocktail')
+        self.assertEqual(cleaned['ingredient'], self.ingredient)
+        self.assertEqual(cleaned['vessel'], self.vessel)
+        self.assertEqual(cleaned['is_alcoholic'], 'True')
+        self.assertEqual(cleaned['color'], 'Red')
+        self.assertEqual(cleaned['sort_by'], 'name')
