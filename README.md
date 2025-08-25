@@ -1,16 +1,16 @@
 # 🍸 StirCraft: Cocktail Recipe Manager
 
 > **Your Personal Mixology Companion - Now Live!**  
-> **🌐 [Try StirCraft Live](https://stircraft-app-0dd06cf5d30a.herokuapp.com/)**
+> **🌐 [Try StirCraft Live](https://stir-craft-af4c734e3b6f.herokuapp.com/)**
 
 ![StirCraft Logo](https://via.placeholder.com/800x400/2c3e50/ecf0f1?text=StirCraft+🍹+Cocktail+Recipe+Manager)
 
 ## 🚀 **Live Demo Available**
 
 **StirCraft is live and ready to use!**
-- **🌐 Live App**: [https://stircraft-app-0dd06cf5d30a.herokuapp.com/](https://stircraft-app-0dd06cf5d30a.herokuapp.com/)
-- **👨‍💼 Admin Panel**: [https://stircraft-app-0dd06cf5d30a.herokuapp.com/admin/](https://stircraft-app-0dd06cf5d30a.herokuapp.com/admin/)
-- **📊 Database**: 54+ cocktails, 106+ ingredients, ready to explore
+- **🌐 Live App**: [https://stir-craft-af4c734e3b6f.herokuapp.com/](https://stir-craft-af4c734e3b6f.herokuapp.com/)
+- **👨‍💼 Admin Panel**: [https://stir-craft-af4c734e3b6f.herokuapp.com/admin/](https://stir-craft-af4c734e3b6f.herokuapp.com/admin/)
+- **📊 Database**: 416+ cocktails, 325+ ingredients, 15 vessel types, ready to explore
 
 ---
 
@@ -25,7 +25,7 @@ Cocktail enthusiasts face scattered recipe sources, inconsistent measurements, a
 ### 🎯 **Our Solution**
 
 A complete cocktail management ecosystem featuring:
-- **Discovery**: 500+ professionally curated cocktails
+- **Discovery**: 400+ professionally curated cocktails
 - **Creation**: Custom recipe builder with smart ingredients
 - **Organization**: Personal lists, favorites, and collections
 - **Community**: Share and discover recipes with fellow mixologists
@@ -36,28 +36,28 @@ A complete cocktail management ecosystem featuring:
 - ✅ Secure user registration and login
 - ✅ Personalized user profiles with location and preferences  
 - ✅ Age verification (21+) for responsible service
-- **[Try Registration →](https://stircraft-app-0dd06cf5d30a.herokuapp.com/sign-up/)**
+- **[Try Registration →](https://stir-craft-af4c734e3b6f.herokuapp.com/sign-up/)**
 
 ### 🍹 **Comprehensive Cocktail Management**
-- ✅ **Discover**: Browse 54+ cocktails including classics like Martini, Margarita, Old Fashioned
+- ✅ **Discover**: Browse 416+ cocktails including classics like Martini, Margarita, Old Fashioned
 - ✅ **Create**: Build custom cocktail recipes with detailed ingredients
 - ✅ **Edit**: Modify and perfect your recipes  
 - ✅ **Organize**: Add cocktails to custom lists and favorites
-- **[Explore Cocktails →](https://stircraft-app-0dd06cf5d30a.herokuapp.com/cocktails/)**
+- **[Explore Cocktails →](https://stir-craft-af4c734e3b6f.herokuapp.com/cocktails/)**
 
 ### 📋 **Smart List Management**
 - ✅ **Favorites**: One-click favoriting system
 - ✅ **Your Creations**: Automatic collection of user-created recipes
 - ✅ **Custom Lists**: Create themed collections (e.g., "Summer Cocktails", "Party Drinks")
 - ✅ **Quick Actions**: Easy add/remove functionality
-- **[View Dashboard →](https://stircraft-app-0dd06cf5d30a.herokuapp.com/dashboard/)**
+- **[View Dashboard →](https://stir-craft-af4c734e3b6f.herokuapp.com/dashboard/)**
 
 ### 🥃 **Ingredient & Vessel Database**
-- ✅ Extensive ingredient catalog with 106+ ingredients
+- ✅ Extensive ingredient catalog with 325+ ingredients
 - ✅ Alcohol content tracking and calculations
 - ✅ 15 vessel types with proper glassware recommendations
 - ✅ Smart measurement conversion
-- **[Browse Ingredients →](https://stircraft-app-0dd06cf5d30a.herokuapp.com/ingredients/)**
+- **[Browse Ingredients →](https://stir-craft-af4c734e3b6f.herokuapp.com/ingredients/)**
 
 ### 🎨 **Modern, Responsive Design**
 - ✅ Clean, professional interface built with Bootstrap
@@ -70,14 +70,14 @@ A complete cocktail management ecosystem featuring:
 ## 🏆 **Technical Excellence**
 
 ### 📊 **Production Stats**
-- **✅ 86/86 Tests Passing** (100% test coverage)
-- **✅ Live Deployment** on Heroku with PostgreSQL
+- **✅ 245/245 Python Tests + 23/23 JavaScript Tests Passing** (100% test coverage on critical functionality)
+- **✅ Live Deployment** on Heroku with PostgreSQL (v17)
 - **✅ Security Headers** and HTTPS enabled
-- **✅ Performance Optimized** with static file compression
+- **✅ Performance Optimized** with static file compression and image processing
 
 ### 🛠 **Tech Stack**
 - **Backend**: Django 5.2.5, Python 3.13
-- **Database**: PostgreSQL with 54 cocktails, 106 ingredients
+- **Database**: PostgreSQL with 416+ cocktails, 325+ ingredients, 15 vessel types
 - **Frontend**: Bootstrap 5, Responsive HTML/CSS/JS
 - **Deployment**: Heroku with WhiteNoise for static files
 - **APIs**: TheCocktailDB integration for cocktail data
@@ -88,12 +88,12 @@ A complete cocktail management ecosystem featuring:
 
 ### 🚀 **Try It Now - No Installation Required!**
 
-**[🌐 Launch StirCraft](https://stircraft-app-0dd06cf5d30a.herokuapp.com/)**
+**[🌐 Launch StirCraft](https://stir-craft-af4c734e3b6f.herokuapp.com/)**
 
-1. **[Sign Up](https://stircraft-app-0dd06cf5d30a.herokuapp.com/sign-up/)** - Create your free account
-2. **[Explore](https://stircraft-app-0dd06cf5d30a.herokuapp.com/cocktails/)** - Browse 54+ cocktails including classics
-3. **[Create](https://stircraft-app-0dd06cf5d30a.herokuapp.com/cocktails/create/)** - Build your own recipes
-4. **[Organize](https://stircraft-app-0dd06cf5d30a.herokuapp.com/dashboard/)** - Manage your collections
+1. **[Sign Up](https://stir-craft-af4c734e3b6f.herokuapp.com/sign-up/)** - Create your free account
+2. **[Explore](https://stir-craft-af4c734e3b6f.herokuapp.com/cocktails/)** - Browse 416+ cocktails including classics
+3. **[Create](https://stir-craft-af4c734e3b6f.herokuapp.com/cocktails/create/)** - Build your own recipes
+4. **[Organize](https://stir-craft-af4c734e3b6f.herokuapp.com/dashboard/)** - Manage your collections
 
 ### 🏠 **Local Development Setup**
 
@@ -584,7 +584,7 @@ python manage.py seed_from_thecocktaildb --clear --limit 25
 
 ### 🚀 **Start Your Mixology Journey Today**
 
-**[🌐 Visit StirCraft Live](https://stircraft-app-0dd06cf5d30a.herokuapp.com/)**
+**[🌐 Visit StirCraft Live](https://stir-craft-af4c734e3b6f.herokuapp.com/)**
 
 Whether you're a professional bartender, cocktail enthusiast, or just starting your mixology journey, StirCraft provides everything you need to discover, create, and organize amazing cocktail recipes.
 
@@ -598,7 +598,7 @@ Whether you're a professional bartender, cocktail enthusiast, or just starting y
 ### 🏆 **Built with Excellence**
 
 StirCraft represents modern web development best practices:
-- ✅ **Test-Driven Development** (86/86 tests passing)
+- ✅ **Test-Driven Development** (245 Python + 23 JavaScript tests passing)
 - ✅ **Responsive Design** (Mobile-first approach)
 - ✅ **Security-First** (Production-ready security headers)
 - ✅ **Performance Optimized** (Static file compression, efficient queries)
@@ -609,7 +609,7 @@ StirCraft represents modern web development best practices:
 **🍸 Crafted with passion for the art of mixology**  
 **Made with Django 5.2.5 • Bootstrap 5 • PostgreSQL • Love**
 
-**[Start Mixing Now →](https://stircraft-app-0dd06cf5d30a.herokuapp.com/)**
+**[Start Mixing Now →](https://stir-craft-af4c734e3b6f.herokuapp.com/)**
 
 ---
 
