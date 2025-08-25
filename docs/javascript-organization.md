@@ -21,6 +21,11 @@ stircraft/staticfiles/js/
 ├── favorites.js            # ✅ Favorite/unfavorite functionality
 ├── modal-utils.js          # ✅ Reusable modal utilities
 └── search-enhancements.js  # ✅ Enhanced search functionality (ready for future use)
+
+stircraft/stir_craft/static/js/
+├── cocktail-actions.js     # ✅ Cocktail list actions (favorites, add to list) 
+├── cocktail-search.js      # ✅ Advanced search and filtering functionality
+└── cocktail-detail-enhanced.js  # ✅ Enhanced cocktail detail page features
 ```
 
 ## Benefits Achieved
@@ -146,16 +151,57 @@ npm test
 - **`cocktails/create.html`** - Removed ~200 lines of inline JS, added expand form functionality
 - **`cocktails/detail.html`** - Removed ~80 lines of inline JS, enhanced favorites system  
 - **`lists/detail.html`** - Removed inline JS, maintained backward compatibility
+- **`cocktails/index.html`** - Enhanced with advanced search and color filtering
 
 ### JavaScript Files Created ✅
 - **`cocktail-form.js`** - Dynamic ingredient management with expand button
 - **`favorites.js`** - AJAX favorites with loading states and notifications
 - **`modal-utils.js`** - Reusable modal utilities with accessibility features
+- **`cocktail-search.js`** - **NEW** Advanced search with color filtering and vibe tags
+- **`cocktail-actions.js`** - **ENHANCED** Improved favorites handling with conflict resolution
+
+### Recent JavaScript Enhancements (August 2025)
+- **Color Filter Bug Fix**: Fixed JavaScript selector from `input[name="color"]` to `select[name="color"]`
+- **Event Listener Fix**: Updated event handling from `'input'` to `'change'` for select elements  
+- **Case Sensitivity Fix**: Updated color values to match database (Red vs red)
+- **Conflict Resolution**: Fixed favorites button conflicts between multiple JavaScript files
+- **Enhanced Error Handling**: Added null checks and graceful error handling
 
 ### Testing Added ✅
 - **`javascript.test.js`** - Comprehensive test suite for all components
+- **`test_cocktail_actions.test.js`** - Tests for favorites and list management
 - **`test_javascript_setup.js`** - Test environment configuration
 - **Jest configuration** - Proper testing infrastructure setup
+
+## Advanced Search System
+
+### CocktailSearch Class (`cocktail-search.js`)
+```javascript
+class CocktailSearch {
+    constructor() {
+        // Automatically detects and binds to search form elements
+        this.colorInput = document.querySelector('select[name="color"]');
+        // ... other form elements
+    }
+    
+    createColorFilters() {
+        // Creates visual color filter buttons that match database values
+        const colorFilters = [
+            { label: '🔴 Red', color: 'Red', hex: '#dc3545' },
+            { label: '🟠 Orange', color: 'Orange', hex: '#fd7e14' },
+            // ... all color options
+        ];
+    }
+}
+```
+
+**Features:**
+- Dynamic color filter buttons with visual indicators
+- Automatic form submission on filter changes
+- Vibe tag filtering system
+- Spirit and ingredient filtering
+- Debounced text search
+- Progressive enhancement (works without JavaScript)
 
 ## Development Workflow
 
@@ -163,6 +209,7 @@ npm test
 1. **Run Django tests**: `python manage.py test`
 2. **Run JavaScript tests**: `npm test`
 3. **Manual testing**: Verify interactive features work
+4. **Color filter testing**: Test all color options work correctly
 4. **Check for regressions**: Ensure templates still function correctly
 
 This provides a clean, maintainable foundation for expanding the app's interactive features while maintaining high code quality and test coverage.

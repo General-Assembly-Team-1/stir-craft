@@ -504,7 +504,12 @@ For detailed template partials guidance, see **[TEMPLATE_PARTIALS_GUIDE.md](../d
 - **Dynamic Ingredient Management**: Add/remove ingredients with real-time validation
 - **Professional Templates**: Bootstrap-styled responsive forms with JavaScript enhancements
 - **Comprehensive Views**: Create, browse, detail, and search functionality
-- **Search & Filter**: Advanced cocktail discovery with multi-field filtering
+- **Search & Filter**: Advanced cocktail discovery with multi-field filtering, including:
+  - **Color-based filtering** with visual color buttons
+  - **Vibe-based filtering** using intelligent tag system
+  - **Ingredient and spirit filtering** 
+  - **Text search** across names and descriptions
+  - **Interactive JavaScript** for real-time filtering
 
 ### API Integration & Database Seeding
 - **TheCocktailDB API Integration**: Added comprehensive data seeding from a reliable cocktail API
@@ -514,6 +519,37 @@ For detailed template partials guidance, see **[TEMPLATE_PARTIALS_GUIDE.md](../d
 
 ### Management Commands
 - `seed_from_thecocktaildb`: Import cocktail data with intelligent processing
+- `detect_cocktail_vibes`: **NEW** - Automatically detect and assign vibe tags to cocktails based on ingredients, names, and descriptions
+- `detect_cocktail_colors`: Analyze and assign color classifications to cocktails
+- `fix_alcohol_content`: Normalize alcohol content data across ingredients
+- `normalize_colors`: Standardize color naming and categorization
+- `recategorize_ingredients`: Update ingredient categories and types
+- `standardize_units`: Convert measurements to consistent units
+- `show_unit_examples`: Display measurement conversion examples
+
+#### Vibe Detection Command (NEW)
+The `detect_cocktail_vibes` command analyzes cocktails and assigns appropriate vibe tags:
+
+```bash
+# Detect vibes for all cocktails
+python manage.py detect_cocktail_vibes
+
+# Example vibe categories detected:
+# - Tropical (coconut, pineapple, rum-based cocktails)
+# - Winter/Cozy (hot drinks, whiskey, spices)
+# - Summer (refreshing, citrus, light cocktails)  
+# - Party (shots, colorful cocktails)
+# - Elegant (classic cocktails, sophisticated ingredients)
+# - And 40+ other vibe categories
+```
+
+**Features:**
+- Analyzes cocktail names, descriptions, and ingredients
+- Assigns multiple relevant vibes per cocktail
+- Safe to run multiple times (won't create duplicates)
+- Provides comprehensive vibe distribution report
+- Enhances search and filtering capabilities
+
 - Comprehensive error handling and progress reporting
 - Flexible options for testing and production use
 
@@ -717,7 +753,51 @@ pipenv run python stircraft/manage.py seed_from_thecocktaildb --limit 10
 
 ## Testing Framework
 
-We have implemented a comprehensive testing scaffold to ensure the reliability of our models and features. Follow these steps to use the testing framework after creating a new feature:
+We have implemented a comprehensive testing scaffold to ensure the reliability of our models and features. The test suite includes **245+ tests** covering:
+
+### Test Categories
+- **Model Tests**: Data validation, relationships, and business logic
+- **View Tests**: HTTP responses, authentication, and template rendering
+- **Form Tests**: Validation, field handling, and user input processing
+- **Management Command Tests**: Custom Django commands and data processing
+- **JavaScript Tests**: Frontend functionality and user interactions
+- **Integration Tests**: End-to-end feature workflows
+
+### Recent Testing Enhancements (2025)
+- **Vibe Detection Testing**: Comprehensive tests for the new `detect_cocktail_vibes` command
+- **Color Filter Testing**: JavaScript and Django form validation for color-based filtering
+- **JavaScript Conflict Resolution**: Fixed favorites button conflicts and improved error handling
+- **Enhanced Form Testing**: Added tests for multi-field search and filter combinations
+
+### Running Tests
+
+1. **Run Full Test Suite:**
+   ```bash
+   python manage.py test stir_craft
+   # Or use the convenience script:
+   ./scripts/run_tests.sh
+   ```
+
+2. **Run Specific Test Categories:**
+   ```bash
+   # Test management commands
+   python manage.py test stir_craft.tests.test_management_commands
+   
+   # Test form functionality
+   python manage.py test stir_craft.tests.test_forms
+   
+   # Test color system
+   python manage.py test stir_craft.tests.test_color_system
+   ```
+
+3. **Run JavaScript Tests:**
+   ```bash
+   npm test
+   ```
+
+### Writing Tests for New Features
+
+Follow these steps to use the testing framework after creating a new feature:
 
 1. **Write Tests for Your Feature:**
    - Add test methods to the appropriate test file under `stir_craft/tests/`.
