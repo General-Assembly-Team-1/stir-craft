@@ -1,7 +1,12 @@
 /**
- * Tests for cocktail-actions.js functionality
- * Enhanced cocktail interaction features including favorites toggle and add-to-list
+ * Test file for cocktail actions and interactive components
+ * Tests dynamic form functionality and user interactions
  */
+
+// Add TextEncoder/TextDecoder polyfill for Node.js
+const { TextEncoder, TextDecoder } = require('util');
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 // Mock DOM environment for testing
 const jsdom = require('jsdom');
@@ -249,6 +254,16 @@ describe('Cocktail Actions JavaScript', () => {
             </div>
         `;
 
+        // Set up CSRF token meta tag for all tests
+        const existingMeta = document.querySelector('meta[name="csrf-token"]');
+        if (existingMeta) {
+            existingMeta.remove();
+        }
+        const metaTag = document.createElement('meta');
+        metaTag.name = 'csrf-token';
+        metaTag.content = 'test-csrf-token';
+        document.head.appendChild(metaTag);
+
         // Reset fetch mock
         fetch.mockClear();
     });
@@ -260,7 +275,11 @@ describe('Cocktail Actions JavaScript', () => {
         });
 
         test('should return empty string if no CSRF token found', () => {
-            document.querySelector('meta[name="csrf-token"]').remove();
+            // Remove the meta tag for this specific test
+            const metaTag = document.querySelector('meta[name="csrf-token"]');
+            if (metaTag) {
+                metaTag.remove();
+            }
             const token = cocktailActions.getCsrfToken();
             expect(token).toBe('');
         });

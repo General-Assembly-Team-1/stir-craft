@@ -1,4 +1,10 @@
 // Test setup - runs before each test
+
+// Add TextEncoder/TextDecoder for Node.js compatibility
+const { TextEncoder, TextDecoder } = require('util');
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
 Object.defineProperty(window, 'location', {
   value: {
     href: 'http://localhost',

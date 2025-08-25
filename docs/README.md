@@ -1,168 +1,121 @@
 ````markdown
-# 🍸 STIRCRAFT - COCKTAIL RECIPE MANAGER
+# StirCraft Documentation
 
-**Complete Django Web Application - LIVE & DEPLOYED**
+Welcome to the StirCraft documentation hub. This directory contains comprehensive guides for developers, testers, and contributors working on the StirCraft cocktail management application.
 
-## 🎯 PROJECT STATUS: ✅ **LIVE PRODUCTION APP**
+## Documentation Structure
 
-**🌐 Live URL**: [https://stircraft-app-0dd06cf5d30a.herokuapp.com/](https://stircraft-app-0dd06cf5d30a.herokuapp.com/)  
-**👨‍💼 Admin Panel**: [https://stircraft-app-0dd06cf5d30a.herokuapp.com/admin/](https://stircraft-app-0dd06cf5d30a.herokuapp.com/admin/)
+### Core Development Guides
+- **[Development Guide](development-guide.md)** - Complete setup, development workflow, and environment configuration
+- **[Deployment Guide](deployment-guide.md)** - Production deployment to Heroku with PostgreSQL
 
-**StirCraft is a fully-featured cocktail recipe management application** built with Django, featuring user authentication, recipe CRUD operations, list management, and responsive design. **Now successfully deployed and serving real users.**
+### Code Architecture
+- **[CSS Organization](css-organization.md)** - CSS architecture, variables system, and styling standards
+- **[JavaScript Organization](javascript-organization.md)** - Frontend architecture, AJAX patterns, and event handling
+- **[File Organization](file-organization-audit.md)** - Project structure and file organization standards
 
-### ⚡ Production Stats
-- **✅ Live & Running** on Heroku with PostgreSQL
-- **✅ 54 Cocktails** seeded including classics (Martini, Margarita, Old Fashioned)
-- **✅ 106 Ingredients** with categorization and alcohol content
-- **✅ 15 Vessel Types** with proper glassware recommendations
-- **✅ 86/86 Tests Passing** (100% success rate)
+### Feature Implementation
+- **[Cocktail Forms Technical Guide](cocktail-forms-technical-guide.md)** - Dynamic forms, formsets, and validation
+- **[Image Handling Implementation](image-handling-implementation-guide.md)** - File uploads, processing, and optimization
 
-### ⚡ Quick Local Setup (10 Minutes)
+### Database & Infrastructure
+- **[PostgreSQL Setup](postgres-setup.md)** - Database configuration for development and production
 
-```bash
-# 1. Clone and setup
-git clone <repo-url> && cd stir-craft
-pipenv install && cp .env.example .env
+## Component-Specific Documentation
 
-# 2. Configure database (edit .env file)
-DB_PASSWORD=stircraft123
+For detailed technical documentation, see component-specific README files:
 
-# 3. Run migrations and test
-cd stircraft && pipenv run python manage.py migrate
-pipenv run python manage.py test stir_craft.tests
+- **[CSS Documentation](/static/css/README.md)** - Detailed CSS architecture, variables, and component styles
+- **[JavaScript Documentation](/static/js/README.md)** - Frontend components, utilities, and interaction patterns  
+- **[Template Documentation](/templates/README.md)** - Template structure, partials, and organization
+- **[Testing Documentation](/tests/README.md)** - Comprehensive testing infrastructure and best practices
 
-# 4. Start development server
-pipenv run python manage.py runserver
+## Quick Navigation
+
+### For New Developers
+1. Start with [Development Guide](development-guide.md) for initial setup
+2. Review [CSS Organization](css-organization.md) for styling architecture
+3. Check [Testing Documentation](/tests/README.md) for running tests
+
+### For Deployment
+1. Follow [Deployment Guide](deployment-guide.md) for production setup
+2. Reference [PostgreSQL Setup](postgres-setup.md) for database configuration
+
+### For Feature Development
+1. Review [Cocktail Forms Technical Guide](cocktail-forms-technical-guide.md) for form patterns
+2. Check [JavaScript Documentation](/static/js/README.md) for frontend patterns
+3. Use [Image Handling Implementation](image-handling-implementation-guide.md) for file uploads
+
+## Project Overview
+
+StirCraft is a Django-based cocktail management application that allows users to:
+- Create and manage cocktail recipes
+- Organize ingredients and measurements  
+- Build custom cocktail lists
+- Share and discover cocktail recipes
+- Manage favorites and personal collections
+
+### Technology Stack
+- **Backend**: Django 5.2.5, PostgreSQL
+- **Frontend**: Bootstrap 5, Custom CSS with CSS Variables, Vanilla JavaScript
+- **Deployment**: Heroku with PostgreSQL add-on
+- **Testing**: Django TestCase, Jest for JavaScript
+
+### Key Features
+- Dynamic cocktail form with ingredient management
+- User authentication and profile management
+- Image upload and optimization
+- Responsive design with mobile-first approach
+- AJAX-powered favorites and list management
+- Comprehensive search and filtering
+
+## Contributing
+
+### Code Standards
+- Follow PEP 8 for Python code
+- Use CSS custom properties for consistent theming
+- Implement progressive enhancement for JavaScript features
+- Write comprehensive tests for all new features
+
+### Development Workflow
+1. Create feature branch from `main`
+2. Implement feature with tests
+3. Run full test suite: `./scripts/run_tests.sh`
+4. Submit pull request with documentation updates
+
+### Documentation Standards
+- Update relevant documentation for code changes
+- Include code examples in technical guides
+- Maintain clear section organization
+- Test all code snippets and commands
+
+## Architecture Overview
+
+### Django Application Structure
+```
+stircraft/
+├── stir_craft/           # Main application
+│   ├── models.py         # Data models
+│   ├── views.py          # View logic
+│   ├── forms/            # Form definitions
+│   ├── templates/        # HTML templates
+│   ├── static/           # CSS, JS, images
+│   └── tests/            # Test suite
+└── stircraft/            # Project configuration
+    ├── settings.py       # Django settings
+    └── urls.py           # URL routing
 ```
 
-## 🚀 **LIVE DEPLOYMENT STATUS**
+### Frontend Architecture
+- **CSS**: Variables-based theming with component-specific files
+- **JavaScript**: Modular approach with event delegation
+- **Templates**: Django templates with reusable partials
 
-### ✅ Production Features (All Working Live)
-- **Complete Authentication System** - Login, logout, signup, profiles  
-- **Cocktail Management** - Full CRUD with ingredients, measurements, instructions
-- **List System** - Favorites, custom lists, auto-managed collections
-- **Responsive UI** - Bootstrap-based design for all devices
-- **Search & Filtering** - Advanced cocktail discovery
-- **Admin Interface** - Django admin for content management
-- **Real Data** - 54 cocktails seeded from TheCocktailDB API
-
-### ✅ Technical Implementation (Production Proven)
-- **Backend**: Django 5.2.5 with PostgreSQL on Heroku
-- **Frontend**: Bootstrap 5, organized JavaScript components  
-- **Testing**: 86/86 tests passing (100% success rate)
-- **Deployment**: Successfully deployed with proper configuration
-- **Security**: Production security headers, HTTPS enforcement
-- **Performance**: WhiteNoise static file serving, optimized queries
-
-### 📊 Live Production Metrics
-| Component | Status | Details |
-|-----------|---------|---------|
-| **Live App** | ✅ Running | https://stircraft-app-0dd06cf5d30a.herokuapp.com/ |
-| **Database** | ✅ Active | PostgreSQL with 54 cocktails, 106 ingredients |
-| **Models** | ✅ Complete | 7 core models with relationships |
-| **Views** | ✅ Complete | 25+ view functions with auth |
-| **Templates** | ✅ Complete | 40+ responsive HTML templates |
-| **Forms** | ✅ Complete | 10+ Django forms with validation |
-| **Tests** | ✅ Passing | 86/86 tests (100% pass rate) |
-| **JavaScript** | ✅ Refactored | Organized, testable components |
-| **CSS** | ✅ Organized | Structured styling architecture |
-| **Deployment** | ✅ Live | Heroku with PostgreSQL addon |
-
-## 📚 **DOCUMENTATION** (10 Essential Guides)
-
-### 🚀 Getting Started (3 docs)
-- **[Quick Setup Guide](quick-setup.md)** - Get running in 10 minutes
-- **[Development Guide](development-guide.md)** - Coding standards and workflow  
-- **[PostgreSQL Setup](postgres-setup.md)** - Database configuration help
-
-### 🛠️ Technical Implementation (4 docs)
-- **[Testing Infrastructure](testing-infrastructure.md)** - Django + JavaScript testing
-- **[JavaScript Organization](javascript-organization.md)** - Frontend architecture
-- **[CSS Organization](css-organization.md)** - Styling architecture
-- **[Template Partials Guide](template-partials-guide.md)** - Template component system
-
-### 🎯 Feature Guides (2 docs)
-- **[Cocktail Forms Guide](cocktail-forms-technical-guide.md)** - Form system implementation
-- **[Deployment Guide](deployment-guide.md)** - Production deployment instructions
-
-### 📋 **Documentation Philosophy**
-**Less is more.** We consolidated 20+ docs into 10 essential guides that cover everything you need. Each document serves a specific purpose with no redundancy.
-
-## 🎯 **RECENT MAJOR IMPROVEMENTS**
-
-### JavaScript Refactoring (August 2025)
-- ✅ **Extracted inline JavaScript** from templates to organized files
-- ✅ **Added comprehensive testing** for interactive components  
-- ✅ **Enhanced user experience** with dynamic form expansion
-- ✅ **Improved maintainability** with class-based architecture
-
-### Testing Infrastructure
-- ✅ **Unified test structure** - All tests in one location
-- ✅ **JavaScript testing** with Jest and jsdom
-- ✅ **100% test pass rate** across Django and JavaScript
-- ✅ **Quality assurance** for all interactive features
-
-## ⚡ **DEVELOPMENT COMMANDS**
-
-```bash
-# Essential Commands
-./scripts/run_tests.sh                    # Run all tests
-pipenv run python manage.py runserver    # Development server
-pipenv run python manage.py test         # Django tests only
-npm test                                  # JavaScript tests only
-
-# Database Management  
-pipenv run python manage.py migrate      # Apply migrations
-pipenv run python manage.py createsuperuser  # Create admin user
-
-# Deployment
-git push heroku main                      # Deploy to Heroku (after setup)
-```
-
-## 🆘 **TROUBLESHOOTING**
-
-| Issue | Solution |
-|-------|----------|
-| Tests failing? | Check `postgres-setup.md` for database config |
-| Can't run server? | Verify `.env` file and `pipenv install` |
-| JavaScript errors? | See `javascript-organization.md` |
-| Deployment issues? | Follow `deployment-guide.md` step-by-step |
-
-## 🎉 **LIVE & READY FOR THE WORLD**
-
-**🌐 StirCraft is live and accepting users at [https://stircraft-app-0dd06cf5d30a.herokuapp.com/](https://stircraft-app-0dd06cf5d30a.herokuapp.com/)**
-
-### Production Deployment Commands (Actually Used)
-```bash
-# Heroku deployment that worked:
-heroku create stircraft-app
-heroku addons:create heroku-postgresql:essential-0
-heroku config:set DEBUG=False SECRET_KEY=<generated> ALLOWED_HOSTS=<domain>
-
-# Critical Procfile configuration:
-echo "web: cd stircraft && gunicorn stircraft.wsgi --log-file -" > Procfile
-
-# Deploy from Production branch:
-git push heroku Production:main
-heroku run "cd stircraft && python manage.py migrate"
-heroku run "cd stircraft && python manage.py seed_from_thecocktaildb --limit 54"
-```
-
-### Live Application Features
-✅ **User Registration & Authentication**  
-✅ **54 Cocktails** (Martini, Margarita, Old Fashioned, Manhattan, etc.)  
-✅ **106 Ingredients** with categorization  
-✅ **Personal Lists & Favorites**  
-✅ **Recipe Creation & Editing**  
-✅ **Responsive Mobile Design**  
-✅ **Admin Panel** for content management
-
-### Next Steps for New Developers
-1. **Try the live app**: [StirCraft Live](https://stircraft-app-0dd06cf5d30a.herokuapp.com/)
-2. **Start local dev**: [Quick Setup Guide](quick-setup.md)
-3. **Deploy your own**: [Deployment Guide](deployment-guide.md)  
-4. **Develop features**: [Development Guide](development-guide.md)
+### Database Design
+- User-centric design with profile management
+- Flexible ingredient and measurement system
+- Optimized for cocktail recipe relationships
 
 ---
 
-**Built with Django 4.x • Bootstrap 5 • PostgreSQL • Comprehensive Testing**
+*This documentation is actively maintained. For questions or improvements, please refer to the [Development Guide](development-guide.md) for contribution guidelines.*
