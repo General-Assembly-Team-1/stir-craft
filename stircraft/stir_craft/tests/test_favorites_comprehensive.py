@@ -66,7 +66,7 @@ class FavoritesComprehensiveTest(TestCase):
         
         detail_content = detail_response.content.decode()
         has_fav_btn = 'id="favorite-btn"' in detail_content
-        has_js = 'favorites.js' in detail_content or 'favorites-new.js' in detail_content
+        has_js = 'cocktail-actions.js' in detail_content
         
         self.assertTrue(has_fav_btn, "Should have favorite button")
         self.assertTrue(has_js, "Should include favorites JavaScript")
