@@ -8,8 +8,8 @@
 ## 🚀 **Live Demo Available**
 
 **StirCraft is live and ready to use!**
-- **🌐 Live App**: [https://stir-craft-af4c734e3b6f.herokuapp.com/](https://stir-craft-af4c734e3b6f.herokuapp.com/)
-- **👨‍💼 Admin Panel**: [https://stir-craft-af4c734e3b6f.herokuapp.com/admin/](https://stir-craft-af4c734e3b6f.herokuapp.com/admin/)
+- **🌐 Live App**: [https://stircraft-app-0dd06cf5d30a.herokuapp.com/](https://stircraft-app-0dd06cf5d30a.herokuapp.com/)
+- **👨‍💼 Admin Panel**: [https://stircraft-app-0dd06cf5d30a.herokuapp.com/admin/](https://stircraft-app-0dd06cf5d30a.herokuapp.com/admin/)
 - **📊 Database**: 416+ cocktails, 325+ ingredients, 15 vessel types, ready to explore
 
 ---

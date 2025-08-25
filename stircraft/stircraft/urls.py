@@ -24,8 +24,13 @@ urlpatterns = [
     path('', include('stir_craft.urls')),
 ]
 
-# Serve media files in development
+# Serve media files in development and production
+# Note: In production, consider using cloud storage (AWS S3, Cloudinary) for better performance
 if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    # Temporary: Serve media files in production via Django
+    # TODO: Move to cloud storage (S3, Cloudinary) for production scalability
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Custom error handlers
