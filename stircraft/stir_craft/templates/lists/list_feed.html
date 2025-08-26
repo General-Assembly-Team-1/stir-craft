@@ -1,31 +1,138 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
-{% block title %}Browse Lists{% endblock %}
+{% block title %}Public Lists{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/lists.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Browse Lists</h1>
-    <p class="lead">Discover cocktail collections from the community</p>
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-6">Public Lists</h1>
+            <p class="lead">Discover cocktail collections from the community</p>
+            
+            <!-- Search Form -->
+            <form method="get" class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <input type="text" class="form-control" name="q" 
+                           value="{{ query|default:'' }}" 
+                           placeholder="Search lists by name or description...">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </form>
+            
+            {% if query %}
+                <div class="alert alert-info">
+                    <i class="bi bi-search"></i>
+                    Showing results for "<strong>{{ query }}</strong>" 
+                    ({{ total_count }} list{{ total_count|pluralize }} found)
+                    <a href="{% url 'list_feed' %}" class="btn btn-outline-primary btn-sm ms-2">
+                        Clear Search
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
     
+    <!-- Lists Grid -->
     <div class="row">
         {% for list in page_obj %}
-            <div class="col-md-6 col-lg-4 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ list.name }}</h5>
-                        <p class="card-text">by {{ list.creator.username }}</p>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">
+                            <a href="{% url 'public_list_detail' list.id %}" 
+                               class="text-decoration-none">
+                                {{ list.name }}
+                            </a>
+                        </h5>
+                        <p class="card-text">
+                            <small class="text-muted">by {{ list.creator.username }}</small>
+                        </p>
                         {% if list.description %}
-                            <p class="card-text text-muted">{{ list.description }}</p>
+                            <p class="card-text text-muted flex-grow-1">{{ list.description|truncatewords:20 }}</p>
                         {% endif %}
-                        <small class="text-muted">{{ list.cocktail_count }} cocktails</small>
+                        
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-cup-straw"></i>
+                                    {{ list.cocktails.count }} cocktail{{ list.cocktails.count|pluralize }}
+                                </small>
+                                <small class="text-muted">
+                                    {{ list.updated_at|timesince }} ago
+                                </small>
+                            </div>
+                            <div class="mt-2">
+                                <a href="{% url 'public_list_detail' list.id %}" 
+                                   class="btn btn-primary btn-sm w-100">
+                                    View List
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         {% empty %}
             <div class="col-12">
-                <p class="text-muted">No public lists found.</p>
+                <div class="text-center py-5">
+                    <i class="bi bi-collection display-1 text-muted"></i>
+                    <h3 class="mt-3">No public lists found</h3>
+                    {% if query %}
+                        <p class="text-muted">No lists match your search criteria.</p>
+                        <a href="{% url 'list_feed' %}" class="btn btn-outline-primary">
+                            View All Lists
+                        </a>
+                    {% else %}
+                        <p class="text-muted">Be the first to create a public list!</p>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'list_create' %}" class="btn btn-primary">
+                                Create a List
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
             </div>
         {% endfor %}
     </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="List pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if query %}&q={{ query }}{% endif %}">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">Last</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
 </div>
 {% endblock %}

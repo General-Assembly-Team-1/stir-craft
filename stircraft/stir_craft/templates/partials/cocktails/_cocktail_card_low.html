@@ -1,0 +1,62 @@
+<!-- Low Detail Cocktail Card - Used in index/browse pages -->
+<div class="card h-100 cocktail-card cocktail-card-low">
+    <!-- Cocktail Image -->
+    {% if cocktail.image %}
+        <div class="card-img-top-container" style="height: 180px; overflow: hidden;">
+            <img src="{{ cocktail.image.url }}" 
+                 alt="{{ cocktail.name }}" 
+                 class="card-img-top" 
+                 style="width: 100%; height: 100%; object-fit: cover;"
+                 loading="lazy">
+        </div>
+    {% else %}
+        <div class="card-img-top-container image-placeholder" 
+             style="height: 180px;">
+            <i class="bi bi-cup-straw" style="font-size: 2.5rem;"></i>
+        </div>
+    {% endif %}
+    
+    <div class="card-body d-flex flex-column p-3">
+        <!-- Cocktail Name -->
+        <h6 class="card-title mb-2">
+            <a href="{% url 'cocktail_detail' cocktail.id %}" class="text-decoration-none text-dark">
+                {{ cocktail.name }}
+            </a>
+        </h6>
+        
+        <!-- Prioritized Tags: Non-alcoholic first, then flavor tags -->
+        <div class="mb-2">
+            {% if not cocktail.is_alcoholic %}
+                <span class="badge badge-nonalcoholic bg-success">Non-alcoholic</span>
+            {% endif %}
+            
+            {% comment %} Show up to 2 flavor tags {% endcomment %}
+            {% for tag in cocktail.get_flavor_tags %}
+                <span class="badge badge-vibe tag-{{ tag.name|lower|slugify }}">{{ tag.name }}</span>
+            {% empty %}
+                {% comment %} If no flavor tags, show base spirit for alcoholic drinks {% endcomment %}
+                {% if cocktail.is_alcoholic %}
+                    {% with base_spirit=cocktail.get_base_spirit %}
+                        {% if base_spirit != 'Non-alcoholic' %}
+                            <span class="badge badge-spirit bg-secondary">{{ base_spirit }}</span>
+                        {% endif %}
+                    {% endwith %}
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        <!-- Color Tag (pill-shaped with actual color or white with border) -->
+        {% if cocktail.color %}
+            <div class="mb-2">
+                <span class="badge badge-color-pill" data-color="{{ cocktail.color|lower }}">{{ cocktail.color }}</span>
+            </div>
+        {% endif %}
+        
+        <!-- Creator - Push to bottom -->
+        <div class="mt-auto">
+            <small class="text-muted">
+                by {{ cocktail.creator.username }}
+            </small>
+        </div>
+    </div>
+</div>

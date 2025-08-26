@@ -49,11 +49,14 @@ For detailed technical documentation, see component-specific README files:
 ## Project Overview
 
 StirCraft is a Django-based cocktail management application that allows users to:
-- Create and manage cocktail recipes
-- Organize ingredients and measurements  
-- Build custom cocktail lists
-- Share and discover cocktail recipes
-- Manage favorites and personal collections
+- Create and manage cocktail recipes with dynamic ingredient forms
+- Organize ingredients with intelligent categorization and duplicate detection
+- Build and manage custom cocktail lists with advanced list management
+- Share and discover cocktail recipes through public list browsing
+- Copy and fork lists from other users (similar to recipe forking)
+- Browse cocktails with hierarchical detail levels (low/medium/full detail cards)
+- Manage favorites and personal collections with bulk operations
+- Advanced tag system with dynamic coloring and flavor categorization
 
 ### Technology Stack
 - **Backend**: Django 5.2.5, PostgreSQL
@@ -62,12 +65,15 @@ StirCraft is a Django-based cocktail management application that allows users to
 - **Testing**: Django TestCase, Jest for JavaScript
 
 ### Key Features
-- Dynamic cocktail form with ingredient management
-- User authentication and profile management
-- Image upload and optimization
-- Responsive design with mobile-first approach
-- AJAX-powered favorites and list management
-- Comprehensive search and filtering
+- **Dynamic Cocktail Forms**: Intelligent ingredient management with duplicate detection and auto-categorization
+- **Hierarchical Card System**: Low-detail (index), medium-detail (lists), and full-detail (individual) cocktail cards
+- **Advanced List Management**: Side-by-side list interface with bulk operations and special handling for user creations
+- **Public List Sharing**: Browse, copy, and interact with community-created cocktail collections
+- **Smart Tag System**: Dynamic tag coloring with flavor prioritization and automatic tag cleanup
+- **User Authentication**: Comprehensive profile management with favorites and personal collections
+- **Responsive Design**: Mobile-first approach with Bootstrap 5 and custom CSS variables
+- **AJAX Interactivity**: Real-time favorites, list management, and cocktail operations
+- **Search & Filtering**: Comprehensive search across cocktails, ingredients, and lists
 
 ## Contributing
 

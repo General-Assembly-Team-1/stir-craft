@@ -29,10 +29,12 @@ async function handleFavoriteToggle(event) {
     
     const btn = event.currentTarget;
     const cocktailId = btn.dataset.cocktailId;
-    const isFavorited = btn.dataset.favorited === 'true';
+    const isFavorited = btn.dataset.isFavorited === 'true';
     
     // Disable button during request
     btn.disabled = true;
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Processing...';
     
     try {
         const response = await fetch(`/cocktails/${cocktailId}/favorite/`, {
@@ -51,24 +53,26 @@ async function handleFavoriteToggle(event) {
             const text = btn.querySelector('#favorite-text');
             
             if (data.favorited) {
-                btn.className = 'btn btn-danger w-100 action-btn';
-                icon.className = 'bi bi-heart-fill';
-                text.textContent = 'Remove from Favorites';
-                btn.dataset.favorited = 'true';
+                btn.className = 'btn btn-danger w-100 action-btn btn-action btn-favorite';
+                if (icon) icon.className = 'bi bi-heart-fill fa-heart';
+                if (text) text.textContent = 'Remove from Favorites';
+                btn.dataset.isFavorited = 'true';
             } else {
-                btn.className = 'btn btn-outline-danger w-100 action-btn';
-                icon.className = 'bi bi-heart';
-                text.textContent = 'Add to Favorites';
-                btn.dataset.favorited = 'false';
+                btn.className = 'btn btn-outline-danger w-100 action-btn btn-action btn-favorite';
+                if (icon) icon.className = 'bi bi-heart fa-heart';
+                if (text) text.textContent = 'Add to Favorites';
+                btn.dataset.isFavorited = 'false';
             }
             
             // Show success message
             showToast('Success', data.message, 'success');
         } else {
+            btn.innerHTML = originalHTML;
             showToast('Error', data.error || 'Failed to update favorites', 'error');
         }
     } catch (error) {
         console.error('Error toggling favorite:', error);
+        btn.innerHTML = originalHTML;
         showToast('Error', 'An unexpected error occurred', 'error');
     } finally {
         btn.disabled = false;

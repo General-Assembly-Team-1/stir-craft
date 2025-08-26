@@ -1,0 +1,694 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Manage Lists - StirCraft{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/lists.css' %}" rel="stylesheet">
+<style>
+.list-management-container {
+    min-height: 70vh;
+}
+
+.list-panel {
+    border: 2px solid #e3f2fd;
+    border-radius: 10px;
+    background: #fafafa;
+    min-height: 500px;
+    transition: all 0.3s ease;
+}
+
+.list-panel.active {
+    border-color: #2196f3;
+    background: white;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
+}
+
+.list-panel-header {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-radius: 8px 8px 0 0;
+    padding: 1rem;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.list-panel.active .list-panel-header {
+    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+    color: white;
+}
+
+.cocktail-item {
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.cocktail-item:hover {
+    border-color: #2196f3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.cocktail-item.selected {
+    border-color: #2196f3;
+    background: #e3f2fd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.cocktail-item .cocktail-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.cocktail-item .cocktail-meta {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.list-selector {
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    padding: 3rem 1rem;
+    text-align: center;
+    color: #999;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.list-selector:hover {
+    border-color: #2196f3;
+    color: #2196f3;
+    background: #f8f9fa;
+}
+
+.action-buttons {
+    position: sticky;
+    top: 20px;
+    z-index: 10;
+}
+
+.btn-move {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+    border: none;
+    color: white;
+    border-radius: 25px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-move:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    color: white;
+}
+
+.btn-move:disabled {
+    background: #ccc;
+    box-shadow: none;
+    transform: none;
+    cursor: not-allowed;
+}
+
+.special-list-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+}
+
+.empty-list-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #999;
+}
+
+.selection-counter {
+    background: #2196f3;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.creations-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="bi bi-collection-play"></i> Manage Lists</h1>
+                    <p class="text-muted">Move cocktails between your lists and manage your collections</p>
+                </div>
+                <div>
+                    <a href="{% url 'user_lists' %}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left"></i> Back to Lists
+                    </a>
+                    <a href="{% url 'list_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create New List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    {% if not list1 and not list2 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>How to use:</strong> Select two lists below to view them side by side. You can then select cocktails and move them between lists, or remove them entirely.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Special Creations List Warning -->
+    {% if list1 and list1.list_type == 'creations' or list2 and list2.list_type == 'creations' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="creations-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Note about "Your Creations" list:</strong> Removing cocktails from this list will anonymize them (remove your authorship) while keeping them in the database for others to discover. This action cannot be undone.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="list-management-container">
+        <div class="row h-100">
+            <!-- List 1 Panel -->
+            <div class="col-md-5">
+                <div class="list-panel {% if list1 %}active{% endif %}" id="list1-panel">
+                    {% if list1 %}
+                        <div class="list-panel-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">
+                                        {{ list1.name }}
+                                        {% if list1.list_type != 'custom' %}
+                                            <span class="badge special-list-badge bg-info ms-2">
+                                                {% if list1.list_type == 'favorites' %}
+                                                    <i class="bi bi-heart"></i> Favorites
+                                                {% elif list1.list_type == 'creations' %}
+                                                    <i class="bi bi-person"></i> Your Creations
+                                                {% endif %}
+                                            </span>
+                                        {% endif %}
+                                    </h5>
+                                    <small class="opacity-75">{{ list1_cocktails|length }} cocktail{{ list1_cocktails|length|pluralize }}</small>
+                                </div>
+                                <button class="btn btn-sm btn-light" onclick="changeList(1)">
+                                    <i class="bi bi-arrow-repeat"></i> Change
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            {% if list1_cocktails %}
+                                <div id="list1-cocktails">
+                                    {% for cocktail in list1_cocktails %}
+                                        <div class="cocktail-item" 
+                                             data-cocktail-id="{{ cocktail.id }}" 
+                                             data-list="1"
+                                             onclick="toggleCocktailSelection(this)">
+                                            <div class="cocktail-name">{{ cocktail.name }}</div>
+                                            <div class="cocktail-meta">
+                                                by {{ cocktail.creator.username }} • 
+                                                {% if cocktail.alcohol_percentage %}{{ cocktail.alcohol_percentage }}% ABV{% endif %}
+                                                {% if cocktail.volume_ml %} • {{ cocktail.volume_ml }}ml{% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="empty-list-state">
+                                    <i class="bi bi-collection" style="font-size: 3rem; opacity: 0.3;"></i>
+                                    <h6 class="mt-3">This list is empty</h6>
+                                    <p>No cocktails to display</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="list-selector" onclick="showListSelector(1)">
+                            <i class="bi bi-collection" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3">Select a list</h5>
+                            <p>Click to choose which list to display here</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="col-md-2">
+                <div class="action-buttons">
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <button id="move-right-btn" 
+                                    class="btn btn-move d-block w-100 mb-2" 
+                                    onclick="moveCocktails('left-to-right')"
+                                    disabled>
+                                <i class="bi bi-arrow-right"></i>
+                                <span class="d-none d-lg-inline">Move Right</span>
+                                <span id="move-right-counter" class="selection-counter d-none">0</span>
+                            </button>
+                            <button id="move-left-btn" 
+                                    class="btn btn-move d-block w-100 mb-3" 
+                                    onclick="moveCocktails('right-to-left')"
+                                    disabled>
+                                <i class="bi bi-arrow-left"></i>
+                                <span class="d-none d-lg-inline">Move Left</span>
+                                <span id="move-left-counter" class="selection-counter d-none">0</span>
+                            </button>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <button id="remove-btn" 
+                                    class="btn btn-outline-danger d-block w-100" 
+                                    onclick="removeCocktails()"
+                                    disabled>
+                                <i class="bi bi-trash"></i>
+                                <span class="d-none d-lg-inline">Remove</span>
+                                <span id="remove-counter" class="selection-counter d-none">0</span>
+                            </button>
+                        </div>
+
+                        <div class="text-muted small">
+                            <p class="mb-1">Select cocktails by clicking them</p>
+                            <p class="mb-0">Hold Ctrl to select multiple</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List 2 Panel -->
+            <div class="col-md-5">
+                <div class="list-panel {% if list2 %}active{% endif %}" id="list2-panel">
+                    {% if list2 %}
+                        <div class="list-panel-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">
+                                        {{ list2.name }}
+                                        {% if list2.list_type != 'custom' %}
+                                            <span class="badge special-list-badge bg-info ms-2">
+                                                {% if list2.list_type == 'favorites' %}
+                                                    <i class="bi bi-heart"></i> Favorites
+                                                {% elif list2.list_type == 'creations' %}
+                                                    <i class="bi bi-person"></i> Your Creations
+                                                {% endif %}
+                                            </span>
+                                        {% endif %}
+                                    </h5>
+                                    <small class="opacity-75">{{ list2_cocktails|length }} cocktail{{ list2_cocktails|length|pluralize }}</small>
+                                </div>
+                                <button class="btn btn-sm btn-light" onclick="changeList(2)">
+                                    <i class="bi bi-arrow-repeat"></i> Change
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            {% if list2_cocktails %}
+                                <div id="list2-cocktails">
+                                    {% for cocktail in list2_cocktails %}
+                                        <div class="cocktail-item" 
+                                             data-cocktail-id="{{ cocktail.id }}" 
+                                             data-list="2"
+                                             onclick="toggleCocktailSelection(this)">
+                                            <div class="cocktail-name">{{ cocktail.name }}</div>
+                                            <div class="cocktail-meta">
+                                                by {{ cocktail.creator.username }} • 
+                                                {% if cocktail.alcohol_percentage %}{{ cocktail.alcohol_percentage }}% ABV{% endif %}
+                                                {% if cocktail.volume_ml %} • {{ cocktail.volume_ml }}ml{% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="empty-list-state">
+                                    <i class="bi bi-collection" style="font-size: 3rem; opacity: 0.3;"></i>
+                                    <h6 class="mt-3">This list is empty</h6>
+                                    <p>No cocktails to display</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="list-selector" onclick="showListSelector(2)">
+                            <i class="bi bi-collection" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3">Select a list</h5>
+                            <p>Click to choose which list to display here</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- List Selection Modal -->
+    <div class="modal fade" id="listSelectorModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select a List</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="list-group">
+                        {% for list in user_lists %}
+                            <a href="#" 
+                               class="list-group-item list-group-item-action"
+                               onclick="selectList({{ list.id }}, '{{ list.name|escapejs }}', '{{ list.list_type }}')">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ list.name }}</strong>
+                                        {% if list.list_type != 'custom' %}
+                                            <span class="badge bg-info ms-2">
+                                                {% if list.list_type == 'favorites' %}
+                                                    <i class="bi bi-heart"></i> Favorites
+                                                {% elif list.list_type == 'creations' %}
+                                                    <i class="bi bi-person"></i> Your Creations
+                                                {% endif %}
+                                            </span>
+                                        {% endif %}
+                                        {% if list.description %}
+                                            <br><small class="text-muted">{{ list.description|truncatechars:60 }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <span class="badge bg-secondary">{{ list.cocktail_count }} cocktails</span>
+                                </div>
+                            </a>
+                        {% empty %}
+                            <div class="text-center py-4">
+                                <p class="text-muted">No lists found</p>
+                                <a href="{% url 'list_create' %}" class="btn btn-primary">Create Your First List</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="d-none">
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Processing...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedCocktails = new Set();
+let selectedListPosition = null;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updateButtonStates();
+});
+
+function showListSelector(position) {
+    selectedListPosition = position;
+    const modal = new bootstrap.Modal(document.getElementById('listSelectorModal'));
+    modal.show();
+}
+
+function changeList(position) {
+    showListSelector(position);
+}
+
+function selectList(listId, listName, listType) {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (selectedListPosition === 1) {
+        urlParams.set('list1', listId);
+    } else {
+        urlParams.set('list2', listId);
+    }
+    
+    // Redirect to update the page with new list selection
+    window.location.href = '{% url "list_management" %}?' + urlParams.toString();
+}
+
+function toggleCocktailSelection(element) {
+    const cocktailId = element.getAttribute('data-cocktail-id');
+    const listPosition = element.getAttribute('data-list');
+    
+    if (element.classList.contains('selected')) {
+        // Deselect
+        element.classList.remove('selected');
+        selectedCocktails.delete(cocktailId + '_' + listPosition);
+    } else {
+        // Select
+        element.classList.add('selected');
+        selectedCocktails.add(cocktailId + '_' + listPosition);
+    }
+    
+    updateButtonStates();
+}
+
+function updateButtonStates() {
+    const selectedArray = Array.from(selectedCocktails);
+    const list1Selected = selectedArray.filter(item => item.endsWith('_1')).length;
+    const list2Selected = selectedArray.filter(item => item.endsWith('_2')).length;
+    
+    // Move right button (list1 to list2)
+    const moveRightBtn = document.getElementById('move-right-btn');
+    const moveRightCounter = document.getElementById('move-right-counter');
+    if (list1Selected > 0 && document.getElementById('list2-panel').classList.contains('active')) {
+        moveRightBtn.disabled = false;
+        moveRightCounter.textContent = list1Selected;
+        moveRightCounter.classList.remove('d-none');
+    } else {
+        moveRightBtn.disabled = true;
+        moveRightCounter.classList.add('d-none');
+    }
+    
+    // Move left button (list2 to list1)
+    const moveLeftBtn = document.getElementById('move-left-btn');
+    const moveLeftCounter = document.getElementById('move-left-counter');
+    if (list2Selected > 0 && document.getElementById('list1-panel').classList.contains('active')) {
+        moveLeftBtn.disabled = false;
+        moveLeftCounter.textContent = list2Selected;
+        moveLeftCounter.classList.remove('d-none');
+    } else {
+        moveLeftBtn.disabled = true;
+        moveLeftCounter.classList.add('d-none');
+    }
+    
+    // Remove button
+    const removeBtn = document.getElementById('remove-btn');
+    const removeCounter = document.getElementById('remove-counter');
+    const totalSelected = list1Selected + list2Selected;
+    if (totalSelected > 0) {
+        removeBtn.disabled = false;
+        removeCounter.textContent = totalSelected;
+        removeCounter.classList.remove('d-none');
+    } else {
+        removeBtn.disabled = true;
+        removeCounter.classList.add('d-none');
+    }
+}
+
+function getSelectedCocktailIds(fromList = null) {
+    const selectedArray = Array.from(selectedCocktails);
+    if (fromList) {
+        return selectedArray
+            .filter(item => item.endsWith('_' + fromList))
+            .map(item => item.split('_')[0]);
+    }
+    return selectedArray.map(item => item.split('_')[0]);
+}
+
+function isCreationsList(listId) {
+    // Check if a list is a creations list by looking at the page context
+    {% if list1 and list1.list_type == 'creations' %}
+    if (listId == '{{ list1.id }}') return true;
+    {% endif %}
+    {% if list2 and list2.list_type == 'creations' %}
+    if (listId == '{{ list2.id }}') return true;
+    {% endif %}
+    return false;
+}
+
+function moveCocktails(direction) {
+    const list1Id = new URLSearchParams(window.location.search).get('list1');
+    const list2Id = new URLSearchParams(window.location.search).get('list2');
+    
+    if (!list1Id || !list2Id) {
+        alert('Both lists must be selected to move cocktails.');
+        return;
+    }
+    
+    let cocktailIds, sourceListId, targetListId;
+    
+    if (direction === 'left-to-right') {
+        cocktailIds = getSelectedCocktailIds(1);
+        sourceListId = list1Id;
+        targetListId = list2Id;
+    } else {
+        cocktailIds = getSelectedCocktailIds(2);
+        sourceListId = list2Id;
+        targetListId = list1Id;
+    }
+    
+    if (cocktailIds.length === 0) {
+        alert('Please select cocktails to move.');
+        return;
+    }
+    
+    performBulkOperation('move', sourceListId, targetListId, cocktailIds);
+}
+
+function removeCocktails() {
+    const selectedArray = Array.from(selectedCocktails);
+    if (selectedArray.length === 0) {
+        alert('Please select cocktails to remove.');
+        return;
+    }
+    
+    // Group by list
+    const list1Ids = getSelectedCocktailIds(1);
+    const list2Ids = getSelectedCocktailIds(2);
+    
+    const list1Id = new URLSearchParams(window.location.search).get('list1');
+    const list2Id = new URLSearchParams(window.location.search).get('list2');
+    
+    let confirmMessage = `Are you sure you want to remove ${selectedArray.length} cocktail(s)?`;
+    
+    // Special warning for creations list
+    const hasCreationsRemoval = (list1Ids.length > 0 && list1Id && isCreationsList(list1Id)) ||
+                                (list2Ids.length > 0 && list2Id && isCreationsList(list2Id));
+    
+    if (hasCreationsRemoval) {
+        confirmMessage += '\n\nWARNING: Removing cocktails from "Your Creations" will anonymize them (remove your authorship). This cannot be undone.';
+    }
+    
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    // Remove from each list
+    const promises = [];
+    if (list1Ids.length > 0 && list1Id) {
+        promises.push(performBulkOperation('remove', list1Id, null, list1Ids));
+    }
+    if (list2Ids.length > 0 && list2Id) {
+        promises.push(performBulkOperation('remove', list2Id, null, list2Ids));
+    }
+    
+    Promise.all(promises).then(() => {
+        window.location.reload();
+    });
+}
+
+function performBulkOperation(operation, sourceListId, targetListId, cocktailIds) {
+    showLoading();
+    
+    const data = {
+        operation: operation,
+        cocktail_ids: cocktailIds,
+        target_list_id: targetListId
+    };
+    
+    return fetch(`/lists/${sourceListId}/bulk-operations/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            // Show success message
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="bi bi-check-circle me-2"></i>
+                ${data.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container-fluid').insertBefore(alert, document.querySelector('.list-management-container'));
+            
+            // Reload the page to reflect changes
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        console.error('Error:', error);
+        alert('An error occurred while processing your request.');
+    });
+}
+
+function showLoading() {
+    document.getElementById('loading-overlay').classList.remove('d-none');
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').classList.add('d-none');
+}
+
+// Add CSRF token to all requests
+document.addEventListener('DOMContentLoaded', function() {
+    // Create hidden CSRF token input if it doesn't exist
+    if (!document.querySelector('[name=csrfmiddlewaretoken]')) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = '{{ csrf_token }}';
+        document.body.appendChild(csrfInput);
+    }
+});
+</script>
+
+<style>
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    color: white;
+}
+</style>
+{% endblock %}

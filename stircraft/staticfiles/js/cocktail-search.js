@@ -25,7 +25,7 @@ class CocktailSearch {
         this.spiritSelect = document.querySelector('select[name="spirit"]');
         this.vesselSelect = document.querySelector('select[name="vessel"]');
         this.alcoholicSelect = document.querySelector('select[name="is_alcoholic"]');
-        this.colorInput = document.querySelector('input[name="color"]');
+        this.colorInput = document.querySelector('select[name="color"]');
         this.sortSelect = document.querySelector('select[name="sort_by"]');
         
         this.debounceTimeout = null;
@@ -53,10 +53,10 @@ class CocktailSearch {
             });
         }
         
-        // Color input with debouncing
+        // Color select with immediate submit
         if (this.colorInput) {
-            this.colorInput.addEventListener('input', () => {
-                this.debounceSearch();
+            this.colorInput.addEventListener('change', () => {
+                this.submitSearch();
             });
         }
         
@@ -183,15 +183,15 @@ class CocktailSearch {
     
     createColorFilters() {
         const colorFilters = [
-            { label: '🔴 Red', color: 'red', hex: '#dc3545' },
-            { label: '🟠 Orange', color: 'orange', hex: '#fd7e14' },
-            { label: '🟡 Yellow', color: 'yellow', hex: '#ffc107' },
-            { label: '🟢 Green', color: 'green', hex: '#198754' },
-            { label: '🔵 Blue', color: 'blue', hex: '#0d6efd' },
-            { label: '🟣 Purple', color: 'purple', hex: '#6f42c1' },
-            { label: '🟤 Brown', color: 'brown', hex: '#8B4513' },
-            { label: '⚪ Clear', color: 'clear', hex: '#f8f9fa' },
-            { label: '⚫ Dark', color: 'dark black', hex: '#212529' }
+            { label: '🔴 Red', color: 'Red', hex: '#dc3545' },
+            { label: '🟠 Orange', color: 'Orange', hex: '#fd7e14' },
+            { label: '🟡 Yellow', color: 'Yellow', hex: '#ffc107' },
+            { label: '🟢 Green', color: 'Green', hex: '#198754' },
+            { label: '🔵 Blue', color: 'Blue', hex: '#0d6efd' },
+            { label: '🟣 Purple', color: 'Purple', hex: '#6f42c1' },
+            { label: '🟤 Brown', color: 'Brown', hex: '#8B4513' },
+            { label: '⚪ Clear', color: 'Clear', hex: '#f8f9fa' },
+            { label: '⚫ Black', color: 'Black', hex: '#212529' }
         ];
         
         const container = this.createColorFiltersContainer();
@@ -317,7 +317,7 @@ class CocktailSearch {
         button.style.borderColor = filter.hex;
         
         // Add color indicator
-        if (filter.color !== 'clear') {
+        if (filter.color !== 'Clear') {
             button.style.background = `linear-gradient(45deg, ${filter.hex}22, transparent)`;
         }
         

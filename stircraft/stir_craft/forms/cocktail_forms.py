@@ -327,6 +327,11 @@ class QuickIngredientForm(forms.ModelForm):
     """
     Simplified form for quickly adding new ingredients while creating cocktails.
     Can be used in a modal or inline with the main cocktail form.
+    
+    Enhanced Features:
+    - Smart category suggestion based on ingredient name
+    - Duplicate detection with helpful error messages
+    - Fuzzy matching to suggest similar existing ingredients
     """
     
     class Meta:
@@ -336,7 +341,8 @@ class QuickIngredientForm(forms.ModelForm):
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'e.g., London Dry Gin',
-                'required': True
+                'required': True,
+                'autocomplete': 'off'
             }),
             'ingredient_type': forms.Select(attrs={
                 'class': 'form-select',
@@ -370,27 +376,107 @@ class QuickIngredientForm(forms.ModelForm):
         self.fields['alcohol_content'].help_text = "ABV percentage (0 for non-alcoholic)"
         self.fields['flavor_tags'].help_text = "Flavor descriptors that help with recipe matching"
         
-    def clean_name(self):
-        """Provide better error messages for duplicate ingredients."""
-        name = self.cleaned_data.get('name')
-        if name:
-            # Check for exact match
-            existing = Ingredient.objects.filter(name=name).first()
-            if existing:
-                raise forms.ValidationError(
-                    f'An ingredient named "{name}" already exists in the {existing.get_ingredient_type_display()} category. '
-                    f'Try searching for it in the ingredient dropdown instead.'
-                )
-            
-            # Check for case-insensitive near matches to help users
-            similar = Ingredient.objects.filter(name__iexact=name).first()
-            if similar and similar.name != name:
-                raise forms.ValidationError(
-                    f'An ingredient named "{similar.name}" already exists in the {similar.get_ingredient_type_display()} category. '
-                    f'Did you mean to use that one instead?'
-                )
+        # Add JavaScript data attributes for smart categorization
+        self.fields['name'].widget.attrs.update({
+            'data-smart-categorize': 'true',
+            'data-duplicate-check': 'true'
+        })
         
-        return name
+    def clean_name(self):
+        """Enhanced duplicate detection with fuzzy matching and helpful suggestions."""
+        name = self.cleaned_data.get('name')
+        if not name:
+            return name
+        
+        # Import the utility functions from our management command
+        from ..management.commands.fix_ingredients import Command as FixIngredientsCommand
+        
+        # Check for potential duplicates using our smart detection
+        similar_ingredients = FixIngredientsCommand.check_for_duplicates(name)
+        
+        if similar_ingredients:
+            # Get the most similar ingredient
+            most_similar = similar_ingredients[0]
+            ingredient, similarity, match_type = most_similar
+            
+            if match_type == 'Exact match':
+                raise forms.ValidationError(
+                    f'An ingredient named "{ingredient.name}" already exists in the {ingredient.get_ingredient_type_display()} category. '
+                    f'Please search for it in the ingredient dropdown instead of creating a duplicate.'
+                )
+            elif similarity > 0.9:  # Very similar (90%+)
+                raise forms.ValidationError(
+                    f'Very similar ingredient "{ingredient.name}" already exists in the {ingredient.get_ingredient_type_display()} category. '
+                    f'Did you mean to use that one instead? If not, please make the name more specific.'
+                )
+            elif similarity > 0.8:  # Similar (80%+) - warn but allow
+                # Add a warning but don't prevent creation
+                self.add_error('name', forms.ValidationError(
+                    f'Warning: Similar ingredient "{ingredient.name}" exists in {ingredient.get_ingredient_type_display()}. '
+                    f'Make sure this is truly different or consider using the existing one.',
+                    code='similar_ingredient_warning'
+                ))
+        
+        # Clean up the name format
+        return self._clean_ingredient_name(name)
+    
+    def _clean_ingredient_name(self, name):
+        """Clean and format ingredient name consistently."""
+        # Strip whitespace and normalize spacing
+        import re
+        cleaned = re.sub(r'\s+', ' ', name.strip())
+        
+        # Capitalize properly for common patterns
+        # Handle brand names and special cases
+        special_cases = {
+            'grand marnier': 'Grand Marnier',
+            'cointreau': 'Cointreau',
+            'baileys': 'Baileys',
+            'kahlua': 'Kahlúa',
+            'angostura': 'Angostura',
+            'jägermeister': 'Jägermeister',
+            'jagermeister': 'Jägermeister',
+            '7up': '7-Up',
+            '7-up': '7-Up',
+            'coca cola': 'Coca-Cola',
+            'pepsi cola': 'Pepsi',
+        }
+        
+        cleaned_lower = cleaned.lower()
+        for key, value in special_cases.items():
+            if key in cleaned_lower:
+                cleaned = cleaned_lower.replace(key, value)
+                break
+        else:
+            # Default to title case if no special case found
+            cleaned = cleaned.title()
+        
+        return cleaned
+    
+    def clean(self):
+        """Enhanced validation with smart category suggestion."""
+        cleaned_data = super().clean()
+        name = cleaned_data.get('name')
+        ingredient_type = cleaned_data.get('ingredient_type')
+        
+        if name and not ingredient_type:
+            # Import the utility function from our management command
+            from ..management.commands.fix_ingredients import Command as FixIngredientsCommand
+            
+            # Suggest a category based on the name
+            suggested_category = FixIngredientsCommand.suggest_category(name)
+            if suggested_category != 'other':
+                # Add a helpful message suggesting the category
+                category_display = dict(Ingredient.INGREDIENT_TYPES)[suggested_category]
+                self.add_error('ingredient_type', forms.ValidationError(
+                    f'Based on the name "{name}", this ingredient might belong in the "{category_display}" category. '
+                    f'Please select the appropriate category.',
+                    code='category_suggestion'
+                ))
+                # Pre-populate the suggested category
+                cleaned_data['ingredient_type'] = suggested_category
+        
+        return cleaned_data
         
 
 # =============================================================================

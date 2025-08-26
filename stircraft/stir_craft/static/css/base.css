@@ -233,31 +233,174 @@
 .ingredient-formset {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    padding: 1rem;
+    padding: 1.5rem;
     margin-bottom: 1rem;
     background-color: var(--bg-light);
 }
 
+/* Improved ingredient row for better readability */
 .ingredient-row {
     display: grid;
-    grid-template-columns: 3fr 1fr 1fr 2fr 1fr auto;
-    gap: 0.5rem;
+    grid-template-columns: 4fr 2fr 2fr 3fr 1fr auto;
+    gap: 1rem;
     align-items: end;
-    margin-bottom: 0.5rem;
-    padding: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-lg);
     background-color: var(--bg-white);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition-fast);
+}
+
+.ingredient-row:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+}
+
+/* Form input styling within ingredient rows */
+.ingredient-row select,
+.ingredient-row input {
+    width: 100%;
+    min-width: 0; /* Prevents overflow in grid */
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.ingredient-row select:focus,
+.ingredient-row input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem var(--primary-alpha-05);
+    outline: none;
+}
+
+/* Specific styling for ingredient dropdown */
+.ingredient-row select[name*="ingredient"] {
+    min-width: 180px; /* Ensure ingredient dropdown is readable */
+}
+
+/* Amount and unit fields */
+.ingredient-row input[name*="amount"] {
+    min-width: 80px;
+    text-align: center;
+}
+
+.ingredient-row select[name*="unit"] {
+    min-width: 100px;
+}
+
+/* Preparation notes field */
+.ingredient-row input[name*="preparation_note"] {
+    min-width: 120px;
+}
+
+/* Order field */
+.ingredient-row input[name*="order"] {
+    min-width: 60px;
+    text-align: center;
 }
 
 .delete-checkbox {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 40px;
+}
+
+.delete-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
 }
 
 .add-ingredient-btn {
     margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+}
+
+/* Enhanced header row styling */
+.ingredient-formset-header {
+    display: grid;
+    grid-template-columns: 4fr 2fr 2fr 3fr 1fr auto;
+    gap: 1rem;
+    background-color: var(--bg-gray-100);
+    padding: 0.75rem 1rem;
+    margin: 0 0 1rem 0;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+}
+
+.ingredient-formset .row.mb-2 {
+    background-color: var(--bg-gray-100);
+    padding: 0.75rem 1rem;
+    margin: 0 0 1rem 0;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 992px) {
+    .ingredient-row {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+    
+    .ingredient-row > div {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .ingredient-row > div::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Hide the header rows on small screens since we show labels inline */
+    .ingredient-formset-header,
+    .ingredient-formset .row.mb-2 {
+        display: none !important;
+    }
+    
+    .ingredient-row select,
+    .ingredient-row input {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .delete-checkbox {
+        justify-content: flex-start;
+        margin-top: 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .ingredient-formset {
+        padding: 1rem;
+    }
+    
+    .ingredient-row {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .ingredient-row select,
+    .ingredient-row input {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
 }
 
 .form-section {

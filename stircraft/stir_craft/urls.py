@@ -27,10 +27,13 @@ urlpatterns = [
     # 📁 LIST URLS
     path('lists/', views.user_lists, name='user_lists'),
     path('lists/create/', views.list_create, name='list_create'),
-    path('lists/feed/', views.list_feed, name='list_feed'),
+    path('public/', views.list_feed, name='list_feed'),  # Renamed from lists/feed/
+    path('public/<int:list_id>/', views.public_list_detail, name='public_list_detail'),
+    path('lists/manage/', views.list_management, name='list_management'),
     path('lists/<int:list_id>/', views.list_detail, name='list_detail'),
     path('lists/<int:list_id>/edit/', views.list_update, name='list_update'),
     path('lists/<int:list_id>/delete/', views.list_delete, name='list_delete'),
+    path('lists/<int:list_id>/copy/', views.list_copy, name='list_copy'),
     path('users/<int:user_id>/lists/', views.user_lists, name='user_lists'),
     
     # 🎯 AJAX LIST ACTIONS
@@ -42,6 +45,7 @@ urlpatterns = [
     
     # 📋 BULK LIST OPERATIONS
     path('lists/<int:list_id>/bulk-operations/', views.list_bulk_operations, name='list_bulk_operations'),
+    path('lists/user-lists-json/', views.user_lists_json, name='user_lists_json'),
     
     # 🏷️ TAG MANAGEMENT ACTIONS
     path('cocktails/<int:cocktail_id>/add-tag/', views.add_cocktail_tag, name='add_cocktail_tag'),
@@ -52,6 +56,7 @@ urlpatterns = [
     path('ingredients/', views.ingredient_index, name='ingredient_index'),
     path('ingredients/<int:ingredient_id>/', views.ingredient_detail, name='ingredient_detail'),
     path('ingredients/create/', views.ingredient_create, name='ingredient_add'),
+    path('ingredients/check-duplicates/', views.ingredient_check_duplicates, name='ingredient_check_duplicates'),
     
     # 🍸 VESSEL URLS (updated to follow naming conventions)
     path('vessels/', views.vessel_index, name='vessel_index'),

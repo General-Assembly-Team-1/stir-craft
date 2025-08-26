@@ -363,6 +363,50 @@ def ingredient_create(request):
     return render(request, "ingredients/ingredient_form.html", {"form": form})
 
 
+@login_required
+def ingredient_check_duplicates(request):
+    """
+    AJAX endpoint to check for potential duplicate ingredients.
+    Used for real-time validation during ingredient creation.
+    """
+    if request.method != "GET":
+        return JsonResponse({'error': 'Only GET requests allowed'}, status=405)
+    
+    ingredient_name = request.GET.get('name', '').strip()
+    if not ingredient_name:
+        return JsonResponse({'similar_ingredients': []})
+    
+    # Import the utility function from our management command
+    from .management.commands.fix_ingredients import Command as FixIngredientsCommand
+    
+    try:
+        # Check for potential duplicates
+        similar_ingredients = FixIngredientsCommand.check_for_duplicates(ingredient_name)
+        
+        # Format the response
+        response_data = {
+            'similar_ingredients': [
+                {
+                    'id': ingredient.id,
+                    'name': ingredient.name,
+                    'category': ingredient.get_ingredient_type_display(),
+                    'similarity': similarity,
+                    'match_type': match_type
+                }
+                for ingredient, similarity, match_type in similar_ingredients[:5]  # Limit to top 5
+            ],
+            'suggested_category': FixIngredientsCommand.suggest_category(ingredient_name)
+        }
+        
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error checking duplicates for '{ingredient_name}': {e}")
+        return JsonResponse({'error': 'Error checking duplicates'}, status=500)
+
+
 # =============================================================================
 # 🍸 VESSEL VIEWS
 # =============================================================================
@@ -954,7 +998,48 @@ def cocktail_delete(request, cocktail_id):
 
 
 # =============================================================================
-# 📁 LIST VIEWS (Favorites & Collections)
+# � HELPER FUNCTIONS
+# =============================================================================
+
+def anonymize_cocktail(cocktail):
+    """
+    Helper function to anonymize a cocktail by transferring it to anonymous user.
+    Returns True if successfully anonymized, False otherwise.
+    """
+    from django.contrib.auth.models import User
+    
+    try:
+        # Create or get anonymous user
+        anonymous_user, created = User.objects.get_or_create(
+            username='anonymous',
+            defaults={
+                'first_name': 'Anonymous',
+                'last_name': 'User',
+                'email': 'anonymous@stircraft.local',
+                'is_active': False
+            }
+        )
+        
+        # Transfer ownership to anonymous user
+        old_creator = cocktail.creator
+        cocktail.creator = anonymous_user
+        cocktail.save()
+        
+        # Also remove from all of the old creator's lists to prevent orphaned references
+        from .models import List
+        user_lists = List.objects.filter(creator=old_creator)
+        for user_list in user_lists:
+            if cocktail in user_list.cocktails.all():
+                user_list.cocktails.remove(cocktail)
+        
+        return True
+    except Exception as e:
+        # Log the error in a real application
+        print(f"Error anonymizing cocktail {cocktail.id}: {e}")
+        return False
+
+# =============================================================================
+# �📁 LIST VIEWS (Favorites & Collections)
 # =============================================================================
 
 def list_detail(request, list_id):
@@ -1407,6 +1492,153 @@ def list_feed(request):
         'total_count': paginator.count,
     })
 
+def public_list_detail(request, list_id):
+    """
+    Public detail view for a list showing medium-detail cocktail cards.
+    Allows copying the list and adding cocktails to user's lists.
+    """
+    from .models import List
+    from django.core.paginator import Paginator
+    from django.contrib import messages
+    
+    # Get the public list
+    list_obj = get_object_or_404(List, id=list_id, list_type='custom')
+    
+    # Get cocktails in the list with pagination
+    cocktails = list_obj.cocktails.all().order_by('name')
+    paginator = Paginator(cocktails, 24)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get user's lists for the dropdown (if authenticated)
+    user_lists = None
+    if request.user.is_authenticated:
+        user_lists = List.objects.filter(creator=request.user).order_by('name')
+    
+    return render(request, 'lists/public_detail.html', {
+        'list': list_obj,
+        'page_obj': page_obj,
+        'user_lists': user_lists,
+        'total_cocktails': cocktails.count(),
+    })
+
+@login_required
+def list_copy(request, list_id):
+    """
+    Copy a public list to the current user's lists (fork functionality).
+    """
+    from .models import List
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    
+    # Get the original list
+    original_list = get_object_or_404(List, id=list_id, list_type='custom')
+    
+    if request.method == 'POST':
+        # Create a new list based on the original
+        new_list = List.objects.create(
+            name=f"{original_list.name} (Copy)",
+            description=f"Copied from {original_list.creator.username}'s list: {original_list.description}",
+            creator=request.user,
+            list_type='custom',
+            forked_from=original_list
+        )
+        
+        # Copy all cocktails from the original list
+        new_list.cocktails.set(original_list.cocktails.all())
+        
+        messages.success(request, f'Successfully copied "{original_list.name}" to your lists!')
+        return redirect('list_detail', list_id=new_list.id)
+    
+    return render(request, 'lists/copy_confirm.html', {
+        'original_list': original_list,
+    })
+
+@login_required
+def list_management(request):
+    """
+    Advanced list management interface.
+    Allows users to view two lists side by side and move cocktails between them.
+    Special handling for 'creations' list deletion with anonymization.
+    """
+    from .models import List, Cocktail
+    from django.db.models import Count
+    
+    # Get user's lists
+    user_lists = List.objects.filter(creator=request.user).annotate(
+        cocktail_count=Count('cocktails')
+    ).order_by('list_type', 'name')
+    
+    # Handle list selection from query parameters
+    list1_id = request.GET.get('list1')
+    list2_id = request.GET.get('list2')
+    
+    list1 = None
+    list2 = None
+    
+    if list1_id:
+        try:
+            list1 = List.objects.get(id=list1_id, creator=request.user)
+        except List.DoesNotExist:
+            messages.error(request, 'Invalid list selection.')
+    
+    if list2_id:
+        try:
+            list2 = List.objects.get(id=list2_id, creator=request.user)
+        except List.DoesNotExist:
+            messages.error(request, 'Invalid list selection.')
+    
+    # Get cocktails for selected lists
+    list1_cocktails = []
+    list2_cocktails = []
+    
+    if list1:
+        list1_cocktails = list1.cocktails.select_related('creator', 'vessel').prefetch_related(
+            'components__ingredient', 'vibe_tags'
+        ).order_by('name')
+    
+    if list2:
+        list2_cocktails = list2.cocktails.select_related('creator', 'vessel').prefetch_related(
+            'components__ingredient', 'vibe_tags'
+        ).order_by('name')
+    
+    context = {
+        'user_lists': user_lists,
+        'list1': list1,
+        'list2': list2,
+        'list1_cocktails': list1_cocktails,
+        'list2_cocktails': list2_cocktails,
+    }
+    
+    return render(request, 'lists/management.html', context)
+
+@login_required
+def user_lists_json(request):
+    """
+    Return user's lists as JSON for AJAX requests in the management interface.
+    """
+    from .models import List
+    from django.http import JsonResponse
+    from django.db.models import Count
+    
+    user_lists = List.objects.filter(creator=request.user).annotate(
+        cocktail_count=Count('cocktails')
+    ).order_by('list_type', 'name')
+    
+    lists_data = []
+    for list_obj in user_lists:
+        lists_data.append({
+            'id': list_obj.id,
+            'name': list_obj.name,
+            'description': list_obj.description,
+            'list_type': list_obj.list_type,
+            'cocktail_count': list_obj.cocktail_count,
+            'is_editable': list_obj.is_editable,
+            'is_deletable': list_obj.is_deletable,
+        })
+    
+    return JsonResponse({'lists': lists_data})
+
 @login_required
 def list_bulk_operations(request, list_id):
     """
@@ -1456,9 +1688,23 @@ def list_bulk_operations(request, list_id):
         cocktails = Cocktail.objects.filter(id__in=cocktail_ids) if cocktail_ids else source_list.cocktails.all()
         
         if operation == 'remove':
-            # Remove selected cocktails from source list
-            source_list.cocktails.remove(*cocktails)
-            message = f'Removed {cocktails.count()} cocktails from "{source_list.name}"'
+            # Special handling for 'creations' list - anonymize cocktails instead of just removing
+            if source_list.list_type == 'creations':
+                # For creations list, "remove" means anonymize the cocktails
+                anonymized_count = 0
+                for cocktail in cocktails:
+                    if cocktail.creator == request.user:
+                        # Use helper function to anonymize cocktail
+                        if anonymize_cocktail(cocktail):
+                            anonymized_count += 1
+                
+                # Remove from creations list
+                source_list.cocktails.remove(*cocktails)
+                message = f'Anonymized {anonymized_count} cocktail{"s" if anonymized_count != 1 else ""} (removed your authorship). They remain in the database for others to discover.'
+            else:
+                # Normal remove operation for other lists
+                source_list.cocktails.remove(*cocktails)
+                message = f'Removed {cocktails.count()} cocktails from "{source_list.name}"'
             
         elif operation == 'move':
             # Move cocktails from source to target

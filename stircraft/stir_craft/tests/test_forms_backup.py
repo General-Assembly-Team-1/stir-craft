@@ -137,7 +137,7 @@ class QuickIngredientFormTest(TestCase):
         error_message = form.errors['name'][0]
         self.assertIn('already exists', error_message)
         self.assertIn('Spirit category', error_message)
-        self.assertIn('Try searching', error_message)
+        self.assertIn('Please search for it', error_message)
 
     def test_duplicate_ingredient_case_insensitive(self):
         """Test that case-insensitive duplicates are detected."""
@@ -153,7 +153,7 @@ class QuickIngredientFormTest(TestCase):
         # Check for case-insensitive detection message
         error_message = form.errors['name'][0]
         self.assertIn('already exists', error_message)
-        self.assertIn('Did you mean', error_message)
+        self.assertIn('Please search for it', error_message)
 
     def test_flavor_tags_field(self):
         """Test flavor tags field functionality."""

@@ -446,6 +446,88 @@ class Cocktail(models.Model):
         """
         return bool(self.image and hasattr(self.image, 'url'))
     
+    def get_base_spirit(self):
+        """
+        Get the highest volume alcoholic component (base spirit).
+        
+        Returns:
+            str: Name of the base spirit or 'Non-alcoholic' if no alcohol
+        """
+        alcoholic_components = self.components.filter(
+            ingredient__alcohol_content__gt=0
+        ).order_by('-amount')
+        
+        if alcoholic_components.exists():
+            return alcoholic_components.first().ingredient.name
+        return 'Non-alcoholic'
+    
+    def get_highest_volume_mixer(self):
+        """
+        Get the highest volume non-alcoholic component (mixer).
+        
+        Returns:
+            str: Name of the highest volume mixer or None if no mixers
+        """
+        mixer_components = self.components.filter(
+            ingredient__alcohol_content=0,
+            ingredient__ingredient_type__in=['juice', 'soda', 'mixer', 'syrup', 'dairy']
+        ).order_by('-amount')
+        
+        if mixer_components.exists():
+            return mixer_components.first().ingredient.name
+        return None
+    
+    def get_spirit_type(self):
+        """
+        Get the type of the base spirit (e.g., 'Vodka', 'Gin', 'Rum').
+        
+        Returns:
+            str: Type of base spirit or 'Non-alcoholic'
+        """
+        base_spirit = self.get_base_spirit()
+        if base_spirit == 'Non-alcoholic':
+            return base_spirit
+        
+        # Check if it's a common spirit type
+        spirit_name = base_spirit.lower()
+        if 'vodka' in spirit_name:
+            return 'Vodka'
+        elif 'gin' in spirit_name:
+            return 'Gin'
+        elif 'rum' in spirit_name:
+            return 'Rum'
+        elif 'whiskey' in spirit_name or 'whisky' in spirit_name or 'bourbon' in spirit_name or 'rye' in spirit_name:
+            return 'Whiskey'
+        elif 'tequila' in spirit_name:
+            return 'Tequila'
+        elif 'brandy' in spirit_name or 'cognac' in spirit_name:
+            return 'Brandy'
+        elif 'vermouth' in spirit_name:
+            return 'Vermouth'
+        elif 'liqueur' in spirit_name or 'amaretto' in spirit_name or 'cointreau' in spirit_name or 'triple sec' in spirit_name:
+            return 'Liqueur'
+        else:
+            return base_spirit
+    
+    def get_flavor_tags(self, limit=2):
+        """
+        Get flavor tags excluding basic drink type tags.
+        
+        Args:
+            limit (int): Maximum number of flavor tags to return
+            
+        Returns:
+            QuerySet: Filtered vibe tags excluding drink types
+        """
+        excluded_tags = ['cocktail', 'shot', 'alcoholic', 'drink', 'non-alcoholic', 'nonalcoholic']
+        flavor_tags = []
+        
+        for tag in self.vibe_tags.all():
+            if tag.name.lower() not in excluded_tags and len(flavor_tags) < limit:
+                flavor_tags.append(tag)
+        
+        return flavor_tags
+    
     class Meta:
         ordering = ['-created_at']  # Orders cocktails by creation date (newest first)
         unique_together = ['name', 'creator']  # Ensures unique cocktail names per creator 
@@ -678,6 +760,16 @@ class List(models.Model):
     description = models.TextField(blank=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_lists')
     cocktails = models.ManyToManyField('Cocktail', blank=True, related_name='in_lists')
+    
+    # Forking relationship for copying lists
+    forked_from = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='forks',
+        help_text="Original list this was copied from (if it's a fork)"
+    )
     
     # New fields for special list behavior
     list_type = models.CharField(

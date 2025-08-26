@@ -34,6 +34,9 @@
                 </div>
                 {% if is_owner %}
                 <div>
+                    <a href="{% url 'list_management' %}" class="btn btn-outline-info me-2">
+                        <i class="bi bi-collection-play"></i> Manage Lists
+                    </a>
                     <a href="{% url 'list_create' %}" class="btn btn-primary">
                         <i class="bi bi-plus-circle"></i> Create New List
                     </a>
