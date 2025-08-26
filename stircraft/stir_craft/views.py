@@ -1540,8 +1540,16 @@ def public_list_detail(request, list_id):
         user_lists = None
         favorites_list = None
         if request.user.is_authenticated:
-            user_lists = List.objects.filter(creator=request.user).order_by('name')
-            favorites_list = List.get_or_create_favorites_list(request.user)
+            try:
+                user_lists = List.objects.filter(creator=request.user).order_by('name')
+                favorites_list = List.get_or_create_favorites_list(request.user)
+            except Exception as e:
+                # If user list creation fails, continue without it
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Could not create favorites list for user {request.user.id}: {str(e)}")
+                user_lists = None
+                favorites_list = None
         
         return render(request, 'lists/public_detail.html', {
             'list': list_obj,  # Changed from 'list_obj' to 'list' to match template
