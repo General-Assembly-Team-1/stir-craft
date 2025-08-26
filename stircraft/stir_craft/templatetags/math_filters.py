@@ -29,7 +29,7 @@ def smart_round(value, unit=None):
         num = float(value)
         
         # For milliliters, round to whole numbers
-        if unit and 'ml' in unit.lower():
+        if unit and ('ml' in unit.lower() or 'milliliter' in unit.lower()):
             return int(round(num))
         
         # For ounces, round to 1 decimal place
