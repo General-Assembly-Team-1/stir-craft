@@ -1562,7 +1562,7 @@ def public_list_detail(request, list_id):
     
     except List.DoesNotExist:
         messages.error(request, f"List {list_id} not found or is not publicly accessible.")
-        return redirect('public_feed')
+        return redirect('index')
     except Exception as e:
         # Log the error and show a user-friendly message
         import logging
@@ -1570,7 +1570,7 @@ def public_list_detail(request, list_id):
         logger.error(f"Error in public_list_detail for list_id {list_id}: {str(e)}")
         
         messages.error(request, "Sorry, there was an issue loading this list. Please try again later.")
-        return redirect('public_feed')
+        return redirect('index')
 
 @login_required
 def list_copy(request, list_id):

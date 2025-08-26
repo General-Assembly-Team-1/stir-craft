@@ -78,7 +78,7 @@
                                     
                                     <!-- Favorite Button -->
                                     {% if user.is_authenticated and favorites_list %}
-                                        {% with is_favorited=cocktail in favorites_list.cocktails.all %}
+                                        {% with cocktail in favorites_list.cocktails.all as is_favorited %}
                                         <button type="button" 
                                                 class="btn {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %} btn-sm favorite-btn" 
                                                 data-cocktail-id="{{ cocktail.id }}"
