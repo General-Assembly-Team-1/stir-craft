@@ -232,6 +232,28 @@ a.text-decoration-none:focus {
     color: var(--primary-dark) !important;
 }
 
+/* Links on dark backgrounds (navbar, card headers, etc.) */
+.bg-primary a,
+.card-header a,
+.navbar a,
+.text-white a,
+.navbar-stircraft a {
+    color: var(--secondary-color) !important;
+}
+
+.bg-primary a:hover,
+.bg-primary a:focus,
+.card-header a:hover,
+.card-header a:focus,
+.navbar a:hover,
+.navbar a:focus,
+.text-white a:hover,
+.text-white a:focus,
+.navbar-stircraft a:hover,
+.navbar-stircraft a:focus {
+    color: var(--secondary-light) !important;
+}
+
 /* =============================================================================
  * 🎯 ACCESSIBILITY ENHANCEMENTS
  * ============================================================================= */
