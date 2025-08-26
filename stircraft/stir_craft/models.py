@@ -453,12 +453,25 @@ class Cocktail(models.Model):
         Returns:
             str: Name of the base spirit or 'Non-alcoholic' if no alcohol
         """
-        alcoholic_components = self.components.filter(
-            ingredient__alcohol_content__gt=0
-        ).order_by('-amount')
+        # Use prefetched data if available to avoid N+1 queries
+        components = getattr(self, '_prefetched_objects_cache', {}).get('components')
+        if components is not None:
+            # Use prefetched data
+            alcoholic_components = [
+                c for c in components 
+                if hasattr(c, 'ingredient') and c.ingredient.alcohol_content > 0
+            ]
+            if alcoholic_components:
+                return max(alcoholic_components, key=lambda c: c.amount).ingredient.name
+        else:
+            # Fallback to database query
+            alcoholic_components = self.components.filter(
+                ingredient__alcohol_content__gt=0
+            ).order_by('-amount')
+            
+            if alcoholic_components.exists():
+                return alcoholic_components.first().ingredient.name
         
-        if alcoholic_components.exists():
-            return alcoholic_components.first().ingredient.name
         return 'Non-alcoholic'
     
     def get_highest_volume_mixer(self):
@@ -517,14 +530,23 @@ class Cocktail(models.Model):
             limit (int): Maximum number of flavor tags to return
             
         Returns:
-            QuerySet: Filtered vibe tags excluding drink types
+            list: Filtered vibe tags excluding drink types
         """
         excluded_tags = ['cocktail', 'shot', 'alcoholic', 'drink', 'non-alcoholic', 'nonalcoholic']
         flavor_tags = []
         
-        for tag in self.vibe_tags.all():
-            if tag.name.lower() not in excluded_tags and len(flavor_tags) < limit:
-                flavor_tags.append(tag)
+        # Use prefetched data if available to avoid N+1 queries
+        vibe_tags = getattr(self, '_prefetched_objects_cache', {}).get('vibe_tags')
+        if vibe_tags is not None:
+            # Use prefetched data
+            for tag in vibe_tags:
+                if tag.name.lower() not in excluded_tags and len(flavor_tags) < limit:
+                    flavor_tags.append(tag)
+        else:
+            # Fallback to database query
+            for tag in self.vibe_tags.all():
+                if tag.name.lower() not in excluded_tags and len(flavor_tags) < limit:
+                    flavor_tags.append(tag)
         
         return flavor_tags
     

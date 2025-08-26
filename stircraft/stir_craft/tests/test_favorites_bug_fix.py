@@ -136,6 +136,9 @@ class FavoritesBugFixTest(TestCase):
         
         for test_id in test_ids:
             with self.subTest(cocktail_id=test_id):
+                # Clear any existing cocktails with this ID first
+                Cocktail.objects.filter(id=test_id).delete()
+                
                 # Create cocktail with specific ID
                 cocktail = Cocktail.objects.create(
                     name=f'Test Cocktail {test_id}',
