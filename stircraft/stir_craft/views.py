@@ -1530,8 +1530,8 @@ def public_list_detail(request, list_id):
         # Get the public list
         list_obj = get_object_or_404(List, id=list_id, list_type='custom')
         
-        # Get cocktails in the list with pagination
-        cocktails = list_obj.cocktails.all().order_by('name')
+        # Get cocktails in the list with pagination and prefetch related data
+        cocktails = list_obj.cocktails.select_related('creator', 'vessel').prefetch_related('components__ingredient', 'vibe_tags').order_by('name')
         paginator = Paginator(cocktails, 24)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
@@ -1540,8 +1540,16 @@ def public_list_detail(request, list_id):
         user_lists = None
         favorites_list = None
         if request.user.is_authenticated:
-            user_lists = List.objects.filter(creator=request.user).order_by('name')
-            favorites_list = List.get_or_create_favorites_list(request.user)
+            try:
+                user_lists = List.objects.filter(creator=request.user).order_by('name')
+                favorites_list = List.get_or_create_favorites_list(request.user)
+            except Exception as e:
+                # If user list creation fails, continue without it
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Could not create favorites list for user {request.user.id}: {str(e)}")
+                user_lists = None
+                favorites_list = None
         
         return render(request, 'lists/public_detail.html', {
             'list': list_obj,  # Changed from 'list_obj' to 'list' to match template
@@ -1552,6 +1560,9 @@ def public_list_detail(request, list_id):
             'total_cocktails': cocktails.count(),
         })
     
+    except List.DoesNotExist:
+        messages.error(request, f"List {list_id} not found or is not publicly accessible.")
+        return redirect('public_feed')
     except Exception as e:
         # Log the error and show a user-friendly message
         import logging
