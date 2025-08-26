@@ -434,8 +434,27 @@ class Cocktail(models.Model):
             str: URL to the cocktail image or None if no image exists
         """
         if self.image and hasattr(self.image, 'url'):
-            return self.image.url
+            try:
+                # Try to access the URL - this will work even if file is missing
+                return self.image.url
+            except (ValueError, AttributeError):
+                return None
         return None
+    
+    def get_safe_image_url(self):
+        """
+        Get a safe image URL that handles missing files gracefully.
+        
+        Returns:
+            str: URL to the cocktail image or a fallback placeholder
+        """
+        try:
+            if self.image and hasattr(self.image, 'url'):
+                return self.image.url
+        except (ValueError, AttributeError):
+            pass
+        # Return a data URI for a simple placeholder
+        return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f8f9fa'/%3E%3Ctext x='150' y='100' font-family='Arial' font-size='14' fill='%236c757d' text-anchor='middle' dominant-baseline='middle'%3E🍸 No Image%3C/text%3E%3C/svg%3E"
     
     def has_image(self):
         """

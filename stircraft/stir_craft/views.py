@@ -1526,29 +1526,40 @@ def public_list_detail(request, list_id):
     from django.core.paginator import Paginator
     from django.contrib import messages
     
-    # Get the public list
-    list_obj = get_object_or_404(List, id=list_id, list_type='custom')
+    try:
+        # Get the public list
+        list_obj = get_object_or_404(List, id=list_id, list_type='custom')
+        
+        # Get cocktails in the list with pagination
+        cocktails = list_obj.cocktails.all().order_by('name')
+        paginator = Paginator(cocktails, 24)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        # Get user's lists for the dropdown (if authenticated)
+        user_lists = None
+        favorites_list = None
+        if request.user.is_authenticated:
+            user_lists = List.objects.filter(creator=request.user).order_by('name')
+            favorites_list = List.get_or_create_favorites_list(request.user)
+        
+        return render(request, 'lists/public_detail.html', {
+            'list': list_obj,  # Changed from 'list_obj' to 'list' to match template
+            'list_obj': list_obj,  # Keep both for compatibility
+            'page_obj': page_obj,
+            'user_lists': user_lists,
+            'favorites_list': favorites_list,
+            'total_cocktails': cocktails.count(),
+        })
     
-    # Get cocktails in the list with pagination
-    cocktails = list_obj.cocktails.all().order_by('name')
-    paginator = Paginator(cocktails, 24)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    # Get user's lists for the dropdown (if authenticated)
-    user_lists = None
-    favorites_list = None
-    if request.user.is_authenticated:
-        user_lists = List.objects.filter(creator=request.user).order_by('name')
-        favorites_list = List.get_or_create_favorites_list(request.user)
-    
-    return render(request, 'lists/public_detail.html', {
-        'list': list_obj,
-        'page_obj': page_obj,
-        'user_lists': user_lists,
-        'favorites_list': favorites_list,
-        'total_cocktails': cocktails.count(),
-    })
+    except Exception as e:
+        # Log the error and show a user-friendly message
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in public_list_detail for list_id {list_id}: {str(e)}")
+        
+        messages.error(request, "Sorry, there was an issue loading this list. Please try again later.")
+        return redirect('public_feed')
 
 @login_required
 def list_copy(request, list_id):

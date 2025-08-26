@@ -10,7 +10,7 @@
 {% block content %}
 <div class="page-header">
   <h1>Authentication</h1>
-  <img src="{% static 'images/auth-icon.svg' %}" alt="Authentication" />
+  <i class="bi bi-person-circle" style="font-size: 3rem; color: var(--primary-color);"></i>
 </div>
 
 {# Global Django messages (success/error/info) #}
@@ -34,13 +34,19 @@
       {% endif %}
 
       <div class="form-group">
-        <label for="id_username">Username</label>
-        {{ login_form.username }}
+        <label for="login_username">Username</label>
+        <input type="text" name="username" value="{{ login_form.username.value|default:'' }}" 
+               class="form-control" placeholder="Enter your username" 
+               maxlength="150" autofocus required id="login_username">
+        {% if login_form.username.errors %}
+          <div class="field-errors">{{ login_form.username.errors }}</div>
+        {% endif %}
       </div>
 
       <div class="form-group">
-        <label for="id_password">Password</label>
-        {{ login_form.password }}
+        <label for="login_password">Password</label>
+        <input type="password" name="password" class="form-control" 
+               placeholder="Enter your password" required id="login_password">
         {% if login_form.password.errors %}
           <div class="field-errors">{{ login_form.password.errors }}</div>
         {% endif %}
@@ -61,29 +67,40 @@
       {% endif %}
 
       <div class="form-group">
-        <label for="id_username">Username</label>
-        {{ signup_form.username }}
+        <label for="signup_username">Username</label>
+        <input type="text" name="username" value="{{ signup_form.username.value|default:'' }}" 
+               class="form-control" placeholder="Choose a username" 
+               maxlength="150" required id="signup_username">
+        {% if signup_form.username.errors %}
+          <div class="field-errors">{{ signup_form.username.errors }}</div>
+        {% endif %}
       </div>
 
       <div class="form-group">
-        <label for="id_first_name">First name</label>
-        {{ signup_form.first_name }}
+        <label for="signup_first_name">First name</label>
+        <input type="text" name="first_name" value="{{ signup_form.first_name.value|default:'' }}" 
+               class="form-control" placeholder="Enter your first name" 
+               maxlength="30" required id="signup_first_name">
         {% if signup_form.first_name.errors %}
           <div class="field-errors">{{ signup_form.first_name.errors }}</div>
         {% endif %}
       </div>
 
       <div class="form-group">
-        <label for="id_last_name">Last name</label>
-        {{ signup_form.last_name }}
+        <label for="signup_last_name">Last name</label>
+        <input type="text" name="last_name" value="{{ signup_form.last_name.value|default:'' }}" 
+               class="form-control" placeholder="Enter your last name" 
+               maxlength="30" required id="signup_last_name">
         {% if signup_form.last_name.errors %}
           <div class="field-errors">{{ signup_form.last_name.errors }}</div>
         {% endif %}
       </div>
 
       <div class="form-group">
-        <label for="id_email">Email address</label>
-        {{ signup_form.email }}
+        <label for="signup_email">Email address</label>
+        <input type="email" name="email" value="{{ signup_form.email.value|default:'' }}" 
+               class="form-control" placeholder="Enter your email address" 
+               required id="signup_email">
         {% if signup_form.email.errors %}
           <div class="field-errors">{{ signup_form.email.errors }}</div>
         {% endif %}
@@ -91,32 +108,37 @@
       </div>
 
       <div class="form-group">
-        <label for="id_birthdate">Birthdate</label>
-        {{ signup_form.birthdate }}
+        <label for="signup_birthdate">Birthdate</label>
+        <input type="date" name="birthdate" value="{{ signup_form.birthdate.value|default:'' }}" 
+               class="form-control" required id="signup_birthdate">
         {% if signup_form.birthdate.errors %}
           <div class="field-errors">{{ signup_form.birthdate.errors }}</div>
         {% endif %}
       </div>
 
       <div class="form-group">
-        <label for="id_location">Zip code (optional)</label>
-        {{ signup_form.location }}
+        <label for="signup_location">Zip code (optional)</label>
+        <input type="text" name="location" value="{{ signup_form.location.value|default:'' }}" 
+               class="form-control" placeholder="Enter your zip code (optional)" 
+               maxlength="10" id="signup_location">
         {% if signup_form.location.errors %}
           <div class="field-errors">{{ signup_form.location.errors }}</div>
         {% endif %}
       </div>
 
       <div class="form-group">
-        <label for="id_password1">Password</label>
-        {{ signup_form.password1 }}
+        <label for="signup_password1">Password</label>
+        <input type="password" name="password1" class="form-control" 
+               placeholder="Create a password" required id="signup_password1">
         {% if signup_form.password1.errors %}
           <div class="field-errors">{{ signup_form.password1.errors }}</div>
         {% endif %}
       </div>
 
       <div class="form-group">
-        <label for="id_password2">Confirm Password</label>
-        {{ signup_form.password2 }}
+        <label for="signup_password2">Confirm Password</label>
+        <input type="password" name="password2" class="form-control" 
+               placeholder="Confirm your password" required id="signup_password2">
         {% if signup_form.password2.errors %}
           <div class="field-errors">{{ signup_form.password2.errors }}</div>
         {% endif %}
