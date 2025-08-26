@@ -1,5 +1,5 @@
 <!-- Cocktail Header Partial -->
-<div class="card-header bg-primary text-white">
+<div class="card-header bg-primary text-white" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;">
     <div class="row align-items-center">
         <!-- Cocktail Image -->
         <div class="col-md-3 text-center">
@@ -17,10 +17,10 @@
         <div class="col-md-9">
             <div class="d-flex justify-content-between align-items-start">
                 <div class="flex-grow-1">
-                    <h1 class="mb-2 fw-bold">🍸 {{ cocktail.name }}</h1>
+                    <h1 class="mb-2 fw-bold text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-size: 2.5rem;">🍸 {{ cocktail.name }}</h1>
                     
                     {% if cocktail.vessel %}
-                        <p class="mb-2 opacity-75">
+                        <p class="mb-2 text-white" style="opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
                             <i class="bi bi-cup"></i> {{ cocktail.vessel.name }}
                             {% if cocktail.vessel.volume %}
                                 ({{ cocktail.vessel.volume|floatformat:2 }} oz)
@@ -30,39 +30,47 @@
                     
                     <!-- Attribution -->
                     <div class="mb-3">
-                        <p class="mb-1">
+                        <p class="mb-1 text-white" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
                             <i class="bi bi-person-circle"></i>
                             <strong>Created by:</strong> 
-                            <a href="{% url 'profile_detail' cocktail.creator.id %}" class="text-white text-decoration-underline">
+                            <a href="{% url 'profile_detail' cocktail.creator.id %}" 
+                               class="text-white fw-bold" 
+                               style="text-decoration: underline; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-decoration-color: #fff;">
                                 {{ cocktail.creator.username }}
                             </a>
-                            <small class="opacity-75">on {{ cocktail.created_at|date:"M d, Y" }}</small>
+                            <small class="text-white" style="opacity: 0.85; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">on {{ cocktail.created_at|date:"M d, Y" }}</small>
                         </p>
                         
                         {% if cocktail.forked_from %}
-                            <p class="mb-1 opacity-90">
+                            <p class="mb-1 text-white" style="opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
                                 <i class="bi bi-arrow-right-circle"></i>
                                 <strong>Based on:</strong> 
-                                <a href="{% url 'cocktail_detail' cocktail.forked_from.id %}" class="text-white text-decoration-underline">
+                                <a href="{% url 'cocktail_detail' cocktail.forked_from.id %}" 
+                                   class="text-white fw-bold" 
+                                   style="text-decoration: underline; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-decoration-color: #fff;">
                                     "{{ cocktail.forked_from.name }}"
                                 </a>
                                 by
-                                <a href="{% url 'profile_detail' cocktail.forked_from.creator.id %}" class="text-white text-decoration-underline">
+                                <a href="{% url 'profile_detail' cocktail.forked_from.creator.id %}" 
+                                   class="text-white fw-bold" 
+                                   style="text-decoration: underline; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-decoration-color: #fff;">
                                     {{ cocktail.forked_from.creator.username }}
                                 </a>
                             </p>
                         {% endif %}
                         
                         {% if cocktail.attribution_text %}
-                            <p class="mb-1 opacity-90 attribution-text">
+                            <p class="mb-1 text-white attribution-text" style="opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
                                 <i class="bi bi-info-circle"></i>
                                 <strong>Source:</strong> 
                                 {% if cocktail.attribution_url %}
-                                    <a href="{{ cocktail.attribution_url }}" target="_blank" rel="noopener noreferrer" class="text-white text-decoration-underline attribution-link">
+                                    <a href="{{ cocktail.attribution_url }}" target="_blank" rel="noopener noreferrer" 
+                                       class="text-white fw-bold attribution-link" 
+                                       style="text-decoration: underline; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-decoration-color: #fff;">
                                         {{ cocktail.attribution_text }}
                                     </a>
                                 {% else %}
-                                    <span class="attribution-text">{{ cocktail.attribution_text }}</span>
+                                    <span class="text-white attribution-text" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">{{ cocktail.attribution_text }}</span>
                                 {% endif %}
                             </p>
                         {% endif %}
@@ -71,12 +79,12 @@
                     <!-- Vibe Tags -->
                     {% if cocktail.vibe_tags.all %}
                         <div class="mb-2">
-                            <i class="bi bi-tags me-2"></i>
+                            <i class="bi bi-tags me-2 text-white" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);"></i>
                             {% for tag in cocktail.vibe_tags.all|slice:":5" %}
-                                <span class="badge bg-light text-dark me-1 mb-1">{{ tag.name }}</span>
+                                <span class="badge me-1 mb-1" style="background-color: rgba(255,255,255,0.9) !important; color: var(--primary-dark) !important; font-weight: 600; border: 1px solid rgba(255,255,255,0.3);">{{ tag.name }}</span>
                             {% endfor %}
                             {% if cocktail.vibe_tags.count > 5 %}
-                                <span class="badge bg-light text-muted me-1 mb-1">+{{ cocktail.vibe_tags.count|add:"-5" }} more</span>
+                                <span class="badge me-1 mb-1" style="background-color: rgba(255,255,255,0.7) !important; color: var(--primary-color) !important; font-weight: 500;">+{{ cocktail.vibe_tags.count|add:"-5" }} more</span>
                             {% endif %}
                         </div>
                     {% endif %}
@@ -86,10 +94,14 @@
                 {% if can_edit %}
                     <div class="ms-3">
                         <div class="btn-group" role="group">
-                            <a href="{% url 'cocktail_update' cocktail.id %}" class="btn btn-outline-light btn-sm">
+                            <a href="{% url 'cocktail_update' cocktail.id %}" 
+                               class="btn btn-outline-light btn-sm fw-bold" 
+                               style="border-width: 2px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
                                 <i class="bi bi-pencil"></i> Edit
                             </a>
-                            <a href="{% url 'cocktail_delete' cocktail.id %}" class="btn btn-outline-danger btn-sm">
+                            <a href="{% url 'cocktail_delete' cocktail.id %}" 
+                               class="btn btn-outline-danger btn-sm fw-bold" 
+                               style="border-width: 2px; background-color: rgba(220, 53, 69, 0.1); text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
                                 <i class="bi bi-trash"></i> Delete
                             </a>
                         </div>
