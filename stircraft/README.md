@@ -6,16 +6,8 @@
 
 ## 🍸 Live Site Preview
 
-![StirCraft Banner](https://img.shields.io/badge/🍸%20StirCraft-Professional%20Cocktail%20Recipe%20Manager-8B4513?style=for-the-badge&labelColor=2F1B14&color=8B4513)
-
-**✨ Key Features:**
-- 🍹 **416 Cocktail Recipes** with detailed ingredients and instructions
-- 👥 **Community Platform** with user profiles and custom lists  
-- 🎨 **Speakeasy Design** with elegant Playfair Display typography
-- 📱 **Responsive Interface** optimized for all devices
-- 🔍 **Advanced Search** and filtering capabilities
-
-**[👉 Explore Live Site](https://stircraft-app-0dd06cf5d30a.herokuapp.com/)**
+![StirCraft Live Screenshot](stir_craft/static/images/stircraft-live-screenshot.png)
+*StirCraft's elegant homepage showcasing speakeasy-inspired typography and intuitive cocktail discovery*
 
 ![Django](https://img.shields.io/badge/Django-4.2-green) ![Python](https://img.shields.io/badge/Python-3.12-blue) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue) ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple) ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
 
