@@ -96,21 +96,232 @@ Visit `http://127.0.0.1:8000` and explore the application with pre-loaded demo d
 - **Images**: PIL/Pillow for processing and optimization
 - **APIs**: TheCocktailDB integration for professional recipe data
 
-### **Database Models**
-```
-👤 User System          🍹 Recipe System         📁 Organization System
-├── User                ├── Cocktail             ├── List
-├── Profile             ├── Ingredient           ├── RecipeComponent
-                        ├── Vessel               └── Tagging (django-taggit)
-                        └── RecipeComponent
+---
+
+## 📊 **Entity Relationship Diagram (ERD)**
+
+![StirCraft ERD](staticfiles/images/ERD/StirCraft ERD.svg)
+*Complete database schema showing relationships between all models*
+
+---
+
+## 🗄️ **Database Models Deep Dive**
+
+### **👤 User System Models**
+
+#### **User (Django Built-in)**
+- **Purpose**: Authentication and basic user information
+- **Fields**: username, email, password, first_name, last_name, date_joined
+- **Relationships**: One-to-One with Profile, One-to-Many with Cocktail, List
+
+#### **Profile**
+- **Purpose**: Extended user information with age verification
+- **Key Fields**:
+  - `user` (OneToOneField to User)
+  - `birthdate` (DateField with 21+ validation)
+  - `location` (CharField for zip code)
+  - `updated_at` (DateTimeField)
+- **Business Logic**: Age verification for alcohol content compliance
+- **Validation**: Custom clean() method ensures users are 21+
+
+### **🧂 Recipe Component Models**
+
+#### **Ingredient**
+- **Purpose**: Individual components used in cocktail recipes
+- **Key Fields**:
+  - `name` (CharField, unique)
+  - `ingredient_type` (CharField with 12 predefined choices)
+  - `description` (TextField, optional)
+  - `alcohol_content` (FloatField, 0-100% ABV)
+  - `flavor_tags` (TaggableManager via django-taggit)
+  - `created_at`, `updated_at` (DateTimeFields)
+- **Types**: spirit, liqueur, wine, beer, mixer, soda, syrup, bitters, juice, dairy, garnish, other
+- **Methods**: `is_alcoholic()` for age verification and mocktail filtering
+
+#### **Vessel**
+- **Purpose**: Glassware and serving containers
+- **Key Fields**:
+  - `name` (CharField, unique)
+  - `vessel_type` (CharField with predefined choices)
+  - `description` (TextField)
+  - `volume_oz` (FloatField for capacity)
+  - `is_stemmed` (BooleanField)
+  - `material` (CharField)
+- **Types**: rocks, highball, martini, coupe, wine, beer, shot, other
+- **Usage**: Recipe presentation and proper serving recommendations
+
+### **🍹 Core Recipe Models**
+
+#### **Cocktail**
+- **Purpose**: Complete cocktail recipes with metadata
+- **Key Fields**:
+  - `name` (CharField, unique per user)
+  - `creator` (ForeignKey to User)
+  - `description` (TextField)
+  - `instructions` (TextField with preparation steps)
+  - `image` (ImageField with upload_to)
+  - `color` (CharField from predefined palette)
+  - `prep_method` (CharField: shaken, stirred, built, blended, etc.)
+  - `abv_percentage` (FloatField, calculated)
+  - `vessel` (ForeignKey to Vessel)
+  - `origin_story` (TextField, optional)
+  - `is_public` (BooleanField, default True)
+  - `forked_from` (ForeignKey to self, for recipe attribution)
+  - `tags` (TaggableManager)
+  - `created_at`, `updated_at` (DateTimeFields)
+- **Business Logic**: 
+  - Automatic ABV calculation from ingredients
+  - Recipe forking with attribution tracking
+  - Public/private visibility control
+- **Methods**: `calculate_abv()`, `get_total_volume()`, `get_ingredient_list()`
+
+#### **RecipeComponent**
+- **Purpose**: Junction table linking cocktails to ingredients with quantities
+- **Key Fields**:
+  - `cocktail` (ForeignKey to Cocktail)
+  - `ingredient` (ForeignKey to Ingredient)
+  - `quantity` (DecimalField with validation)
+  - `unit` (CharField: oz, dash, splash, etc.)
+  - `preparation_note` (CharField, optional)
+  - `order` (IntegerField for ingredient sequence)
+- **Units**: oz, ml, dash, splash, pinch, drop, garnish, rim, float
+- **Validation**: Positive quantities, unit compatibility
+- **Usage**: Enables precise recipe measurements and scaling
+
+### **📁 Organization & Social Models**
+
+#### **List**
+- **Purpose**: User-curated cocktail collections
+- **Key Fields**:
+  - `name` (CharField)
+  - `creator` (ForeignKey to User)
+  - `description` (TextField, optional)
+  - `cocktails` (ManyToManyField to Cocktail)
+  - `is_public` (BooleanField, default False)
+  - `created_at`, `updated_at` (DateTimeFields)
+- **Features**:
+  - Public/private visibility
+  - Bulk operations (add/remove multiple cocktails)
+  - List copying and sharing
+- **Methods**: `get_cocktail_count()`, `copy_to_user()`
+
+### **💾 Social Features (Many-to-Many Through User)**
+- **Favorites**: User ↔ Cocktail relationship via User.cocktail_favorites
+- **Following**: Future User ↔ User relationship (planned)
+- **Ratings**: Future User ↔ Cocktail rating system (planned)
+
+---
+
+## 🛣️ **URL Structure & Routing**
+
+### **🏠 General Navigation**
+```python
+''                          # Homepage with featured cocktails
+'dashboard/'                # User dashboard with statistics
+'about/'                    # About page
 ```
 
-### **Key Components**
-- **Models**: 6 core models with advanced relationships and validation
-- **Views**: 35+ views covering CRUD operations, AJAX endpoints, and social features
-- **Templates**: Modular template system with 40+ partial components
-- **Forms**: Dynamic form system with real-time validation
-- **Management Commands**: 12 specialized commands for data management and seeding
+### **🔑 Authentication**
+```python
+'sign-up/'                  # User registration with age verification
+'sign-in/'                  # User login
+'sign-out/'                 # User logout
+```
+
+### **👤 User Profiles**
+```python
+'profile/'                  # Current user's profile
+'profile/<int:user_id>/'    # View other user's profile
+'profile/update/'           # Edit profile information
+```
+
+### **🍹 Cocktail Management**
+```python
+'cocktails/'                           # Browse all cocktails
+'cocktails/<int:cocktail_id>/'         # View cocktail detail
+'cocktails/create/'                    # Create new cocktail
+'cocktails/<int:fork_from_id>/fork/'   # Fork existing recipe
+'cocktails/<int:cocktail_id>/edit/'    # Edit cocktail
+'cocktails/<int:cocktail_id>/delete/'  # Delete cocktail
+```
+
+### **📁 List Management**
+```python
+'lists/'                               # User's personal lists
+'lists/create/'                        # Create new list
+'lists/manage/'                        # Bulk list operations
+'lists/<int:list_id>/'                 # View list detail
+'lists/<int:list_id>/edit/'            # Edit list
+'lists/<int:list_id>/delete/'          # Delete list
+'lists/<int:list_id>/copy/'            # Copy list to current user
+'users/<int:user_id>/lists/'           # View another user's lists
+```
+
+### **🌐 Public & Social Features**
+```python
+'public/'                              # Public feed of lists
+'public/<int:list_id>/'                # View public list detail
+```
+
+### **🎯 AJAX API Endpoints**
+```python
+# List Operations
+'cocktails/<int:cocktail_id>/add-to-list/<int:list_id>/'        # Add to specific list
+'cocktails/<int:cocktail_id>/quick-add-to-list/'               # Quick-add modal
+'cocktails/<int:cocktail_id>/remove-from-list/<int:list_id>/'  # Remove from list
+'lists/<int:list_id>/bulk-operations/'                         # Bulk add/remove
+'lists/user-lists-json/'                                       # JSON endpoint for lists
+
+# Social Features
+'cocktails/<int:cocktail_id>/favorite/'                        # Toggle favorite status
+'cocktails/<int:cocktail_id>/quick-add/'                      # Quick-add modal
+
+# Tag Management
+'cocktails/<int:cocktail_id>/add-tag/'                        # Add tag to cocktail
+'cocktails/<int:cocktail_id>/remove-tag/'                     # Remove tag from cocktail
+'ingredients/<int:ingredient_id>/add-flavor-tag/'             # Add flavor tag to ingredient
+```
+
+### **🥃 Ingredient & Vessel Management**
+```python
+'ingredients/'                         # Browse ingredients
+'ingredients/<int:ingredient_id>/'     # Ingredient detail
+'ingredients/create/'                  # Add new ingredient
+'ingredients/check-duplicates/'        # AJAX duplicate checking
+
+'vessels/'                            # Browse glassware
+'vessels/<int:pk>/'                   # Vessel detail (Class-based view)
+```
+
+---
+
+## 🔧 **Key Technical Patterns**
+
+### **URL Naming Conventions**
+- **Resource-based**: `/cocktails/`, `/lists/`, `/ingredients/`
+- **RESTful actions**: `/create/`, `/edit/`, `/delete/`
+- **Hierarchical relationships**: `/users/<id>/lists/`
+- **AJAX endpoints**: Clear action verbs like `/toggle-favorite/`
+
+### **View Architecture**
+- **Function-based views**: Most CRUD operations and complex business logic
+- **Class-based views**: Simple detail views (VesselDetailView)
+- **AJAX views**: Return JSON for dynamic frontend interactions
+- **Authentication**: Login required for most create/edit operations
+
+### **Data Relationships**
+- **One-to-One**: User ↔ Profile (extended user info)
+- **One-to-Many**: User → Cocktails, User → Lists, Cocktail → RecipeComponents
+- **Many-to-Many**: List ↔ Cocktails, User ↔ Cocktails (favorites)
+- **Many-to-Many Through**: Cocktail ↔ Ingredients (via RecipeComponent)
+- **Self-referential**: Cocktail.forked_from (recipe attribution)
+
+### **Business Logic Highlights**
+- **ABV Calculation**: Automatic from ingredient alcohol content and quantities
+- **Age Verification**: 21+ validation on profile creation
+- **Recipe Attribution**: Fork tracking maintains original creator credit
+- **Tag System**: Flexible categorization via django-taggit
+- **Bulk Operations**: Efficient multi-cocktail list management
 
 ---
 
@@ -351,130 +562,33 @@ DB_PASSWORD=stircraft123 pipenv run python manage.py runserver
 
 ---
 
-## 🧪 **Testing Coverage & Next Steps**
+## 🚀 **Future Enhancements**
 
-### **Current Test Coverage Analysis**
-StirCraft maintains a comprehensive test suite with **280 discovered tests** covering:
+### **Planned Next Features**
 
-#### ✅ **Well-Covered Areas**
-- **Model Logic**: User profiles, cocktail creation, ingredient relationships
-- **View Authentication**: Login/logout flows, permission checks
-- **Form Validation**: Sign-up, profile updates, cocktail creation
-- **JavaScript Core**: Favorites system, form interactions, AJAX calls
-- **Integration**: End-to-end user workflows and social features
-
-#### 🎯 **Areas Needing Enhanced Coverage**
-
-##### **1. Error Handling & Edge Cases**
-```python
-# Needed: Comprehensive error scenario testing
-- Network timeout handling in AJAX calls
-- Database constraint violations
-- File upload edge cases (oversized images, invalid formats)
-- Concurrent user operations (race conditions)
-- API rate limiting and throttling scenarios
-```
-
-##### **2. Security & Authentication**
-```python
-# Needed: Advanced security testing
-- CSRF token validation in complex scenarios
-- Session hijacking prevention
-- SQL injection prevention validation
-- XSS prevention in user-generated content
-- Authorization bypass attempts
-- Password strength enforcement
-```
-
-##### **3. Performance & Scalability**
-```python
-# Needed: Performance regression testing
-- Large dataset pagination performance
-- Image processing with high-resolution uploads
-- Bulk operations on 1000+ cocktails
-- Search performance with complex filters
-- Database query optimization validation
-```
-
-##### **4. Advanced Features**
-```python
-# Needed: Complex workflow testing
-- Recipe forking and attribution chains
-- Bulk list operations error recovery
-- Tag management with special characters
-- Multi-step form abandonment/recovery
-- Real-time ingredient duplicate detection
-```
-
-### **🚀 Planned Next Features**
-
-#### **Phase 1: Enhanced Social Features** 
+#### **Enhanced Social Features** 
 - **User Following System**: Follow favorite creators and get notifications
 - **Recipe Reviews & Ratings**: Community-driven quality assessment
-- **Social Feed**: Activity stream with user interactions
+- **Enhanced Social Feed**: Activity stream with user interactions
 - **Recipe Collaboration**: Multiple users contributing to recipes
 
-#### **Phase 2: Advanced Recipe Management**
+#### **Advanced Recipe Management**
 - **Recipe Versioning**: Track changes and maintain history
 - **Batch Scaling Calculator**: Scale recipes for events (1 drink → 50 servings)
 - **Ingredient Substitutions**: AI-powered alternative suggestions
 - **Nutritional Information**: Calorie counting and dietary restrictions
 
-#### **Phase 3: Professional Tools**
+#### **Professional Tools**
 - **Bar Inventory Management**: Track ingredient stock levels
 - **Cost Calculation**: Recipe profitability for commercial use
 - **Menu Generation**: Export professional PDF menus
 - **QR Code Integration**: Link physical menus to digital recipes
 
-#### **Phase 4: Mobile & API**
+#### **Mobile & API Expansion**
 - **Progressive Web App**: Offline recipe access
 - **REST API**: Third-party integration capabilities
-- **Mobile App**: Native iOS/Android applications
-- **Voice Interface**: "Alexa, how do I make a Negroni?"
-
-#### **Phase 5: AI & Analytics**
-- **Recipe Recommendation Engine**: ML-powered personalization
-- **Flavor Profile Matching**: AI ingredient pairing suggestions
-- **Trend Analysis**: Popular ingredient and technique insights
-- **Smart Recipe Creation**: AI assistant for new cocktail development
-
-### **🔧 Development Priorities**
-
-#### **Immediate (Next Sprint)**
-```bash
-# High-impact, low-effort improvements
-- Add comprehensive error boundary testing
-- Implement CSRF edge case validation
-- Create performance benchmark tests
-- Add accessibility compliance testing
-```
-
-#### **Short-term (1-2 Months)**
-```bash
-# Foundation for advanced features
-- Recipe versioning system architecture
-- Enhanced search with Elasticsearch
-- Real-time notifications infrastructure
-- Mobile-responsive design improvements
-```
-
-#### **Medium-term (3-6 Months)**
-```bash
-# Major feature development
-- Social following/feed system
-- Advanced inventory management
-- Recipe collaboration tools
-- Professional export capabilities
-```
-
-#### **Long-term (6+ Months)**
-```bash
-# Platform expansion
-- Mobile app development
-- API ecosystem creation
-- AI/ML feature integration
-- Enterprise feature suite
-```
+- **Mobile Applications**: Native iOS/Android applications
+- **Voice Interface**: Smart assistant integration
 
 ---
 
