@@ -6,7 +6,7 @@
 
 ## 🍸 Live Site Preview
 
-![StirCraft Live Screenshot](stir_craft/static/images/stircraft-live-screenshot.png)
+![StirCraft Live Screenshot](stir_craft/static/images/StirCraftLiveScreenshot.png)
 *StirCraft's elegant homepage showcasing speakeasy-inspired typography and intuitive cocktail discovery*
 
 ![Django](https://img.shields.io/badge/Django-4.2-green) ![Python](https://img.shields.io/badge/Python-3.12-blue) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue) ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple) ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
