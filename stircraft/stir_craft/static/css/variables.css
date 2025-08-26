@@ -5,20 +5,30 @@
 
 :root {
   /* =============================================================================
-   * 🎨 PRIMARY BRAND COLORS
+   * 🎨 PRIMARY BRAND COLORS - STIRCRAFT THEME
    * ============================================================================= */
   
-  /* Main brand colors */
-  --primary-color: #007bff;
-  --primary-dark: #0056b3;
-  --primary-light: #66b3ff;
-  --primary-lighter: rgba(0, 123, 255, 0.1);
-  --primary-alpha-05: rgba(0, 123, 255, 0.05);
+  /* Main brand colors - Deep burgundy purple */
+  --primary-color: #4B2C3B;
+  --primary-dark: #3a2229;
+  --primary-light: #6b4c5b;
+  --primary-lighter: rgba(75, 44, 59, 0.1);
+  --primary-alpha-05: rgba(75, 44, 59, 0.05);
   
-  /* Secondary brand colors */
-  --secondary-color: #6c757d;
-  --secondary-dark: #5a6268;
-  --secondary-light: #adb5bd;
+  /* Secondary brand colors - Golden brown */
+  --secondary-color: #B08D57;
+  --secondary-dark: #8a6c42;
+  --secondary-light: #c9a675;
+  
+  /* Accent colors - Smoky rose */
+  --accent-color: #A78C8A;
+  --accent-dark: #8b7371;
+  --accent-light: #c5a6a4;
+  
+  /* Neutral brand colors */
+  --neutral-lilac: #D8C3D6;
+  --neutral-lilac-dark: #c5a9c3;
+  --neutral-lilac-light: #e8d7e6;
   
   /* =============================================================================
    * 🌈 SEMANTIC COLORS
@@ -48,48 +58,64 @@
   --info-light: #d1ecf1;
   --info-alpha: rgba(23, 162, 184, 0.1);
   
-  /* =============================================================================
-   * 🖤 NEUTRAL COLORS & GRAYS
-   * ============================================================================= */
-  
-  /* Text colors */
-  --text-primary: #212529;
-  --text-secondary: #6c757d;
-  --text-muted: #868e96;
-  --text-light: #adb5bd;
-  
-  /* Background colors */
-  --bg-white: #ffffff;
-  --bg-light: #f8f9fa;
-  --bg-lighter: #f8f9fc;
-  --bg-gray-100: #f1f3f4;
-  --bg-gray-200: #e9ecef;
-  --bg-gray-300: #dee2e6;
-  
-  /* Border colors */
-  --border-color: #dee2e6;
-  --border-light: #e3e6f0;
-  --border-dark: #5a5c69;
-  --border-subtle: rgba(0, 0, 0, 0.125);
-  
-  /* =============================================================================
+/* =============================================================================
+ * 🖤 NEUTRAL COLORS & GRAYS
+ * ============================================================================= */
+
+/* Text colors - High contrast */
+--text-primary: #1E1B1A;        /* Dark barrelwood for maximum contrast on light backgrounds */
+--text-secondary: #4B2C3B;      /* Primary color for secondary text */
+--text-muted: #6b4c5b;         /* Primary light for muted text */
+--text-light: #A78C8A;         /* Accent color for light text */
+--text-on-primary: #ffffff;     /* White text on primary/dark backgrounds */
+--text-on-accent: #1E1B1A;     /* Dark text on accent backgrounds */
+
+/* Background colors - High contrast system */
+--bg-white: #ffffff;
+--bg-light: #F8F6F5;           /* Warm light background */
+--bg-lighter: #FDFCFC;         /* Softest background */
+--bg-gray-100: #F0EDE8;        /* Warm gray for subtle sections */
+--bg-gray-200: #E8E3DC;        /* Medium warm gray */
+--bg-gray-300: #D8C3D6;        /* Lilac for special sections */
+
+/* Border colors - Enhanced contrast */
+--border-color: #B08D57;       /* Secondary color for visible borders */
+--border-light: #D8C3D6;       /* Lilac for subtle borders */
+--border-dark: #4B2C3B;        /* Primary for strong borders */
+--border-subtle: rgba(75, 44, 59, 0.2);  /* =============================================================================
    * 🍹 STIRCRAFT THEME COLORS
    * ============================================================================= */
   
   /* Cocktail-specific colors */
-  --cocktail-accent: #2e59d9;
-  --cocktail-hover: #1e40af;
+  --cocktail-accent: var(--primary-color);
+  --cocktail-hover: var(--primary-dark);
   --favorite-color: #dc3545;
   --favorite-active: #c82333;
   
-  /* Card colors */
-  --card-bg: #ffffff;
-  --card-header-bg: var(--primary-alpha-05);
-  --card-border: var(--border-light);
-  --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  --card-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-  
-  /* =============================================================================
+/* Card colors - High contrast */
+--card-bg: var(--bg-white);
+--card-header-bg: var(--primary-color);    /* Strong primary background */
+--card-border: var(--border-dark);         /* Visible dark borders */
+--card-shadow: 0 0.25rem 0.5rem rgba(75, 44, 59, 0.15);
+--card-shadow-hover: 0 0.75rem 1.5rem rgba(75, 44, 59, 0.25);
+
+/* Button colors - Maximum contrast */
+--btn-primary-bg: var(--primary-color);
+--btn-primary-text: var(--text-on-primary);
+--btn-primary-border: var(--primary-dark);
+--btn-primary-hover-bg: var(--primary-dark);
+--btn-primary-hover-border: var(--secondary-color);
+
+--btn-secondary-bg: var(--secondary-color);
+--btn-secondary-text: var(--text-on-primary);
+--btn-secondary-border: var(--secondary-dark);
+--btn-secondary-hover-bg: var(--secondary-dark);
+
+--btn-outline-bg: transparent;
+--btn-outline-text: var(--primary-color);
+--btn-outline-border: var(--primary-color);
+--btn-outline-hover-bg: var(--primary-color);
+--btn-outline-hover-text: var(--text-on-primary);  /* =============================================================================
    * 🏷️ FLAVOR TAG COLORS
    * ============================================================================= */
   
@@ -133,21 +159,35 @@
   --transition-normal: 0.3s ease-in-out;
   --transition-slow: 0.5s ease-in-out;
   
-  /* =============================================================================
-   * 🌙 DARK MODE SUPPORT (for future use)
-   * ============================================================================= */
-  
-  /* Override variables for dark mode */
-  /* 
-  @media (prefers-color-scheme: dark) {
-    --bg-white: #1a1a1a;
-    --bg-light: #2d2d2d;
-    --text-primary: #ffffff;
-    --text-secondary: #b0b0b0;
-    --card-bg: #2d2d2d;
-    --border-color: #404040;
-  }
-  */
+  /* High contrast color variables - cleaned up */
+  --bg-dark: #1E1B1A;               /* Dark barrelwood for dark mode */
+  --primary: var(--primary-color);   /* Consistent with brand primary */
+  --primary-light: var(--primary-light);
+  --accent: var(--secondary-color);  /* Accent uses secondary color */
+  --accent-dark: var(--secondary-dark);
+  --accent-light: #FFF8E1;          /* Light warm yellow for accent backgrounds */
+  --text-on-primary: #ffffff;
+  --border-radius: 0.375rem;        /* Consistent with existing */
+  --border-radius-lg: 0.75rem;      /* Consistent with existing */
+  --transition-fast: 0.15s ease-in-out; /* Consistent with existing */
+}
+
+/* Map Bootstrap color variables to StirCraft brand - High Contrast */
+:root {
+  --bs-primary: var(--primary-color);
+  --bs-primary-rgb: 75, 44, 59;
+  --bs-primary-text: var(--text-on-primary);
+  --bs-secondary: var(--secondary-color);
+  --bs-secondary-rgb: 176, 141, 87;
+  --bs-secondary-text: var(--text-on-primary);
+  --bs-success: var(--success-color);
+  --bs-danger: var(--danger-color);
+  --bs-warning: var(--warning-color);
+  --bs-info: var(--info-color);
+  --bs-body-bg: var(--bg-white);
+  --bs-body-color: var(--text-primary);
+  --bs-border-color: var(--border-color);
+  --bs-border-color-translucent: rgba(75, 44, 59, 0.2);
 }
 
 /* =============================================================================
@@ -155,9 +195,18 @@
  * ============================================================================= */
 
 /* Background utilities */
-.bg-stircraft-primary { background-color: var(--primary-color) !important; }
-.bg-stircraft-light { background-color: var(--bg-lighter) !important; }
-.bg-stircraft-card { background-color: var(--card-bg) !important; }
+.bg-stircraft-primary { 
+    background-color: var(--primary-color) !important; 
+    color: var(--text-on-primary) !important;
+}
+.bg-stircraft-light { 
+    background-color: var(--bg-lighter) !important; 
+    color: var(--text-primary) !important;
+}
+.bg-stircraft-card { 
+    background-color: var(--card-bg) !important; 
+    color: var(--text-primary) !important;
+}
 
 /* Text utilities */
 .text-stircraft-primary { color: var(--primary-color) !important; }
@@ -167,6 +216,7 @@
 /* Border utilities */
 .border-stircraft { border-color: var(--border-color) !important; }
 .border-stircraft-light { border-color: var(--border-light) !important; }
+.border-stircraft-dark { border-color: var(--border-dark) !important; }
 
 /* Shadow utilities */
 .shadow-stircraft { box-shadow: var(--card-shadow) !important; }

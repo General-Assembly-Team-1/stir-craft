@@ -89,6 +89,101 @@ class CocktailForm {
         } else {
             console.error('Save new ingredient button not found!');
         }
+        
+        // Add real-time duplicate checking and category suggestion
+        this.setupSmartIngredientForm();
+    }
+    
+    setupSmartIngredientForm() {
+        const nameInput = document.querySelector('#quick-ingredient-form [name="name"]');
+        const categorySelect = document.querySelector('#quick-ingredient-form [name="ingredient_type"]');
+        
+        if (!nameInput || !categorySelect) return;
+        
+        let timeoutId = null;
+        
+        nameInput.addEventListener('input', (e) => {
+            // Clear previous timeout
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            
+            // Debounce the input to avoid too many checks
+            timeoutId = setTimeout(() => {
+                this.handleIngredientNameInput(e.target.value.trim(), categorySelect);
+            }, 300);
+        });
+        
+        // Also handle paste events
+        nameInput.addEventListener('paste', (e) => {
+            setTimeout(() => {
+                this.handleIngredientNameInput(e.target.value.trim(), categorySelect);
+            }, 100);
+        });
+    }
+    
+    async handleIngredientNameInput(ingredientName, categorySelect) {
+        if (!ingredientName || ingredientName.length < 2) {
+            this.clearIngredientHints();
+            return;
+        }
+        
+        // Check for duplicates
+        const duplicateWarning = await this.checkDuplicatesClientSide(ingredientName);
+        if (duplicateWarning) {
+            this.showIngredientHint(duplicateWarning, 'warning');
+        } else {
+            this.clearIngredientHints();
+        }
+        
+        // Suggest category if none is selected
+        if (!categorySelect.value || categorySelect.value === 'other') {
+            const suggestedCategory = this.suggestCategory(ingredientName);
+            if (suggestedCategory !== 'other') {
+                // Find the option with this value
+                const option = categorySelect.querySelector(`option[value="${suggestedCategory}"]`);
+                if (option) {
+                    categorySelect.value = suggestedCategory;
+                    this.showIngredientHint(`💡 Smart suggestion: This looks like a ${option.textContent}!`, 'info');
+                }
+            }
+        }
+    }
+    
+    showIngredientHint(message, type = 'info') {
+        const modal = document.getElementById('newIngredientModal');
+        if (!modal) return;
+        
+        const nameInput = modal.querySelector('[name="name"]');
+        if (!nameInput) return;
+        
+        // Remove existing hint
+        this.clearIngredientHints();
+        
+        // Create hint element
+        const hintDiv = document.createElement('div');
+        hintDiv.className = `ingredient-hint alert alert-${type === 'warning' ? 'warning' : 'info'} alert-dismissible fade show mt-2`;
+        hintDiv.innerHTML = `
+            <small>${message}</small>
+            <button type="button" class="btn-close btn-close-sm" onclick="this.parentElement.remove()"></button>
+        `;
+        
+        // Insert after the name input
+        nameInput.parentNode.insertBefore(hintDiv, nameInput.nextSibling);
+        
+        // Auto-dismiss info hints after 8 seconds (keep warnings visible)
+        if (type === 'info') {
+            setTimeout(() => {
+                if (hintDiv.parentNode) {
+                    hintDiv.remove();
+                }
+            }, 8000);
+        }
+    }
+    
+    clearIngredientHints() {
+        const hints = document.querySelectorAll('.ingredient-hint');
+        hints.forEach(hint => hint.remove());
     }
     
     setupIngredientDropdowns() {
@@ -261,6 +356,32 @@ class CocktailForm {
         console.log('Form found:', form);
         const formData = new FormData(form);
         
+        // Enhanced validation before sending
+        const nameField = form.querySelector('[name="name"]');
+        const categoryField = form.querySelector('[name="ingredient_type"]');
+        
+        if (nameField && nameField.value.trim()) {
+            // Check for duplicates client-side first
+            const duplicateWarning = await this.checkDuplicatesClientSide(nameField.value.trim());
+            if (duplicateWarning) {
+                const proceed = confirm(duplicateWarning + '\n\nDo you want to continue creating this ingredient?');
+                if (!proceed) {
+                    return;
+                }
+            }
+            
+            // Smart category suggestion
+            if (categoryField && !categoryField.value) {
+                const suggestedCategory = this.suggestCategory(nameField.value.trim());
+                if (suggestedCategory !== 'other') {
+                    categoryField.value = suggestedCategory;
+                    // Show a hint about the suggestion
+                    const categoryLabel = categoryField.options[categoryField.selectedIndex].text;
+                    this.showHint(`💡 Smart suggestion: This looks like a ${categoryLabel}!`);
+                }
+            }
+        }
+        
         // Debug: Log form data
         console.log('Form data being sent:');
         for (let [key, value] of formData.entries()) {
@@ -364,6 +485,194 @@ class CocktailForm {
             console.error('Network error:', error);
             alert('Error creating ingredient. Please try again.');
         }
+    }
+    
+    async checkDuplicatesClientSide(ingredientName) {
+        /**
+         * Check for potential duplicates on the client side by comparing with existing options
+         */
+        const selects = document.querySelectorAll('select[name*="ingredient"]');
+        if (selects.length === 0) return null;
+        
+        const normalizedNew = ingredientName.toLowerCase().trim();
+        let closestMatch = null;
+        let highestSimilarity = 0;
+        
+        // Get all existing ingredient names from the first select
+        const firstSelect = selects[0];
+        const options = firstSelect.querySelectorAll('option');
+        
+        for (let option of options) {
+            if (option.value === '' || option.value === 'new_ingredient') continue;
+            
+            const existingName = option.textContent.toLowerCase().trim();
+            const similarity = this.calculateSimilarity(normalizedNew, existingName);
+            
+            if (similarity > highestSimilarity) {
+                highestSimilarity = similarity;
+                closestMatch = option.textContent;
+            }
+        }
+        
+        // Return warning message if similarity is high
+        if (highestSimilarity > 0.8) {
+            return `⚠️ Similar ingredient "${closestMatch}" already exists (${Math.round(highestSimilarity * 100)}% similar).`;
+        }
+        
+        return null;
+    }
+    
+    calculateSimilarity(str1, str2) {
+        /**
+         * Calculate string similarity using Levenshtein distance
+         */
+        const longer = str1.length > str2.length ? str1 : str2;
+        const shorter = str1.length > str2.length ? str2 : str1;
+        
+        if (longer.length === 0) return 1.0;
+        
+        const editDistance = this.levenshteinDistance(longer, shorter);
+        return (longer.length - editDistance) / longer.length;
+    }
+    
+    levenshteinDistance(str1, str2) {
+        /**
+         * Calculate Levenshtein distance between two strings
+         */
+        const matrix = [];
+        
+        for (let i = 0; i <= str2.length; i++) {
+            matrix[i] = [i];
+        }
+        
+        for (let j = 0; j <= str1.length; j++) {
+            matrix[0][j] = j;
+        }
+        
+        for (let i = 1; i <= str2.length; i++) {
+            for (let j = 1; j <= str1.length; j++) {
+                if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                    matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j - 1] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j] + 1
+                    );
+                }
+            }
+        }
+        
+        return matrix[str2.length][str1.length];
+    }
+    
+    suggestCategory(ingredientName) {
+        /**
+         * Suggest an ingredient category based on the name
+         * This mirrors the Python logic in the management command
+         */
+        const name = ingredientName.toLowerCase();
+        
+        // Bitters (most specific first)
+        if (/bitters?$|bitter\s+truth|angostura|peychaud/.test(name)) {
+            return 'bitters';
+        }
+        
+        // Spirits
+        const spiritPatterns = [
+            /whiskey|whisky|bourbon|rye|scotch/,
+            /brandy|cognac|applejack/,
+            /rum(?!\s+extract)/,
+            /gin(?!\s+ale)/,
+            /vodka/,
+            /tequila|mezcal/,
+            /everclear/
+        ];
+        if (spiritPatterns.some(pattern => pattern.test(name))) {
+            return 'spirit';
+        }
+        
+        // Liqueurs
+        const liqueurPatterns = [
+            /crème?\s+de|creme\s+de/,
+            /amaretto|cointreau|grand\s+marnier/,
+            /kahlúa|kahlua|triple\s+sec/,
+            /vermouth|campari|chartreuse/
+        ];
+        if (liqueurPatterns.some(pattern => pattern.test(name))) {
+            return 'liqueur';
+        }
+        
+        // Sodas
+        const sodaPatterns = [
+            /tonic\s+water|club\s+soda|soda\s+water/,
+            /ginger\s+ale|cola|coke|sprite|7-?up/,
+            /root\s+beer/
+        ];
+        if (sodaPatterns.some(pattern => pattern.test(name))) {
+            return 'soda';
+        }
+        
+        // Juices
+        if (/juice|nectar/.test(name)) {
+            return 'juice';
+        }
+        
+        // Syrups
+        if (/syrup|grenadine|honey|agave/.test(name)) {
+            return 'syrup';
+        }
+        
+        // Garnishes
+        const garnishPatterns = [
+            /peel|zest|twist|wheel|wedge/,
+            /cherry|olive|onion|mint|basil/,
+            /salt|sugar|cinnamon|nutmeg/
+        ];
+        if (garnishPatterns.some(pattern => pattern.test(name))) {
+            return 'garnish';
+        }
+        
+        // Dairy
+        if (/cream|milk|egg/.test(name)) {
+            return 'dairy';
+        }
+        
+        return 'other';
+    }
+    
+    showHint(message) {
+        /**
+         * Show a temporary hint message to the user
+         */
+        const modal = document.getElementById('newIngredientModal');
+        if (!modal) return;
+        
+        const modalBody = modal.querySelector('.modal-body');
+        if (!modalBody) return;
+        
+        // Remove any existing hints
+        const existingHint = modalBody.querySelector('.ingredient-hint');
+        if (existingHint) {
+            existingHint.remove();
+        }
+        
+        // Create and show new hint
+        const hintDiv = document.createElement('div');
+        hintDiv.className = 'alert alert-info alert-dismissible fade show ingredient-hint';
+        hintDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        modalBody.insertBefore(hintDiv, modalBody.firstChild);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            if (hintDiv.parentNode) {
+                hintDiv.remove();
+            }
+        }, 5000);
     }
     
     showIngredientErrorDialog(errorMessage) {

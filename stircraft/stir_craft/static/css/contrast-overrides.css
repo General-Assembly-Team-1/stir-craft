@@ -1,0 +1,290 @@
+/* 
+ * StirCraft High Contrast Override CSS
+ * This file contains specific overrides to ensure maximum contrast
+ * and prevent Bootstrap from overriding our color scheme
+ */
+
+/* =============================================================================
+ * 🔧 BOOTSTRAP OVERRIDE FIXES
+ * ============================================================================= */
+
+/* Force Bootstrap primary color to our brand colors */
+.btn-primary,
+.bg-primary,
+.badge-primary,
+.badge.bg-primary,
+.btn.btn-primary,
+button.btn-primary,
+input[type="submit"].btn-primary,
+.navbar.bg-primary,
+.alert-primary {
+    background-color: var(--primary-color) !important;
+    color: var(--text-on-primary) !important;
+    border-color: var(--primary-dark) !important;
+}
+
+/* Ensure hover states maintain contrast */
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn.btn-primary:hover,
+.btn.btn-primary:focus,
+.btn.btn-primary:active {
+    background-color: var(--primary-dark) !important;
+    color: var(--text-on-primary) !important;
+    border-color: var(--secondary-color) !important;
+}
+
+/* Force secondary button colors */
+.btn-secondary,
+.bg-secondary,
+.badge-secondary,
+.badge.bg-secondary {
+    background-color: var(--secondary-color) !important;
+    color: var(--text-on-primary) !important;
+    border-color: var(--secondary-dark) !important;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-secondary:active {
+    background-color: var(--secondary-dark) !important;
+    color: var(--text-on-primary) !important;
+    border-color: var(--secondary-color) !important;
+}
+
+/* Force outline button colors */
+.btn-outline-primary {
+    color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    background-color: transparent !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+    background-color: var(--primary-color) !important;
+    color: var(--text-on-primary) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.btn-outline-secondary {
+    color: var(--secondary-color) !important;
+    border-color: var(--secondary-color) !important;
+    background-color: transparent !important;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus,
+.btn-outline-secondary:active {
+    background-color: var(--secondary-color) !important;
+    color: var(--text-on-primary) !important;
+    border-color: var(--secondary-color) !important;
+}
+
+/* =============================================================================
+ * 🎨 CARD SYSTEM OVERRIDES
+ * ============================================================================= */
+
+/* Ensure card headers have proper contrast */
+.card-header,
+.card-header.bg-primary,
+.card .card-header {
+    background-color: var(--primary-color) !important;
+    color: var(--text-on-primary) !important;
+    border-bottom: 2px solid var(--primary-dark) !important;
+    font-weight: 600 !important;
+}
+
+/* Card body contrast */
+.card-body {
+    background-color: var(--bg-white) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Card borders */
+.card {
+    border: 2px solid var(--border-color) !important;
+    background-color: var(--bg-white) !important;
+}
+
+/* =============================================================================
+ * 🧭 NAVIGATION OVERRIDES
+ * ============================================================================= */
+
+/* Navbar brand and links */
+.navbar-stircraft .navbar-brand,
+.navbar-stircraft .nav-link,
+.navbar.navbar-stircraft .navbar-brand,
+.navbar.navbar-stircraft .nav-link {
+    color: var(--text-on-primary) !important;
+    font-weight: 600 !important;
+}
+
+.navbar-stircraft .nav-link:hover,
+.navbar-stircraft .nav-link:focus,
+.navbar.navbar-stircraft .nav-link:hover,
+.navbar.navbar-stircraft .nav-link:focus {
+    color: var(--secondary-color) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-radius: var(--border-radius-sm) !important;
+}
+
+/* Dropdown menu in navbar */
+.navbar-stircraft .dropdown-menu {
+    background-color: var(--bg-white) !important;
+    border: 2px solid var(--border-color) !important;
+}
+
+.navbar-stircraft .dropdown-item {
+    color: var(--text-primary) !important;
+}
+
+.navbar-stircraft .dropdown-item:hover,
+.navbar-stircraft .dropdown-item:focus {
+    background-color: var(--bg-gray-100) !important;
+    color: var(--text-primary) !important;
+}
+
+/* =============================================================================
+ * 📝 FORM OVERRIDES
+ * ============================================================================= */
+
+/* Bootstrap form control overrides */
+.form-control,
+.form-select,
+input.form-control,
+select.form-control,
+textarea.form-control {
+    border: 2px solid var(--border-color) !important;
+    background-color: var(--bg-white) !important;
+    color: var(--text-primary) !important;
+    min-height: 44px !important;
+}
+
+.form-control:focus,
+.form-select:focus,
+input.form-control:focus,
+select.form-control:focus,
+textarea.form-control:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 0.25rem rgba(75, 44, 59, 0.25) !important;
+    background-color: var(--bg-white) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Form labels */
+.form-label,
+label.form-label,
+.col-form-label {
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+}
+
+/* =============================================================================
+ * 🏷️ TEXT UTILITY OVERRIDES
+ * ============================================================================= */
+
+/* Text color utilities */
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-white {
+    color: var(--text-on-primary) !important;
+}
+
+/* =============================================================================
+ * 🔗 LINK OVERRIDES
+ * ============================================================================= */
+
+/* Ensure all links have proper contrast */
+a,
+a.text-decoration-none {
+    color: var(--primary-color) !important;
+}
+
+a:hover,
+a:focus,
+a.text-decoration-none:hover,
+a.text-decoration-none:focus {
+    color: var(--primary-dark) !important;
+}
+
+/* Links in cards */
+.card a,
+.card-body a {
+    color: var(--primary-color) !important;
+}
+
+.card a:hover,
+.card a:focus,
+.card-body a:hover,
+.card-body a:focus {
+    color: var(--primary-dark) !important;
+}
+
+/* =============================================================================
+ * 🎯 ACCESSIBILITY ENHANCEMENTS
+ * ============================================================================= */
+
+/* Focus indicators for all interactive elements */
+.btn:focus,
+.form-control:focus,
+.nav-link:focus,
+.dropdown-item:focus,
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid var(--secondary-color) !important;
+    outline-offset: 2px !important;
+}
+
+/* Ensure sufficient contrast ratios */
+.bg-light {
+    background-color: var(--bg-light) !important;
+    color: var(--text-primary) !important;
+}
+
+.bg-dark {
+    background-color: var(--bg-dark) !important;
+    color: var(--text-on-primary) !important;
+}
+
+/* =============================================================================
+ * 🚨 ALERT SYSTEM OVERRIDES
+ * ============================================================================= */
+
+.alert-success {
+    background-color: var(--success-light) !important;
+    color: var(--success-dark) !important;
+    border-color: var(--success-color) !important;
+}
+
+.alert-danger {
+    background-color: var(--danger-light) !important;
+    color: var(--danger-dark) !important;
+    border-color: var(--danger-color) !important;
+}
+
+.alert-warning {
+    background-color: var(--warning-light) !important;
+    color: var(--warning-dark) !important;
+    border-color: var(--warning-color) !important;
+}
+
+.alert-info {
+    background-color: var(--info-light) !important;
+    color: var(--info-dark) !important;
+    border-color: var(--info-color) !important;
+}

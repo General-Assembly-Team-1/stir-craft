@@ -1,0 +1,428 @@
+/* StirCraft Side Panel Navigation Styles */
+
+/* =============================================================================
+   MAIN NAVIGATION BAR
+   ============================================================================= */
+
+.navbar-stircraft {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-stircraft .navbar-brand {
+    color: white !important;
+    font-weight: bold;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.navbar-stircraft .navbar-brand:hover {
+    opacity: 0.9;
+}
+
+.navbar-stircraft .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    transition: color 0.2s ease;
+    text-decoration: none;
+}
+
+.navbar-stircraft .nav-link:hover {
+    color: white !important;
+}
+
+.navbar-text {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.menu-toggle {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    transition: all 0.2s ease;
+}
+
+.menu-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: white !important;
+}
+
+/* =============================================================================
+   SIDE PANEL OVERLAY
+   ============================================================================= */
+
+.side-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 1049;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.side-panel-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* =============================================================================
+   SIDE PANEL
+   ============================================================================= */
+
+.side-panel {
+    position: fixed;
+    top: 80px; /* Start below navbar */
+    right: -400px; /* Start hidden off-screen */
+    width: 350px;
+    max-width: 85vw;
+    height: calc(100vh - 100px); /* Leave space at top and bottom */
+    max-height: 600px; /* Cap the maximum height */
+    background: var(--background-primary);
+    /* Fallback for browsers without backdrop-filter support */
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    /* Use CSS custom property if available, fallback to white */
+    background: var(--background-primary, rgba(255, 255, 255, 0.98));
+    border: 2px solid var(--primary-color);
+    border-radius: 12px 0 0 12px;
+    box-shadow: -5px 5px 20px rgba(0, 0, 0, 0.4), 
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    z-index: 1050;
+    transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    /* Ensure full opacity */
+    opacity: 1;
+}
+
+.side-panel.active {
+    right: 20px; /* Leave margin from edge */
+    box-shadow: -8px 8px 25px rgba(0, 0, 0, 0.5),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+/* Side Panel Header */
+.side-panel-header {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--secondary-color);
+    flex-shrink: 0;
+    border-radius: 10px 0 0 0;
+}
+
+.side-panel-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.side-panel-header .btn {
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 0.25rem 0.5rem;
+}
+
+.side-panel-header .btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+}
+
+/* Side Panel Content */
+.side-panel-content {
+    flex: 1;
+    padding: 0;
+    overflow-y: auto;
+    background: var(--background-primary);
+    /* Ensure content background is fully opaque */
+    position: relative;
+}
+
+.side-panel-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--background-primary);
+    z-index: -1;
+}
+
+/* =============================================================================
+   MENU SECTIONS
+   ============================================================================= */
+
+.menu-section {
+    border-bottom: 1px solid var(--border-color);
+    background: var(--background-primary);
+    position: relative;
+}
+
+.menu-section:last-child {
+    border-bottom: none;
+}
+
+.menu-section-title {
+    background: var(--background-secondary);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.875rem 1.5rem 0.625rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    opacity: 1;
+    /* Ensure full text visibility */
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+    position: relative;
+    z-index: 1;
+}
+
+.menu-section-title .bi {
+    color: var(--secondary-color);
+}
+
+/* Menu Lists */
+.menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-list li {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.menu-list li:last-child {
+    border-bottom: none;
+}
+
+.menu-list a {
+    display: flex;
+    align-items: center;
+    padding: 0.875rem 1.5rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    position: relative;
+    background-color: var(--background-primary);
+    opacity: 1;
+    /* Ensure maximum text contrast */
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+    z-index: 1;
+}
+
+.menu-list a:hover {
+    background-color: var(--background-hover);
+    color: var(--primary-color);
+    transform: translateX(4px);
+    /* Strengthen text on hover */
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Active page indicator */
+.menu-list a.active {
+    background-color: rgba(75, 44, 59, 0.15);
+    color: var(--primary-color);
+    font-weight: 600;
+    /* Enhanced text visibility for active items */
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+.menu-list a.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: var(--primary-color);
+}
+
+.menu-list a .bi {
+    margin-right: 0.75rem;
+    font-size: 1.1em;
+    width: 1.2em;
+    text-align: center;
+    color: var(--secondary-color);
+    transition: color 0.2s ease;
+}
+
+.menu-list a:hover .bi,
+.menu-list a.active .bi {
+    color: var(--primary-color);
+}
+
+/* Special styling for logout link */
+.menu-list a.text-danger:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--bs-danger);
+}
+
+.menu-list a.text-danger:hover .bi {
+    color: var(--bs-danger);
+}
+
+/* Special styling for login link */
+.menu-list a.text-success:hover {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: var(--bs-success);
+}
+
+.menu-list a.text-success:hover .bi {
+    color: var(--bs-success);
+}
+
+/* =============================================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================================= */
+
+/* Tablet and Mobile - Larger but still bounded panel */
+@media (max-width: 991.98px) {
+    .side-panel {
+        width: 90vw;
+        max-width: 400px;
+        right: -100%;
+        top: 70px;
+        height: calc(100vh - 90px);
+        max-height: 700px;
+    }
+    
+    .side-panel.active {
+        right: 5vw;
+    }
+    
+    /* Hide wide-screen nav links on mobile */
+    .navbar-nav.d-none.d-lg-flex {
+        display: none !important;
+    }
+    
+    .menu-list a {
+        padding: 1.125rem 1.5rem;
+        font-size: 1.05rem;
+    }
+    
+    .menu-section-title {
+        padding: 1rem 1.5rem 0.875rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 575.98px) {
+    .side-panel {
+        width: 95vw;
+        max-width: 320px;
+        top: 60px;
+        height: calc(100vh - 80px);
+        max-height: 600px;
+    }
+    
+    .side-panel.active {
+        right: 2.5vw;
+    }
+    
+    .side-panel-header {
+        padding: 0.875rem 1.25rem;
+    }
+    
+    .menu-list a {
+        padding: 1rem 1.25rem;
+        font-size: 1rem;
+    }
+    
+    .menu-section-title {
+        padding: 0.875rem 1.25rem 0.75rem;
+        font-size: 0.85rem;
+    }
+    
+    /* Make navbar text smaller on very small screens */
+    .navbar-text {
+        font-size: 0.9rem;
+    }
+}
+
+/* =============================================================================
+   ANIMATIONS AND TRANSITIONS
+   ============================================================================= */
+
+/* Smooth scrolling for side panel */
+.side-panel {
+    scroll-behavior: smooth;
+}
+
+/* Fade in animation for menu items */
+.side-panel.active .menu-list a {
+    animation: fadeInUp 0.3s ease forwards;
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.side-panel.active .menu-list li:nth-child(1) a { animation-delay: 0.1s; }
+.side-panel.active .menu-list li:nth-child(2) a { animation-delay: 0.15s; }
+.side-panel.active .menu-list li:nth-child(3) a { animation-delay: 0.2s; }
+.side-panel.active .menu-list li:nth-child(4) a { animation-delay: 0.25s; }
+.side-panel.active .menu-list li:nth-child(5) a { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =============================================================================
+   ACCESSIBILITY IMPROVEMENTS
+   ============================================================================= */
+
+/* Focus states */
+.menu-toggle:focus,
+.side-panel-header .btn:focus,
+.menu-list a:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .side-panel {
+        border-left: 2px solid var(--text-primary);
+    }
+    
+    .menu-list a {
+        border-bottom: 1px solid var(--text-primary);
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .side-panel,
+    .side-panel-overlay,
+    .menu-list a,
+    .menu-toggle {
+        transition: none;
+    }
+    
+    .side-panel.active .menu-list a {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}

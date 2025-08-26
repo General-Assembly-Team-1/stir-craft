@@ -20,6 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse, Http404
 from django.views.static import serve
+from django.views.generic import RedirectView
 import os
 
 def serve_media(request, path):
@@ -34,6 +35,7 @@ def serve_media(request, path):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + 'images/favicon_io/favicon.ico', permanent=True), name='favicon'),
     path('', include('stir_craft.urls')),
     # Custom media serving for production
     path('media/<path:path>', serve_media, name='serve_media'),
@@ -43,3 +45,8 @@ urlpatterns = [
 handler403 = 'stir_craft.views.handler_403'
 handler404 = 'stir_craft.views.handler_404'
 handler500 = 'stir_craft.views.handler_500'
+
+# Serve static and media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

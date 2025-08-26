@@ -77,13 +77,21 @@
                                     </div>
                                     
                                     <!-- Favorite Button -->
-                                    <form method="post" action="{% url 'toggle_favorite' cocktail.id %}" 
-                                          style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-outline-danger btn-sm">
-                                            <i class="bi bi-heart"></i> Favorite
+                                    {% if user.is_authenticated %}
+                                        {% with is_favorited=cocktail in favorites_list.cocktails.all %}
+                                        <button type="button" 
+                                                class="btn {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %} btn-sm favorite-btn" 
+                                                data-cocktail-id="{{ cocktail.id }}"
+                                                data-is-favorited="{{ is_favorited|yesno:'true,false' }}">
+                                            <i class="bi {% if is_favorited %}bi-heart-fill{% else %}bi-heart{% endif %}"></i> 
+                                            {% if is_favorited %}Remove from Favorites{% else %}Add to Favorites{% endif %}
                                         </button>
-                                    </form>
+                                        {% endwith %}
+                                    {% else %}
+                                        <a href="{% url 'login' %}" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-heart"></i> Favorite
+                                        </a>
+                                    {% endif %}
                                 </div>
                             {% endif %}
                         </div>
@@ -135,11 +143,14 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Favorites JavaScript -->
+<script src="{% static 'js/favorites-new.js' %}"></script>
+
 <script>
 // Auto-submit forms and show feedback
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle form submissions with visual feedback
-    const forms = document.querySelectorAll('form[action*="quick_add_to_list"], form[action*="toggle_favorite"]');
+    // Handle form submissions with visual feedback (for non-AJAX forms)
+    const forms = document.querySelectorAll('form[action*="quick_add_to_list"]:not([action*="toggle_favorite"])');
     
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {

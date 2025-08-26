@@ -7,30 +7,60 @@
 @import url('variables.css');
 
 /* =============================================================================
- * 🎨 GLOBAL STYLES
+ * 🎨 GLOBAL STYLES - HIGH CONTRAST
  * ============================================================================= */
 
+body {
+    background-color: var(--bg-white);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Card styling for maximum contrast */
 .card {
-    border: none;
+    border: 2px solid var(--card-border);
     box-shadow: var(--card-shadow);
-    transition: box-shadow var(--transition-fast);
+    transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+    background-color: var(--card-bg);
 }
 
 .card:hover {
     box-shadow: var(--card-shadow-hover);
-}
-
-.btn {
-    transition: all var(--transition-fast);
-}
-
-.text-decoration-none:hover {
-    text-decoration: underline !important;
+    transform: translateY(-2px);
 }
 
 .card-header {
-    background: var(--card-header-bg);
-    border-bottom: 1px solid var(--primary-lighter);
+    background-color: var(--card-header-bg) !important;
+    color: var(--text-on-primary) !important;
+    border-bottom: 2px solid var(--primary-dark) !important;
+    font-weight: 600;
+}
+
+/* Navigation bar - High contrast */
+.navbar-stircraft {
+    background-color: var(--primary-color) !important;
+    border-bottom: 3px solid var(--secondary-color);
+}
+
+.navbar-stircraft .navbar-brand,
+.navbar-stircraft .nav-link {
+    color: var(--text-on-primary) !important;
+    font-weight: 600;
+}
+
+.navbar-stircraft .nav-link:hover,
+.navbar-stircraft .nav-link:focus {
+    color: var(--secondary-color) !important;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius-sm);
+}
+
+.navbar-stircraft .navbar-toggler {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.navbar-stircraft .navbar-toggler-icon {
+    filter: invert(1) brightness(1.2);
 }
 
 /* =============================================================================
@@ -225,8 +255,99 @@
 }
 
 /* =============================================================================
- * 🎯 UTILITY CLASSES
+ * 💳 ALERT SYSTEM - HIGH CONTRAST
  * ============================================================================= */
+
+.alert {
+    border: 2px solid;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.alert-success {
+    background-color: var(--success-light);
+    color: var(--success-dark);
+    border-color: var(--success-color);
+}
+
+.alert-danger {
+    background-color: var(--danger-light);
+    color: var(--danger-dark);
+    border-color: var(--danger-color);
+}
+
+.alert-warning {
+    background-color: var(--warning-light);
+    color: var(--warning-dark);
+    border-color: var(--warning-color);
+}
+
+.alert-info {
+    background-color: var(--info-light);
+    color: var(--info-dark);
+    border-color: var(--info-color);
+}
+
+/* =============================================================================
+ * 🎯 ACCESSIBILITY & RESPONSIVENESS
+ * ============================================================================= */
+
+/* Focus styles for keyboard navigation */
+*:focus {
+    outline: 2px solid var(--secondary-color);
+    outline-offset: 2px;
+}
+
+/* Skip link for screen readers */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    padding: 8px;
+    z-index: 1000;
+    text-decoration: none;
+    border-radius: var(--border-radius);
+}
+
+.skip-link:focus {
+    top: 6px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .btn, .form-control, .nav-link, .dropdown-item {
+        min-height: 44px;
+        font-size: 1rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .navbar-stircraft .navbar-nav .nav-link {
+        padding: 0.75rem 1rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    .navbar, .btn, .dropdown {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+    }
+}
 /* =============================================================================
  * 🍸 COCKTAIL FORM STYLES (moved from template: stir_craft/templates/stir_craft/cocktail_create.html)
  * ============================================================================= */
@@ -453,4 +574,210 @@
 
 .border-start-info {
     border-left: 3px solid var(--bs-info);
+}
+
+/* =============================================================================
+ * 🔘 BUTTON SYSTEM - HIGH CONTRAST
+ * ============================================================================= */
+
+/* Primary buttons */
+.btn-primary {
+    background-color: var(--btn-primary-bg) !important;
+    color: var(--btn-primary-text) !important;
+    border: 2px solid var(--btn-primary-border) !important;
+    font-weight: 600 !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-sm) !important;
+    transition: all var(--transition-fast) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--btn-primary-hover-bg) !important;
+    color: var(--btn-primary-text) !important;
+    border-color: var(--btn-primary-hover-border) !important;
+    box-shadow: var(--shadow-md) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Secondary buttons */
+.btn-secondary {
+    background-color: var(--btn-secondary-bg) !important;
+    color: var(--btn-secondary-text) !important;
+    border: 2px solid var(--btn-secondary-border) !important;
+    font-weight: 600 !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-sm) !important;
+    transition: all var(--transition-fast) !important;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+    background-color: var(--btn-secondary-hover-bg) !important;
+    color: var(--btn-secondary-text) !important;
+    border-color: var(--btn-secondary-border) !important;
+    box-shadow: var(--shadow-md) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Outline buttons */
+.btn-outline-primary,
+.btn-outline-secondary {
+    background-color: var(--btn-outline-bg) !important;
+    color: var(--btn-outline-text) !important;
+    border: 2px solid var(--btn-outline-border) !important;
+    font-weight: 600 !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-sm) !important;
+    transition: all var(--transition-fast) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus {
+    background-color: var(--btn-outline-hover-bg) !important;
+    color: var(--btn-outline-hover-text) !important;
+    border-color: var(--btn-outline-border) !important;
+    box-shadow: var(--shadow-md) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Generic button styling */
+.btn {
+    min-height: 44px; /* WCAG accessibility requirement */
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    transition: all var(--transition-fast);
+}
+
+.btn:focus {
+    outline: 2px solid var(--secondary-color);
+    outline-offset: 2px;
+}
+
+/* =============================================================================
+ * 📝 FORM CONTROLS - HIGH CONTRAST
+ * ============================================================================= */
+
+.form-control {
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: var(--bg-white);
+    color: var(--text-primary);
+    min-height: 44px; /* WCAG accessibility requirement */
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(75, 44, 59, 0.25);
+    outline: none;
+}
+
+.form-label {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* =============================================================================
+ * 🏷️ BADGE AND TAG SYSTEM - HIGH CONTRAST
+ * ============================================================================= */
+
+.badge {
+    font-weight: 600;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid transparent;
+}
+
+.badge.bg-primary {
+    background-color: var(--primary-color) !important;
+    color: var(--text-on-primary) !important;
+    border-color: var(--primary-dark) !important;
+}
+
+.badge.bg-secondary {
+    background-color: var(--secondary-color) !important;
+    color: var(--text-on-primary) !important;
+    border-color: var(--secondary-dark) !important;
+}
+
+/* =============================================================================
+ * 📋 DROPDOWN SYSTEM - HIGH CONTRAST
+ * ============================================================================= */
+
+.dropdown-menu {
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    background-color: var(--bg-white);
+}
+
+.dropdown-item {
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    transition: background-color var(--transition-fast);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: var(--bg-gray-100);
+    color: var(--text-primary);
+}
+
+.dropdown-divider {
+    border-top: 1px solid var(--border-color);
+}
+
+/* =============================================================================
+ * 🎯 TEXT AND BACKGROUND UTILITIES - HIGH CONTRAST
+ * ============================================================================= */
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary-color) !important;
+    color: var(--text-on-primary) !important;
+}
+
+.bg-secondary {
+    background-color: var(--secondary-color) !important;
+    color: var(--text-on-primary) !important;
+}
+
+.bg-light {
+    background-color: var(--bg-light) !important;
+    color: var(--text-primary) !important;
+}
+
+/* =============================================================================
+ * 🔗 LINK SYSTEM - HIGH CONTRAST
+ * ============================================================================= */
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover,
+a:focus {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.text-decoration-none:hover {
+    text-decoration: underline !important;
 }

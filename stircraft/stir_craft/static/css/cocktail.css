@@ -23,6 +23,41 @@
     transform: scale(1.05);
 }
 
+/* Clickable image hover effects */
+.card-img-top-container a {
+    cursor: pointer;
+    display: block;
+    position: relative;
+}
+
+.card-img-top-container a:hover .card-img-top {
+    transform: scale(1.08);
+}
+
+.card-img-top-container a:hover .image-placeholder {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Add a subtle overlay effect on hover for images */
+.card-img-top-container a::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(75, 44, 59, 0.1);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.card-img-top-container a:hover::after {
+    opacity: 1;
+}
+
 /* Cocktail detail page header image */
 .cocktail-header-image {
     max-width: 250px;
@@ -745,5 +780,20 @@
     color: #6c757d;
     font-size: 0.875rem;
     margin-top: 0.375rem;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .image-placeholder {
+    background: linear-gradient(135deg, var(--bg-gray-100) 0%, var(--bg-gray-200) 100%);
+    border: 2px dashed var(--border-color);
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .cocktail-header-image {
+    box-shadow: 0 4px 8px rgba(75, 44, 59, 0.4);
+}
+
+[data-theme="dark"] .card-img-top-container {
+    background: var(--bg-gray-100);
 }
 

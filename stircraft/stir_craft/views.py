@@ -1183,18 +1183,40 @@ def list_update(request, list_id):
             if form.is_valid():
                 form.save()
                 messages.success(request, f'List "{list_obj.name}" has been updated successfully!')
-                return redirect('list_detail', list_id=list_obj.id)
+                return redirect('list_update', list_id=list_obj.id)
         
-        elif 'update_cocktails' in request.POST:
-            # Update cocktail membership
+        elif 'add_cocktails' in request.POST:
+            # Add cocktails to the list
             cocktail_form = ListCocktailForm(request.POST, instance=list_obj, user=request.user)
             if cocktail_form.is_valid():
-                cocktail_form.save()
-                messages.success(request, 'Cocktail list has been updated!')
-                return redirect('list_detail', list_id=list_obj.id)
+                # Add selected cocktails to existing ones
+                selected_cocktails = cocktail_form.cleaned_data['cocktails']
+                for cocktail in selected_cocktails:
+                    list_obj.cocktails.add(cocktail)
+                messages.success(request, f'{len(selected_cocktails)} cocktail(s) added to the list!')
+                return redirect('list_update', list_id=list_obj.id)
+        
+        elif 'remove_cocktail' in request.POST:
+            # Remove a specific cocktail
+            cocktail_id = request.POST.get('remove_cocktail')
+            try:
+                from .models import Cocktail
+                cocktail = Cocktail.objects.get(id=cocktail_id)
+                list_obj.cocktails.remove(cocktail)
+                messages.success(request, f'"{cocktail.name}" removed from the list!')
+            except Cocktail.DoesNotExist:
+                messages.error(request, 'Cocktail not found.')
+            return redirect('list_update', list_id=list_obj.id)
     else:
         form = ListForm(instance=list_obj, user=request.user)
         cocktail_form = ListCocktailForm(instance=list_obj, user=request.user)
+    
+    # For the cocktail form, we want to show available cocktails, not current ones
+    # So we create a fresh form that doesn't pre-select anything
+    if 'form' not in locals():
+        form = ListForm(instance=list_obj, user=request.user)
+    if 'cocktail_form' not in locals():
+        cocktail_form = ListCocktailForm(user=request.user)  # Fresh form without instance
     
     return render(request, 'lists/list_update.html', {
         'list_obj': list_obj,
@@ -1515,13 +1537,16 @@ def public_list_detail(request, list_id):
     
     # Get user's lists for the dropdown (if authenticated)
     user_lists = None
+    favorites_list = None
     if request.user.is_authenticated:
         user_lists = List.objects.filter(creator=request.user).order_by('name')
+        favorites_list = List.get_or_create_favorites_list(request.user)
     
     return render(request, 'lists/public_detail.html', {
         'list': list_obj,
         'page_obj': page_obj,
         'user_lists': user_lists,
+        'favorites_list': favorites_list,
         'total_cocktails': cocktails.count(),
     })
 

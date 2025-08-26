@@ -1,0 +1,253 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Edit List: {{ list_obj.name }} - StirCraft{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/forms.css' %}" rel="stylesheet">
+<link href="{% static 'css/list-management.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1>Edit List: {{ list_obj.name }}</h1>
+                    <p class="text-muted">
+                        Modify list details and manage cocktails
+                        • {{ list_obj.cocktail_count }} cocktail{{ list_obj.cocktail_count|pluralize }}
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'list_detail' list_obj.id %}" class="btn btn-outline-info me-2">
+                        <i class="bi bi-eye"></i> View List
+                    </a>
+                    <a href="{% url 'user_lists' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Lists
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- List Details Form -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil-square text-primary"></i> List Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="update_details" value="1">
+                        
+                        <!-- List Name -->
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                List Name <span class="text-danger">*</span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- List Description -->
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                Description
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.description.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- List Type Info -->
+                        <div class="mb-3">
+                            <label class="form-label">List Type</label>
+                            <div class="form-control-plaintext">
+                                {% if list_obj.list_type == 'favorites' %}
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-heart"></i> Favorites List
+                                    </span>
+                                {% elif list_obj.list_type == 'creations' %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-person"></i> Your Creations
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-primary">
+                                        <i class="bi bi-collection"></i> Custom List
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Update Button -->
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Update List Details
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- List Stats -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-graph-up text-info"></i> List Statistics
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="h4 text-primary">{{ list_obj.cocktail_count }}</div>
+                            <small class="text-muted">Cocktails</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="h4 text-info">{{ list_obj.updated_at|timesince }}</div>
+                            <small class="text-muted">Last Updated</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cocktail Management -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-collection-play text-success"></i> Manage Cocktails
+                    </h5>
+                    <a href="{% url 'list_management' %}?list1={{ list_obj.id }}" class="btn btn-sm btn-outline-info">
+                        <i class="bi bi-arrows-move"></i> Advanced Management
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- Add Cocktails Form -->
+                    <form method="post" class="mb-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="add_cocktails" value="1">
+                        
+                        <div class="mb-3">
+                            <label for="{{ cocktail_form.cocktails.id_for_label }}" class="form-label">
+                                Add Cocktails to List
+                            </label>
+                            {{ cocktail_form.cocktails }}
+                            {% if cocktail_form.cocktails.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ cocktail_form.cocktails.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Select one or more cocktails to add to this list
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="bi bi-plus-circle"></i> Add Selected Cocktails
+                        </button>
+                    </form>
+
+                    <!-- Current Cocktails Preview -->
+                    {% if list_obj.cocktails.all %}
+                        <h6 class="text-muted mb-3">
+                            Current Cocktails ({{ list_obj.cocktail_count }})
+                        </h6>
+                        <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                            {% for cocktail in list_obj.cocktails.all|slice:":10" %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <div>
+                                        <a href="{% url 'cocktail_detail' cocktail.id %}" class="text-decoration-none">
+                                            {{ cocktail.name }}
+                                        </a>
+                                        {% if cocktail.spirit_type %}
+                                            <small class="text-muted d-block">{{ cocktail.get_spirit_type }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <form method="post" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="remove_cocktail" value="{{ cocktail.id }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                                onclick="return confirm('Remove {{ cocktail.name }} from this list?')">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            {% endfor %}
+                            {% if list_obj.cocktail_count > 10 %}
+                                <div class="list-group-item text-center text-muted">
+                                    <small>... and {{ list_obj.cocktail_count|add:"-10" }} more</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-collection display-4"></i>
+                            <p class="mt-2">No cocktails in this list yet</p>
+                            <small>Use the form above to add cocktails</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danger Zone -->
+    {% if list_obj.is_deletable %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Danger Zone
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-danger">Delete this list</h6>
+                            <p class="text-muted mb-0">
+                                Once you delete a list, there is no going back. This action cannot be undone.
+                            </p>
+                        </div>
+                        <a href="{% url 'list_delete' list_obj.id %}" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Delete List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-hide success messages after 5 seconds
+    const alerts = document.querySelectorAll('.alert-success');
+    alerts.forEach(function(alert) {
+        setTimeout(function() {
+            alert.style.transition = 'opacity 0.5s';
+            alert.style.opacity = '0';
+            setTimeout(function() {
+                alert.remove();
+            }, 500);
+        }, 5000);
+    });
+});
+</script>
+{% endblock %}

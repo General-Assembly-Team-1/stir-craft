@@ -23,6 +23,41 @@
     transform: scale(1.05);
 }
 
+/* Clickable image hover effects */
+.card-img-top-container a {
+    cursor: pointer;
+    display: block;
+    position: relative;
+}
+
+.card-img-top-container a:hover .card-img-top {
+    transform: scale(1.08);
+}
+
+.card-img-top-container a:hover .image-placeholder {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Add a subtle overlay effect on hover for images */
+.card-img-top-container a::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(75, 44, 59, 0.1);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.card-img-top-container a:hover::after {
+    opacity: 1;
+}
+
 /* Cocktail detail page header image */
 .cocktail-header-image {
     max-width: 250px;
@@ -260,6 +295,314 @@
     letter-spacing: 0.5px;
 }
 
+/* =============================================================================
+   🎨 DYNAMIC TAG COLORS
+   ============================================================================= */
+
+/* Spirit Type Badges */
+.badge-spirit {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+}
+
+/* Color Badges - Dynamic based on cocktail color */
+.badge-color {
+    font-weight: 500;
+    font-size: 0.7rem;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.badge-color[data-color="clear"] { background-color: #f8f9fa; color: #495057; }
+.badge-color[data-color="white"] { background-color: #ffffff; color: #495057; border-color: #dee2e6; }
+.badge-color[data-color="yellow"] { background-color: #fff3cd; color: #856404; }
+.badge-color[data-color="orange"] { background-color: #fd7e14; color: white; }
+.badge-color[data-color="red"] { background-color: #dc3545; color: white; }
+.badge-color[data-color="pink"] { background-color: #e83e8c; color: white; }
+.badge-color[data-color="purple"] { background-color: #6f42c1; color: white; }
+.badge-color[data-color="blue"] { background-color: #0d6efd; color: white; }
+.badge-color[data-color="green"] { background-color: #198754; color: white; }
+.badge-color[data-color="brown"] { background-color: #8b4513; color: white; }
+.badge-color[data-color="black"] { background-color: #212529; color: white; }
+.badge-color[data-color="gold"] { background-color: #ffd700; color: #495057; }
+.badge-color[data-color="silver"] { background-color: #c0c0c0; color: #495057; }
+.badge-color[data-color="cream"] { background-color: #f5f5dc; color: #495057; }
+.badge-color[data-color="amber"] { background-color: #ffbf00; color: #495057; }
+
+/* Color Pills - Pill-shaped tags with actual colors or white with border */
+.badge-color-pill {
+    font-weight: 500;
+    font-size: 0.7rem;
+    border-radius: 50px;
+    padding: 0.35em 0.8em;
+    border: 2px solid transparent;
+    text-transform: capitalize;
+    display: inline-block;
+}
+
+/* Color-based pill styling */
+.badge-color-pill[data-color="clear"] { 
+    background-color: transparent; 
+    color: white; 
+    border-color: #dee2e6; 
+}
+.badge-color-pill[data-color="white"] { 
+    background-color: transparent; 
+    color: white; 
+    border-color: #ffffff; 
+}
+.badge-color-pill[data-color="yellow"] { 
+    background-color: #fff3cd; 
+    color: #856404; 
+    border-color: #fff3cd; 
+}
+.badge-color-pill[data-color="orange"] { 
+    background-color: #fd7e14; 
+    color: white; 
+    border-color: #fd7e14; 
+}
+.badge-color-pill[data-color="red"] { 
+    background-color: #dc3545; 
+    color: white; 
+    border-color: #dc3545; 
+}
+.badge-color-pill[data-color="pink"] { 
+    background-color: #e83e8c; 
+    color: white; 
+    border-color: #e83e8c; 
+}
+.badge-color-pill[data-color="purple"] { 
+    background-color: #6f42c1; 
+    color: white; 
+    border-color: #6f42c1; 
+}
+.badge-color-pill[data-color="blue"] { 
+    background-color: #0d6efd; 
+    color: white; 
+    border-color: #0d6efd; 
+}
+.badge-color-pill[data-color="green"] { 
+    background-color: #198754; 
+    color: white; 
+    border-color: #198754; 
+}
+.badge-color-pill[data-color="brown"] { 
+    background-color: #8b4513; 
+    color: white; 
+    border-color: #8b4513; 
+}
+.badge-color-pill[data-color="black"] { 
+    background-color: #212529; 
+    color: white; 
+    border-color: #212529; 
+}
+.badge-color-pill[data-color="gold"] { 
+    background-color: #ffd700; 
+    color: #495057; 
+    border-color: #ffd700; 
+}
+.badge-color-pill[data-color="silver"] { 
+    background-color: #c0c0c0; 
+    color: #495057; 
+    border-color: #c0c0c0; 
+}
+.badge-color-pill[data-color="cream"] { 
+    background-color: #f5f5dc; 
+    color: #495057; 
+    border-color: #f5f5dc; 
+}
+.badge-color-pill[data-color="amber"] { 
+    background-color: #ffbf00; 
+    color: #495057; 
+    border-color: #ffbf00; 
+}
+
+/* Non-alcoholic badge styling */
+.badge-nonalcoholic {
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+}
+
+/* Mixer Type Badges */
+.badge-mixer {
+    font-weight: 500;
+    font-size: 0.7rem;
+}
+
+/* Vibe Tag Colors - Dynamic based on content */
+.badge-vibe {
+    font-weight: 500;
+    font-size: 0.7rem;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Tropical/Summer vibes */
+.badge-vibe[data-vibe*="tropical"], 
+.badge-vibe[data-vibe*="summer"], 
+.badge-vibe[data-vibe*="beach"] { 
+    background: linear-gradient(135deg, #20B2AA, #40E0D0); 
+    color: white; 
+}
+
+/* Cozy/Winter vibes */
+.badge-vibe[data-vibe*="cozy"], 
+.badge-vibe[data-vibe*="winter"], 
+.badge-vibe[data-vibe*="warm"] { 
+    background: linear-gradient(135deg, #CD853F, #D2691E); 
+    color: white; 
+}
+
+/* Party/Celebration vibes */
+.badge-vibe[data-vibe*="party"], 
+.badge-vibe[data-vibe*="celebration"], 
+.badge-vibe[data-vibe*="festive"] { 
+    background: linear-gradient(135deg, #FF1493, #FF69B4); 
+    color: white; 
+}
+
+/* Elegant/Sophisticated vibes */
+.badge-vibe[data-vibe*="elegant"], 
+.badge-vibe[data-vibe*="sophisticated"], 
+.badge-vibe[data-vibe*="classy"] { 
+    background: linear-gradient(135deg, #2F4F4F, #708090); 
+    color: white; 
+}
+
+/* Strong/Bold vibes */
+.badge-vibe[data-vibe*="strong"], 
+.badge-vibe[data-vibe*="bold"], 
+.badge-vibe[data-vibe*="intense"] { 
+    background: linear-gradient(135deg, #B22222, #DC143C); 
+    color: white; 
+}
+
+/* Light/Refreshing vibes */
+.badge-vibe[data-vibe*="light"], 
+.badge-vibe[data-vibe*="refreshing"], 
+.badge-vibe[data-vibe*="crisp"] { 
+    background: linear-gradient(135deg, #87CEEB, #B0E0E6); 
+    color: #2F4F4F; 
+}
+
+/* Sweet vibes */
+.badge-vibe[data-vibe*="sweet"], 
+.badge-vibe[data-vibe*="dessert"] { 
+    background: linear-gradient(135deg, #DDA0DD, #DA70D6); 
+    color: white; 
+}
+
+/* Sour/Tart vibes */
+.badge-vibe[data-vibe*="sour"], 
+.badge-vibe[data-vibe*="tart"], 
+.badge-vibe[data-vibe*="citrus"] { 
+    background: linear-gradient(135deg, #FFD700, #FFA500); 
+    color: #2F4F4F; 
+}
+
+/* Spicy vibes */
+.badge-vibe[data-vibe*="spicy"], 
+.badge-vibe[data-vibe*="hot"] { 
+    background: linear-gradient(135deg, #FF4500, #FF6347); 
+    color: white; 
+}
+
+/* Classic vibes */
+.badge-vibe[data-vibe*="classic"], 
+.badge-vibe[data-vibe*="traditional"], 
+.badge-vibe[data-vibe*="vintage"] { 
+    background: linear-gradient(135deg, #8B4513, #A0522D); 
+    color: white; 
+}
+
+/* Modern/Contemporary vibes */
+.badge-vibe[data-vibe*="modern"], 
+.badge-vibe[data-vibe*="contemporary"], 
+.badge-vibe[data-vibe*="craft"] { 
+    background: linear-gradient(135deg, #4169E1, #6495ED); 
+    color: white; 
+}
+
+/* Date Night/Romantic vibes */
+.badge-vibe[data-vibe*="romantic"], 
+.badge-vibe[data-vibe*="date"], 
+.badge-vibe[data-vibe*="intimate"] { 
+    background: linear-gradient(135deg, #C71585, #DB7093); 
+    color: white; 
+}
+
+/* Brunch vibes */
+.badge-vibe[data-vibe*="brunch"], 
+.badge-vibe[data-vibe*="morning"] { 
+    background: linear-gradient(135deg, #F0E68C, #BDB76B); 
+    color: #2F4F4F; 
+}
+
+/* Shot type - special handling */
+.badge-vibe[data-vibe*="shot"] { 
+    background: linear-gradient(135deg, #8B0000, #A52A2A); 
+    color: white; 
+    font-weight: 600;
+}
+
+/* Cocktail type - remove "normal drink" as requested */
+.badge-vibe[data-vibe*="cocktail"]:not([data-vibe*="shot"]) { 
+    background: linear-gradient(135deg, #20B2AA, #5F9EA0); 
+    color: white; 
+}
+
+/* Default vibe color for unmatched tags */
+.badge-vibe:not([data-vibe*="tropical"]):not([data-vibe*="summer"]):not([data-vibe*="beach"]):not([data-vibe*="cozy"]):not([data-vibe*="winter"]):not([data-vibe*="warm"]):not([data-vibe*="party"]):not([data-vibe*="celebration"]):not([data-vibe*="festive"]):not([data-vibe*="elegant"]):not([data-vibe*="sophisticated"]):not([data-vibe*="classy"]):not([data-vibe*="strong"]):not([data-vibe*="bold"]):not([data-vibe*="intense"]):not([data-vibe*="light"]):not([data-vibe*="refreshing"]):not([data-vibe*="crisp"]):not([data-vibe*="sweet"]):not([data-vibe*="dessert"]):not([data-vibe*="sour"]):not([data-vibe*="tart"]):not([data-vibe*="citrus"]):not([data-vibe*="spicy"]):not([data-vibe*="hot"]):not([data-vibe*="classic"]):not([data-vibe*="traditional"]):not([data-vibe*="vintage"]):not([data-vibe*="modern"]):not([data-vibe*="contemporary"]):not([data-vibe*="craft"]):not([data-vibe*="romantic"]):not([data-vibe*="date"]):not([data-vibe*="intimate"]):not([data-vibe*="brunch"]):not([data-vibe*="morning"]):not([data-vibe*="shot"]):not([data-vibe*="cocktail"]) {
+    background: linear-gradient(135deg, #6c757d, #868e96);
+    color: white;
+}
+
+/* =============================================================================
+   📱 COCKTAIL CARD VARIATIONS
+   ============================================================================= */
+
+/* Low detail cards - for index pages */
+.cocktail-card-low {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cocktail-card-low:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.cocktail-card-low .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.cocktail-card-low .badge {
+    font-size: 0.65rem;
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Medium detail cards - for list detail pages */
+.cocktail-card-medium {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cocktail-card-medium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.cocktail-card-medium .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.cocktail-card-medium .badge {
+    font-size: 0.7rem;
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
 .flavor-sweet { background-color: var(--flavor-sweet-bg); color: var(--flavor-sweet-text); }
 .flavor-sour { background-color: var(--flavor-sour-bg); color: var(--flavor-sour-text); }
 .flavor-bitter { background-color: var(--flavor-bitter-bg); color: var(--flavor-bitter-text); }
@@ -437,5 +780,20 @@
     color: #6c757d;
     font-size: 0.875rem;
     margin-top: 0.375rem;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .image-placeholder {
+    background: linear-gradient(135deg, var(--bg-gray-100) 0%, var(--bg-gray-200) 100%);
+    border: 2px dashed var(--border-color);
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .cocktail-header-image {
+    box-shadow: 0 4px 8px rgba(75, 44, 59, 0.4);
+}
+
+[data-theme="dark"] .card-img-top-container {
+    background: var(--bg-gray-100);
 }
 

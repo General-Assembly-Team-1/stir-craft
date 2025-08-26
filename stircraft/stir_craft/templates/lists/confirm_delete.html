@@ -1,0 +1,95 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Delete List - StirCraft{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/forms.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Delete List
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-warning"></i> Warning: This action cannot be undone!
+                        </h5>
+                        <p class="mb-0">
+                            You are about to permanently delete the following list and all its contents.
+                        </p>
+                    </div>
+
+                    <!-- List Information -->
+                    <div class="mb-4">
+                        <h5 class="text-danger">{{ list_obj.name }}</h5>
+                        {% if list_obj.description %}
+                            <p class="text-muted">{{ list_obj.description }}</p>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <strong>Cocktails in this list:</strong>
+                                <span class="badge bg-info">{{ list_obj.cocktail_count }}</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <strong>Created:</strong>
+                                <span class="text-muted">{{ list_obj.created_at|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                I understand that this will permanently delete the list "<strong>{{ list_obj.name }}</strong>" and cannot be undone.
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'list_detail' list_obj.id %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="deleteBtn" disabled>
+                                <i class="bi bi-trash"></i> Delete List Permanently
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Additional Information -->
+            <div class="mt-3">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i> 
+                    Note: Deleting this list will not delete the cocktails themselves, only remove them from this collection.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('confirmDelete');
+    const deleteBtn = document.getElementById('deleteBtn');
+    
+    checkbox.addEventListener('change', function() {
+        deleteBtn.disabled = !this.checked;
+    });
+});
+</script>
+{% endblock %}

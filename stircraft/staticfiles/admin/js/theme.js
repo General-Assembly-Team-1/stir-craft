@@ -11,27 +11,9 @@
 
     function cycleTheme() {
         const currentTheme = localStorage.getItem("theme") || "auto";
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-        if (prefersDark) {
-            // Auto (dark) -> Light -> Dark
-            if (currentTheme === "auto") {
-                setTheme("light");
-            } else if (currentTheme === "light") {
-                setTheme("dark");
-            } else {
-                setTheme("auto");
-            }
-        } else {
-            // Auto (light) -> Dark -> Light
-            if (currentTheme === "auto") {
-                setTheme("dark");
-            } else if (currentTheme === "dark") {
-                setTheme("light");
-            } else {
-                setTheme("auto");
-            }
-        }
+        // Admin theme switching removed - neutralized.
+        // No-op placeholder to avoid runtime errors if loaded.
     }
 
     function initTheme() {
@@ -40,12 +22,6 @@
         currentTheme ? setTheme(currentTheme) : setTheme("auto");
     }
 
-    window.addEventListener('load', function(_) {
-        const buttons = document.getElementsByClassName("theme-toggle");
-        Array.from(buttons).forEach((btn) => {
-            btn.addEventListener("click", cycleTheme);
-        });
-    });
-
+    // Admin theme switching removed - no-op. Keep initTheme to set default for admin.
     initTheme();
 }
