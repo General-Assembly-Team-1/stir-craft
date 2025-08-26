@@ -485,7 +485,7 @@ def cocktail_index(request):
     - total_count: Total number of matching cocktails
     
     Performance Considerations:
-    - Pagination limits database load (12 cocktails per page)
+    - Pagination limits database load (24 cocktails per page)
     - Efficient database queries with proper joins
     - Search form state preserved across pagination
     - Responsive design reduces mobile data usage
@@ -563,7 +563,7 @@ def cocktail_index(request):
             pass  # Ignore invalid creator IDs
     
     # Pagination
-    paginator = Paginator(cocktails, 12)  # Show 12 cocktails per page
+    paginator = Paginator(cocktails, 24)  # Show 24 cocktails per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -1105,7 +1105,7 @@ def list_detail(request, list_id):
         cocktails = cocktails.order_by('-created_at')
     
     # Pagination
-    paginator = Paginator(cocktails, 12)
+    paginator = Paginator(cocktails, 24)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
