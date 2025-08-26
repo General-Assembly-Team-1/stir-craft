@@ -2,6 +2,13 @@
 
 **A sophisticated Django web application for cocktail enthusiasts, bartenders, and culinary professionals.**
 
+🌐 **Live Site**: [https://stircraft-app-0dd06cf5d30a.herokuapp.com/](https://stircraft-app-0dd06cf5d30a.herokuapp.com/)
+
+## 📸 Live Site Preview
+
+![StirCraft Homepage](https://api.thumbnail.ws/api/0aa25b5dca2de30e2d1a9be5cf6a6afd65a0d5ea48b2/thumbnail/get?url=https://stircraft-app-0dd06cf5d30a.herokuapp.com&width=1200)
+*StirCraft's elegant homepage showcasing speakeasy-inspired typography and intuitive cocktail discovery*
+
 ![Django](https://img.shields.io/badge/Django-4.2-green) ![Python](https://img.shields.io/badge/Python-3.12-blue) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue) ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple) ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
 
 ---
