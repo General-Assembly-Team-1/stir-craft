@@ -2,11 +2,12 @@
 <div class="card-header bg-primary text-white">
     <div class="row align-items-center">
         <!-- Cocktail Image -->
-        <div class="col-md-3 text-center">
+        <div class="col-md-3 text-center cocktail-image-container">
             {% if cocktail.image %}
                 <img src="{{ cocktail.image.url }}" 
                      alt="{{ cocktail.name }}" 
-                     class="cocktail-header-image img-fluid rounded shadow">
+                     class="cocktail-header-image img-fluid rounded shadow"
+                     onload="this.style.opacity=1">
             {% else %}
                 <div class="image-placeholder rounded shadow d-flex align-items-center justify-content-center text-white-50" 
                      style="width: 200px; height: 200px; background: rgba(255,255,255,0.1);">
