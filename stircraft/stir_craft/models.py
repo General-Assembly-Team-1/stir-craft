@@ -1,4 +1,44 @@
 # This file contains all the Models for the PostgreSQL database we'll be using in the Stir Craft web/mobile application.  
+
+"""
+=============================================================================
+🏗️ STIRCRAFT DATABASE MODELS
+=============================================================================
+
+This module defines the complete data model for StirCraft, a cocktail recipe 
+management application. The models are designed to handle:
+
+1. USER MANAGEMENT: Extended user profiles with age verification
+2. INGREDIENT CATALOG: Comprehensive ingredient database with alcohol content
+3. VESSEL INVENTORY: Glassware and serving equipment specifications  
+4. COCKTAIL RECIPES: Complex recipes with precise measurements
+5. USER COLLECTIONS: Custom lists and favorites system
+
+DESIGN PRINCIPLES:
+- Data integrity through constraints and validation
+- Performance optimization with proper indexing
+- Flexibility for future feature expansion
+- Clear separation of concerns across model boundaries
+
+DATABASE RELATIONSHIPS:
+- User ←→ Profile (1:1) - Extended user information
+- User → Cocktail (1:M) - Users create many cocktails  
+- Cocktail ←→ Ingredient (M:M through RecipeComponent) - Complex recipes
+- User → List (1:M) - Users create multiple lists
+- List ←→ Cocktail (M:M) - Lists contain multiple cocktails
+
+PERFORMANCE CONSIDERATIONS:
+- Strategic use of select_related() and prefetch_related()
+- Indexed fields for common queries (created_at, name)
+- Efficient many-to-many through tables
+- Minimal database hits in model methods
+
+SEEDING INTEGRATION:
+- Models designed to work with TheCocktailDB API import
+- Handles external image URLs and processing
+- Supports bulk operations for large imports
+=============================================================================
+"""
 from django.contrib.auth.models import User
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -313,14 +353,8 @@ class Cocktail(models.Model):
         blank=True,  # Color is optional for user input
         help_text="Cocktail color for filtering and visual identification"
     )
-    image = models.ImageField(
-        upload_to='cocktails/',
-        blank=True,
-        null=True,
-        help_text="Cocktail image - auto-populated from TheCocktailDB or user-uploaded"
-    )
     
-    # Attribution for recipe sourcing
+    # Attribution for recipe sourcing and external API integration
     attribution_text = models.CharField(
         max_length=200,
         blank=True,
@@ -356,33 +390,102 @@ class Cocktail(models.Model):
     
     def get_total_volume(self):
         """
-        Calculate total volume of all ingredients.
-        Iterates through RecipeComponent objects linked to this cocktail.
+        Calculate total volume of all ingredients in this cocktail.
+        
+        ALGORITHM:
+        1. Iterate through all RecipeComponent objects linked to this cocktail
+        2. Sum the 'amount' field from each component
+        3. Skip any components where amount is None (data integrity)
+        4. Return total volume in milliliters
+        
+        PERFORMANCE NOTE:
+        - Uses self.components.all() which can be optimized with prefetch_related
+        - Consider using aggregate() for better performance with large datasets
+        
+        Returns:
+            float: Total volume in milliliters
+            
+        Example:
+            martini = Cocktail.objects.get(name="Martini")
+            total_vol = martini.get_total_volume()  # Returns ~75.0 (ml)
         """
+        # PSEUDO-CODE:
+        # total = 0
+        # for each component in cocktail:
+        #     if component.amount exists:
+        #         total += component.amount
+        # return total
+        
         total_volume = sum(
             float(rc.amount) for rc in self.components.all()
-            if rc.amount  # Ensures amount is not None
+            if rc.amount  # Ensures amount is not None (data integrity check)
         )
         return total_volume
     
     def get_alcohol_content(self):
         """
-        Calculate the approximate alcohol content (ABV) of the cocktail.
-        This is a weighted average based on the alcohol content and volume of each ingredient.
+        Calculate the approximate alcohol by volume (ABV) of the cocktail.
+        
+        ALGORITHM:
+        1. For each ingredient component:
+           a. Get ingredient's alcohol content (%)
+           b. Calculate alcohol volume = ingredient_volume * (alcohol_% / 100)
+           c. Add to total alcohol volume
+           d. Add ingredient volume to total volume
+        2. Calculate final ABV = (total_alcohol_volume / total_volume) * 100
+        3. Round to 2 decimal places for display
+        
+        MATHEMATICAL FORMULA:
+        ABV = (Σ(ingredient_volume_i × alcohol_content_i%) / total_volume) × 100
+        
+        EDGE CASES:
+        - If total volume is 0, return 0.0 (prevent division by zero)
+        - Non-alcoholic ingredients contribute to volume but not alcohol content
+        
+        Returns:
+            float: Alcohol by volume percentage (0.0 to ~40.0 typical range)
+            
+        Example:
+            martini = Cocktail.objects.get(name="Martini")
+            abv = martini.get_alcohol_content()  # Returns ~28.5 (28.5% ABV)
         """
+        # PSEUDO-CODE:
+        # total_alcohol_volume = 0
+        # total_volume = 0
+        # 
+        # for each component in cocktail:
+        #     ingredient_volume = component.amount
+        #     ingredient_alcohol_content = component.ingredient.alcohol_content
+        #     
+        #     if ingredient_alcohol_content > 0:
+        #         alcohol_contribution = ingredient_volume * (ingredient_alcohol_content / 100)
+        #         total_alcohol_volume += alcohol_contribution
+        #     
+        #     total_volume += ingredient_volume
+        # 
+        # if total_volume > 0:
+        #     abv_percentage = (total_alcohol_volume / total_volume) * 100
+        #     return round(abv_percentage, 2)
+        # else:
+        #     return 0.0
+        
         total_alcohol_volume = 0
         total_volume = 0
         
         for component in self.components.all():
-            if component.ingredient.alcohol_content > 0:
-                # Convert amount to consistent units (assume ml)
-                volume = component.amount
-                alcohol_volume = volume * (Decimal(str(component.ingredient.alcohol_content)) / Decimal('100'))
+            # Convert amount to Decimal for precise calculations
+            component_volume = component.amount
+            ingredient_abv = component.ingredient.alcohol_content
+            
+            if ingredient_abv > 0:
+                # Calculate alcohol contribution from this ingredient
+                alcohol_volume = component_volume * (Decimal(str(ingredient_abv)) / Decimal('100'))
                 total_alcohol_volume += alcohol_volume
-                total_volume += volume
-            else:
-                total_volume += component.amount
+            
+            # All ingredients contribute to total volume
+            total_volume += component_volume
         
+        # Calculate final ABV percentage
         if total_volume > 0:
             percentage = (total_alcohol_volume / total_volume) * Decimal('100')
             return float(round(percentage, 2))
@@ -390,40 +493,93 @@ class Cocktail(models.Model):
     
     def get_popularity_stats(self):
         """
-        Get popularity statistics for this cocktail.
-        Returns a dictionary with various popularity metrics.
+        Calculate comprehensive popularity metrics for this cocktail.
+        
+        DATA AGGREGATION ALGORITHM:
+        1. Count favorites: How many users have this in their "Favorites" list
+        2. Count custom lists: How many user-created lists contain this cocktail  
+        3. Count total appearances: Aggregate across all list types
+        4. Sample list names: Get first 5 custom list names for display
+        5. Check for overflow: Indicate if there are more than 5 lists
+        
+        PERFORMANCE OPTIMIZATION:
+        - Uses count() instead of len() for database-level counting
+        - Limits list name queries to first 5 to prevent large result sets
+        - Single query per metric using efficient filtering
+        
+        DATABASE QUERIES GENERATED:
+        1. SELECT COUNT(*) FROM lists WHERE list_type='favorites' AND cocktail_id=X
+        2. SELECT COUNT(*) FROM lists WHERE list_type='custom' AND cocktail_id=X  
+        3. SELECT COUNT(*) FROM lists WHERE cocktail_id=X
+        4. SELECT name FROM lists WHERE list_type='custom' AND cocktail_id=X LIMIT 5
+        
+        Returns:
+            dict: Comprehensive popularity metrics
+            {
+                'favorites_count': int,        # Number of users who favorited
+                'custom_lists_count': int,     # Number of custom lists containing this
+                'total_lists_count': int,      # Total appearances across all lists
+                'custom_list_names': list,     # Sample of custom list names
+                'has_more_lists': bool,        # True if more than 5 custom lists
+            }
+            
+        Example:
+            margarita = Cocktail.objects.get(name="Margarita")
+            stats = margarita.get_popularity_stats()
+            # Returns: {
+            #     'favorites_count': 45,
+            #     'custom_lists_count': 12, 
+            #     'total_lists_count': 57,
+            #     'custom_list_names': ['Summer Drinks', 'Tequila Classics', ...],
+            #     'has_more_lists': True
+            # }
         """
+        # PSEUDO-CODE:
+        # favorites_count = count(lists where type='favorites' and contains this cocktail)
+        # custom_lists_count = count(lists where type='custom' and contains this cocktail)
+        # total_lists_count = count(lists where contains this cocktail)
+        # custom_list_names = get_first_5(list names where type='custom' and contains this cocktail)
+        # has_more_lists = custom_lists_count > 5
+        # 
+        # return {
+        #     favorites_count,
+        #     custom_lists_count, 
+        #     total_lists_count,
+        #     custom_list_names,
+        #     has_more_lists
+        # }
+        
         from django.db.models import Count
         
-        # Count how many users have this in their favorites
+        # Count how many users have this in their favorites list
         favorites_count = List.objects.filter(
             list_type='favorites',
             cocktails=self
         ).count()
         
-        # Count how many custom lists contain this cocktail
+        # Count how many custom (user-created) lists contain this cocktail
         custom_lists_count = List.objects.filter(
             list_type='custom',
             cocktails=self
         ).count()
         
-        # Count total appearances across all lists
+        # Count total appearances across all list types
         total_lists_count = List.objects.filter(
             cocktails=self
         ).count()
         
-        # Get list of custom list names (for display)
+        # Get sample of custom list names for display (limit to 5 for performance)
         custom_list_names = List.objects.filter(
             list_type='custom',
             cocktails=self
-        ).values_list('name', flat=True)[:5]  # Limit to first 5 for display
+        ).values_list('name', flat=True)[:5]  # LIMIT 5 for performance
         
         return {
             'favorites_count': favorites_count,
             'custom_lists_count': custom_lists_count,
             'total_lists_count': total_lists_count,
             'custom_list_names': list(custom_list_names),
-            'has_more_lists': custom_lists_count > 5,
+            'has_more_lists': custom_lists_count > 5,  # Indicates truncation
         }
     
     def get_image_url(self):
@@ -614,11 +770,54 @@ class RecipeComponent(models.Model):
     
     def get_display_amount(self):
         """
-        Returns the amount with proper unit conversion and formatting.
-        - Converts mL to ounces for display (quarters only)
-        - Uses teaspoons for very small amounts
-        - Maintains semantic units (dash, splash) for special measurements
+        Convert stored amounts to user-friendly display format with proper unit conversion.
+        
+        UNIT CONVERSION ALGORITHM:
+        1. Non-standard units (dash, splash, etc.) → Display as-is
+        2. Milliliters → Convert to ounces for US bartenders
+        3. Small amounts (<0.33 oz) → Convert to teaspoons for precision
+        4. Standard amounts → Round to nearest quarter ounce for practicality
+        5. Teaspoons → Format with fractions (1/2 tsp, 1 1/2 tsp)
+        
+        CONVERSION FACTORS:
+        - 1 fluid ounce = 29.5735 milliliters
+        - 1 teaspoon = 4.92892 milliliters  
+        - Quarter-ounce rounding for bartender-friendly measurements
+        
+        DISPLAY RULES:
+        - Whole numbers: "2 oz" not "2.0 oz"
+        - Fractions: "3/4 oz" not "0.75 oz"
+        - Small amounts: "1/2 tsp" not "0.08 oz"
+        - Non-standard: "2 dashes" not "2.0 dashes"
+        
+        Returns:
+            str: Human-readable amount with unit (e.g., "2 oz", "1/2 tsp", "3 dashes")
+            
+        Examples:
+            component.amount = 60, unit = 'ml' → "2 oz"
+            component.amount = 7.5, unit = 'ml' → "1 1/2 tsp"  
+            component.amount = 2, unit = 'dash' → "2 dashes"
+            component.amount = 22.5, unit = 'ml' → "3/4 oz"
         """
+        # PSEUDO-CODE:
+        # if unit is non-standard (dash, splash, etc.):
+        #     return amount + unit (formatted nicely)
+        # 
+        # if unit is ml:
+        #     oz_amount = ml_amount / 29.5735
+        #     if oz_amount < 0.33:
+        #         tsp_amount = ml_amount / 4.92892
+        #         return formatted_teaspoons(tsp_amount)
+        #     else:
+        #         quarter_oz = round_to_quarter(oz_amount)
+        #         return formatted_ounces(quarter_oz)
+        # 
+        # if unit is tsp:
+        #     return formatted_teaspoons(amount)
+        # 
+        # else:
+        #     return amount + unit (other standard units)
+        
         # Non-standard units that should be displayed as-is
         non_standard_units = ['dash', 'splash', 'pinch', 'piece', 'slice', 'wedge', 'sprig']
         
@@ -636,6 +835,8 @@ class RecipeComponent(models.Model):
             # For very small amounts (less than 0.33 oz / ~10 mL), use teaspoons
             if oz_amount < 0.33:
                 tsp_amount = float(self.amount) / 4.92892  # 1 tsp = 4.92892 mL
+                
+                # Format teaspoons with common fractions
                 if tsp_amount <= 0.5:
                     return "1/2 tsp"
                 elif tsp_amount <= 1:
@@ -647,10 +848,10 @@ class RecipeComponent(models.Model):
                 else:
                     return f"{tsp_amount:.1f} tsp"
             
-            # Round to nearest quarter ounce for larger amounts
+            # Round to nearest quarter ounce for bartender-friendly measurements
             quarter_oz = round(oz_amount * 4) / 4
             
-            # Format quarters nicely
+            # Format quarters with fractions for readability
             if quarter_oz == int(quarter_oz):
                 return f"{int(quarter_oz)} oz"
             elif quarter_oz == int(quarter_oz) + 0.25:
@@ -669,10 +870,10 @@ class RecipeComponent(models.Model):
                 else:
                     return f"{int(quarter_oz)} 3/4 oz"
             else:
-                # Fallback to single decimal
+                # Fallback to single decimal for edge cases
                 return f"{quarter_oz:.1f} oz"
         
-        # For teaspoons stored as tsp, display nicely
+        # For teaspoons stored as tsp, format with fractions
         if self.unit == 'tsp':
             amount = float(self.amount)
             if amount == 0.5:
@@ -684,7 +885,7 @@ class RecipeComponent(models.Model):
             else:
                 return f"{amount} tsp"
         
-        # For other standard units, display as-is with proper formatting
+        # For other standard units, display with clean formatting
         if self.amount == int(self.amount):
             return f"{int(self.amount)} {self.get_unit_display()}"
         else:
