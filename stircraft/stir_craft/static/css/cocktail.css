@@ -88,6 +88,20 @@
     color: #495057;
 }
 
+/* Cocktail image container to prevent conflicts */
+.cocktail-image-container {
+    position: relative;
+}
+
+.cocktail-image-container .cocktail-header-image {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cocktail-image-container .cocktail-header-image[style*="opacity:1"] {
+    opacity: 1;
+}
+
 /* =============================================================================
    🃏 COCKTAIL CARD STYLES
    ============================================================================= */
