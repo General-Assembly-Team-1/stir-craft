@@ -8,9 +8,9 @@
                      alt="{{ cocktail.name }}" 
                      class="cocktail-header-image img-fluid rounded shadow">
             {% else %}
-                <!-- Try static image fallback based on cocktail name -->
-                {% with cocktail.name|lower|slugify as image_name %}
-                    <img src="{{ MEDIA_URL }}cocktails/{{ image_name }}.jpg" 
+                <!-- Try static image fallback - simple lowercase with spaces removed -->
+                {% with cocktail.name|lower|cut:' '|cut:'&'|cut:'"'|cut:"'"|cut:'!'|cut:'.'|cut:'(' |cut:')' as simple_name %}
+                    <img src="{{ MEDIA_URL }}cocktails/{{ simple_name }}.jpg" 
                          alt="{{ cocktail.name }}" 
                          class="cocktail-header-image img-fluid rounded shadow"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">

@@ -11,10 +11,10 @@
                      loading="lazy">
             </div>
         {% else %}
-            <!-- Try static image fallback based on cocktail name -->
-            {% with cocktail.name|lower|slugify as image_name %}
+            <!-- Try static image fallback - simple lowercase with spaces removed -->
+            {% with cocktail.name|lower|cut:' '|cut:'&'|cut:'"'|cut:"'"|cut:'!'|cut:'.'|cut:'(' |cut:')' as simple_name %}
                 <div class="card-img-top-container" style="height: 200px; overflow: hidden;">
-                    <img src="{{ MEDIA_URL }}cocktails/{{ image_name }}.jpg" 
+                    <img src="{{ MEDIA_URL }}cocktails/{{ simple_name }}.jpg" 
                          alt="{{ cocktail.name }}" 
                          class="card-img-top" 
                          style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;"
