@@ -3,22 +3,15 @@
     <div class="row align-items-center">
         <!-- Cocktail Image -->
         <div class="col-md-3 text-center">
-            {% if cocktail.image and cocktail.image.url %}
+            {% if cocktail.image %}
                 <img src="{{ cocktail.image.url }}" 
                      alt="{{ cocktail.name }}" 
                      class="cocktail-header-image img-fluid rounded shadow">
             {% else %}
-                <!-- Try static image fallback - simple lowercase with spaces removed -->
-                {% with cocktail.name|lower|cut:' '|cut:'&'|cut:'"'|cut:"'"|cut:'!'|cut:'.'|cut:'(' |cut:')' as simple_name %}
-                    <img src="{{ MEDIA_URL }}cocktails/{{ simple_name }}.jpg" 
-                         alt="{{ cocktail.name }}" 
-                         class="cocktail-header-image img-fluid rounded shadow"
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="image-placeholder rounded shadow d-flex align-items-center justify-content-center text-white-50" 
-                         style="display: none; width: 200px; height: 200px; background: rgba(255,255,255,0.1);">
-                        <i class="bi bi-cup-straw" style="font-size: 4rem;"></i>
-                    </div>
-                {% endwith %}
+                <div class="image-placeholder rounded shadow d-flex align-items-center justify-content-center text-white-50" 
+                     style="width: 200px; height: 200px; background: rgba(255,255,255,0.1);">
+                    <i class="bi bi-cup-straw" style="font-size: 4rem;"></i>
+                </div>
             {% endif %}
         </div>
         
