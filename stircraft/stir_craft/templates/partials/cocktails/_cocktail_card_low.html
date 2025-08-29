@@ -2,7 +2,7 @@
 <div class="card h-100 cocktail-card cocktail-card-low">
     <!-- Cocktail Image -->
     <a href="{% url 'cocktail_detail' cocktail.id %}" class="text-decoration-none">
-        {% if cocktail.has_image %}
+        {% if cocktail.image and cocktail.image.url %}
             <div class="card-img-top-container" style="height: 180px; overflow: hidden;">
                 <img src="{{ cocktail.image.url }}" 
                      alt="{{ cocktail.name }}" 
@@ -11,10 +11,17 @@
                      loading="lazy">
             </div>
         {% else %}
-            <div class="card-img-top-container image-placeholder" 
-                 style="height: 180px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; color: #6c757d;">
-                <i class="bi bi-cup-straw" style="font-size: 2.5rem;"></i>
-            </div>
+            <!-- Try static image fallback based on cocktail name -->
+            {% with cocktail.name|lower|slugify as image_name %}
+                <div class="card-img-top-container" style="height: 180px; overflow: hidden;">
+                    <img src="{{ MEDIA_URL }}cocktails/{{ image_name }}.jpg" 
+                         alt="{{ cocktail.name }}" 
+                         class="card-img-top" 
+                         style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;"
+                         loading="lazy"
+                         onerror="this.style.display='none'; this.parentElement.classList.add('image-placeholder'); this.parentElement.style.backgroundColor='#f8f9fa'; this.parentElement.style.color='#6c757d'; this.parentElement.style.display='flex'; this.parentElement.style.alignItems='center'; this.parentElement.style.justifyContent='center'; this.parentElement.innerHTML='<i class=\'bi bi-cup-straw\' style=\'font-size: 2.5rem;\'></i>';">
+                </div>
+            {% endwith %}
         {% endif %}
     </a>
     
