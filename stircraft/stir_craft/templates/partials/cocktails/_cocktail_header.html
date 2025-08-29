@@ -41,8 +41,8 @@
                             <i class="bi bi-person-circle"></i>
                             <strong>Created by:</strong> 
                             <a href="{% url 'profile_detail' cocktail.creator.id %}" 
-                               class="text-white fw-bold" 
-                               style="text-decoration: underline; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-decoration-color: #fff;">
+                               class="fw-bold" 
+                               style="color: var(--secondary-color); text-decoration: underline; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-decoration-color: var(--secondary-color);">
                                 {{ cocktail.creator.username }}
                             </a>
                             <small class="text-white" style="opacity: 0.85; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">on {{ cocktail.created_at|date:"M d, Y" }}</small>
@@ -53,14 +53,14 @@
                                 <i class="bi bi-arrow-right-circle"></i>
                                 <strong>Based on:</strong> 
                                 <a href="{% url 'cocktail_detail' cocktail.forked_from.id %}" 
-                                   class="text-white fw-bold" 
-                                   style="text-decoration: underline; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-decoration-color: #fff;">
+                                   class="fw-bold" 
+                                   style="color: var(--secondary-color); text-decoration: underline; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-decoration-color: var(--secondary-color);">
                                     "{{ cocktail.forked_from.name }}"
                                 </a>
                                 by
                                 <a href="{% url 'profile_detail' cocktail.forked_from.creator.id %}" 
-                                   class="text-white fw-bold" 
-                                   style="text-decoration: underline; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-decoration-color: #fff;">
+                                   class="fw-bold" 
+                                   style="color: var(--secondary-color); text-decoration: underline; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-decoration-color: var(--secondary-color);">
                                     {{ cocktail.forked_from.creator.username }}
                                 </a>
                             </p>
@@ -72,8 +72,8 @@
                                 <strong>Source:</strong> 
                                 {% if cocktail.attribution_url %}
                                     <a href="{{ cocktail.attribution_url }}" target="_blank" rel="noopener noreferrer" 
-                                       class="text-white fw-bold attribution-link" 
-                                       style="text-decoration: underline; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-decoration-color: #fff;">
+                                       class="fw-bold attribution-link" 
+                                       style="color: var(--secondary-color); text-decoration: underline; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-decoration-color: var(--secondary-color);">
                                         {{ cocktail.attribution_text }}
                                     </a>
                                 {% else %}
