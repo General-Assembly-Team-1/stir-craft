@@ -53,13 +53,13 @@
               {% for cocktail in cocktails %}
                 <div class="col-lg-4 cocktail-col">
                   <div class="card cocktail-card">
-                    {% if cocktail.image %}
-                      <img src="{{ cocktail.get_safe_image_url }}" class="cocktail-image" alt="{{ cocktail.name }}"
-                           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                      <div class="image-placeholder" style="display: none; height: 100px; align-items: center; justify-content: center; background-color: #f8f9fa; color: #6c757d;">
+                    {% if cocktail.has_image %}
+                      <img src="{{ cocktail.image.url }}" class="cocktail-image" alt="{{ cocktail.name }}">
+                    {% else %}
+                      <div class="image-placeholder" style="height: 100px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; color: #6c757d;">
                           <i class="bi bi-cup-straw" style="font-size: 2rem;"></i>
                       </div>
-                    {% else %}
+                    {% endif %}
                       <div class="cocktail-placeholder">
                         <i class="fas fa-cocktail"></i>
                       </div>
