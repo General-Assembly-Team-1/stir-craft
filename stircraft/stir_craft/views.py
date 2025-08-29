@@ -120,7 +120,7 @@ def profile_detail(request, user_id=None):
     """
     Display user profile information with public lists and stats.
     If user_id is None, show current user's profile (requires login).
-    For other users, only show public information (username, public lists, creation count).
+    For other users, show public information including custom lists and creations.
     """
     if user_id is None:
         # Viewing own profile requires login
@@ -138,19 +138,25 @@ def profile_detail(request, user_id=None):
     # Get cocktail creation count
     cocktails_created = Cocktail.objects.filter(creator=user).count()
     
-    # Get public lists (custom lists only, excluding favorites/creations for other users)
+    # Get appropriate lists based on viewing context
     if request.user.is_authenticated and request.user == user:
         # For own profile, show all lists
         public_lists = List.objects.filter(creator=user).order_by('-updated_at')
         favorites_list = List.get_or_create_favorites_list(user)
         favorites_count = favorites_list.cocktail_count()
     else:
-        # For other users, only show custom lists (not favorites/creations)
+        # For other users, show custom lists and their creations list
         public_lists = List.objects.filter(
             creator=user, 
-            list_type='custom'
+            list_type__in=['custom', 'creations']
         ).order_by('-updated_at')
-        favorites_count = 0  # Don't show private favorites count
+        
+        # Also get their favorites count for display (but not the actual favorites)
+        try:
+            favorites_list = List.objects.get(creator=user, list_type='favorites')
+            favorites_count = favorites_list.cocktail_count()
+        except List.DoesNotExist:
+            favorites_count = 0
     
     stats = {
         'cocktails_created': cocktails_created,
@@ -163,6 +169,7 @@ def profile_detail(request, user_id=None):
         'user': user,
         'stats': stats,
         'public_lists': public_lists,
+        'is_own_profile': request.user.is_authenticated and request.user == user,
     })
 
 @login_required

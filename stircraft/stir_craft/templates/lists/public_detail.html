@@ -77,17 +77,7 @@
                                     </div>
                                     
                                     <!-- Favorite Button -->
-                                    {% if user.is_authenticated and favorites_list %}
-                                        {% with cocktail in favorites_list.cocktails.all as is_favorited %}
-                                        <button type="button" 
-                                                class="btn {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %} btn-sm favorite-btn" 
-                                                data-cocktail-id="{{ cocktail.id }}"
-                                                data-is-favorited="{{ is_favorited|yesno:'true,false' }}">
-                                            <i class="bi {% if is_favorited %}bi-heart-fill{% else %}bi-heart{% endif %}"></i> 
-                                            {% if is_favorited %}Remove from Favorites{% else %}Add to Favorites{% endif %}
-                                        </button>
-                                        {% endwith %}
-                                    {% elif user.is_authenticated %}
+                                    {% if user.is_authenticated %}
                                         <button type="button" class="btn btn-outline-danger btn-sm favorite-btn" 
                                                 data-cocktail-id="{{ cocktail.id }}"
                                                 data-is-favorited="false">

@@ -614,12 +614,26 @@ class Cocktail(models.Model):
     
     def has_image(self):
         """
-        Check if the cocktail has an associated image.
+        Check if the cocktail has an associated image and the file exists.
         
         Returns:
-            bool: True if cocktail has an image, False otherwise
+            bool: True if cocktail has a valid image file, False otherwise
         """
-        return bool(self.image and hasattr(self.image, 'url'))
+        if not self.image:
+            return False
+        
+        try:
+            # Check if the image field has a URL and the file exists
+            if hasattr(self.image, 'url') and hasattr(self.image, 'path'):
+                import os
+                return os.path.exists(self.image.path)
+            elif hasattr(self.image, 'url'):
+                # For remote storage, assume URL exists if image field is set
+                return bool(self.image.url)
+        except (ValueError, AttributeError, IOError):
+            return False
+        
+        return False
     
     def get_base_spirit(self):
         """
